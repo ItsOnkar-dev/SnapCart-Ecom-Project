@@ -1,7 +1,36 @@
-import express from 'express';
+import cookieParser from "cookie-parser";
+import express, { NextFunction, Request, Response } from "express";
+import authRoutes from "./routes/auth.routes";
+import { ApiError } from "./utils/ApiResponse";
 
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+app.use(cookieParser());
+
+// Mount routes
+app.use("/api/auth", authRoutes);
+
+// Global error handler —
+// Express knows this is an error handler because it has 4 parameters (err, req, res, next)
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  // If it's our own ApiError, we have statusCode + message ready
+  console.error("Global error handler caught:", err);
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+    return;
+  }
+
+  // If it's some unexpected error (DB crash, bug, etc.)
+  console.error("Unexpected error:", err);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
 
 export default app;
