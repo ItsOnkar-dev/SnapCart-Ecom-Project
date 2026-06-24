@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import express, { NextFunction, Request, Response } from "express";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
+import productRoutes from "./routes/product.routes";
 import sellerRoutes from "./routes/seller.routes";
 import { ApiError } from "./utils/ApiResponse";
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/products", productRoutes);
 
 // Global error handler —
 // Express knows this is an error handler because it has 4 parameters (err, req, res, next)
