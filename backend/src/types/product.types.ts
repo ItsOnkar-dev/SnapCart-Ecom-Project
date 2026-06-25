@@ -20,6 +20,8 @@ export interface IProduct extends Document {
   images: string[]; // array of image URLs
   stock: number; // how many units available
   seller: Types.ObjectId; // reference to the User who created this
+  averageRating: number;
+  totalReviews: number;
   isActive: boolean; // soft delete — don't actually remove from DB
   createdAt: Date;
   updatedAt: Date;

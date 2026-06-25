@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
 import orderRoutes from "./routes/order.routes";
 import productRoutes from "./routes/product.routes";
+import reviewRoutes from "./routes/review.routes";
 import sellerRoutes from "./routes/seller.routes";
 import { ApiError } from "./utils/ApiResponse";
 
@@ -21,6 +22,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Global error handler —
 // Express knows this is an error handler because it has 4 parameters (err, req, res, next)

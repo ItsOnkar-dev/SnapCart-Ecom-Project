@@ -46,6 +46,16 @@ const productSchema = new Schema<IProduct>(
       type: [String],
       default: [],
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
     stock: {
       type: Number,
       required: [true, "Stock is required"],
