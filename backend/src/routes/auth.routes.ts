@@ -11,12 +11,13 @@ import {
     googleCallback,
 } from "../controllers/googleAuth.controller";
 import { verifyToken } from "../middleware/auth.middleware";
+import { validate } from "../middleware/validate.middleware";
+import { loginSchema, registerSchema } from "../validators/auth.validator";
 
 const router = Router();
 
-// POST /api/auth/register
-router.post("/register", register);
-router.post("/login", login);
+router.post("/register", validate(registerSchema), register);
+router.post("/login", validate(loginSchema), login);
 router.post("/refresh", refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, logout);

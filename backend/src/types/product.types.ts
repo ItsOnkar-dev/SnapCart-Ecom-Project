@@ -1,15 +1,15 @@
 import { Document, Types } from "mongoose";
 
 export type ProductCategory =
+  | "All Products"
   | "electronics"
   | "fashion"
   | "home"
   | "beauty"
   | "sports"
   | "books"
-  | "toys"
-  | "food"
-  | "other";
+  | "gaming"
+  | "new in";
 
 export interface IProduct extends Document {
   name: string;
