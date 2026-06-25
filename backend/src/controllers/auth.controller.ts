@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import {
-    generateAccessToken,
-    generateRefreshToken,
+  generateAccessToken,
+  generateRefreshToken,
 } from "../utils/generateTokens";
 
 // POST /api/auth/register
@@ -101,24 +102,30 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   await user.save({ validateBeforeSave: false });
   // validateBeforeSave:false — only refreshToken changed, no need to re-run all validators
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   // Step 8 — Cookie config
-  const cookieOptions = {
-    httpOnly: true, // browser JS cannot read this cookie — blocks XSS attacks
-    secure: process.env.NODE_ENV === "production", // HTTPS only in prod, HTTP allowed in dev
-    sameSite: "strict" as const, // cookie only sent to your own domain — blocks CSRF
+  const accessTokenCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+    path: "/",
+    maxAge: 15 * 60 * 1000,
+  };
+
+  const refreshTokenCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+    path: "/api/auth",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 
   // Step 9 — Attach cookies to response and send user data
   res
     .status(200)
-    .cookie("accessToken", accessToken, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000, // 15 minutes in ms
-    })
-    .cookie("refreshToken", refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
-    })
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
     .json(
       new ApiResponse(200, "Login successful", {
         _id: user._id,
@@ -129,6 +136,71 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       }),
     );
 });
+
+// POST /api/auth/refresh
+export const refreshAccessToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    // Step 1 — Read refresh token from cookie
+    const token = req.cookies?.refreshToken;
+
+    if (!token) {
+      throw new ApiError(401, "No refresh token");
+    }
+
+    // Step 2 — Verify it
+    let decoded: { userId: string };
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.REFRESH_TOKEN_SECRET as string,
+      ) as { userId: string };
+    } catch {
+      throw new ApiError(401, "Invalid or expired refresh token");
+    }
+
+    // Step 3 — Find user and check stored refresh token matches
+    const user = await User.findById(decoded.userId).select("+refreshToken");
+
+    if (!user || user.refreshToken !== token) {
+      // Token reuse detected — someone is using an old refresh token
+      // This means the token may have been stolen — wipe all tokens
+      if (user) {
+        user.refreshToken = undefined;
+        await user.save({ validateBeforeSave: false });
+      }
+      throw new ApiError(
+        401,
+        "Refresh token reuse detected. Please login again.",
+      );
+    }
+
+    // Step 4 — Issue new tokens (rotation)
+    const newAccessToken = generateAccessToken(user._id.toString(), user.role);
+    const newRefreshToken = generateRefreshToken(user._id.toString());
+
+    // Step 5 — Save new refresh token, invalidate old one
+    user.refreshToken = newRefreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res
+      .cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "strict" : "lax",
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "strict" : "lax",
+        path: "/api/auth",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .json(new ApiResponse(200, "Token refreshed successfully"));
+  },
+);
 
 // GET /api/auth/me
 // verifyToken middleware runs before this — so req.user is already attached
@@ -158,16 +230,9 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     refreshToken: null,
   });
 
-  // Step 2 — Clear both cookies from browser
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict" as const,
-  };
-
   res
     .status(200)
-    .clearCookie("accessToken", cookieOptions)
-    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", { path: "/" })
+    .clearCookie("refreshToken", { path: "/api/auth" })
     .json(new ApiResponse(200, "Logged out successfully"));
 });

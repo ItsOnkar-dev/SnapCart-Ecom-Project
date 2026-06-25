@@ -49,8 +49,13 @@ export const createProduct = asyncHandler(
 export const getAllProducts = asyncHandler(
   async (req: Request, res: Response) => {
     // Basic filters from query params
-    // Example: /api/products?category=electronics&minPrice=100&maxPrice=5000
-    const { category, minPrice, maxPrice, search } = req.query;
+    // Example: /api/products?category=electronics&minPrice=100&maxPrice=5000&page=1&limit=10
+    const { category, minPrice, maxPrice, search, page, limit } = req.query;
+
+    // Pagination — default to page 1, 10 products per page
+    const currentPage = Math.max(1, Number(page) || 1); // never go below page 1
+    const pageLimit = Math.min(50, Number(limit) || 10); // max 50 per page — prevents abuse
+    const skip = (currentPage - 1) * pageLimit; // how many to skip
 
     // Build filter object dynamically based on what was sent
     const filter: Record<string, unknown> = { isActive: true }; // only show active products
@@ -71,13 +76,29 @@ export const getAllProducts = asyncHandler(
       filter.name = { $regex: search, $options: "i" };
     }
 
-    const products = await Product.find(filter)
-      .populate("seller", "name email") // replace seller ObjectId with their name + email
-      .sort({ createdAt: -1 }); // newest first
+    // Run both queries in parallel — faster than running one after the other
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .populate("seller", "name email") // replace seller ObjectId with their name + email
+        .sort({ createdAt: -1 }) // newest first
+        .skip(skip) // skip products from previous pages
+        .limit(pageLimit), // only return this many products
+      Product.countDocuments(filter), // total count matching the filter
+    ]);
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, "Products fetched successfully", products));
+    res.status(200).json(
+      new ApiResponse(200, "Products fetched successfully", {
+        products,
+        pagination: {
+          total, // total products matching filter
+          page: currentPage, // current page number
+          limit: pageLimit, // products per page
+          totalPages: Math.ceil(total / pageLimit), // how many pages exist
+          hasNextPage: currentPage < Math.ceil(total / pageLimit), // is there a next page?
+          hasPrevPage: currentPage > 1, // is there a previous page?
+        },
+      }),
+    );
   },
 );
 

@@ -3,6 +3,7 @@ import {
     getCurrentUser,
     login,
     logout,
+    refreshAccessToken,
     register,
 } from "../controllers/auth.controller";
 import {
@@ -16,6 +17,7 @@ const router = Router();
 // POST /api/auth/register
 router.post("/register", register);
 router.post("/login", login);
+router.post("/refresh", refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, logout);
 router.get("/google", googleAuth);

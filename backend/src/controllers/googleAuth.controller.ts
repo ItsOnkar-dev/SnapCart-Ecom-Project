@@ -4,8 +4,8 @@ import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import {
-    generateAccessToken,
-    generateRefreshToken,
+  generateAccessToken,
+  generateRefreshToken,
 } from "../utils/generateTokens";
 
 // GET /api/auth/google
@@ -91,26 +91,41 @@ export const googleCallback = asyncHandler(
     await user.save({ validateBeforeSave: false });
 
     // Step 8 — Set cookies and redirect to frontend
-    const cookieOptions = {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    const accessTokenCookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
+      secure: isProduction,
+      sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    };
+
+    const refreshTokenCookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+      path: "/api/auth",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 
     res
-      .cookie("accessToken", accessToken, {
-        ...cookieOptions,
-        maxAge: 15 * 60 * 1000,
-      })
-      .cookie("refreshToken", refreshToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      //   redirect(process.env.FRONTEND_URL);
-      .json({
+      .cookie("accessToken", accessToken, accessTokenCookieOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+    if (isProduction) {
+      res.redirect(process.env.FRONTEND_URL as string);
+    } else {
+      res.json({
         success: true,
         message: "Google authentication successful",
-        user,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+        },
       });
+    }
   },
 );

@@ -70,4 +70,7 @@ const orderSchema = new Schema<IOrder>(
   { timestamps: true },
 );
 
+orderSchema.index({ user: 1 });
+orderSchema.index({ status: 1 });
+
 export const Order = mongoose.model<IOrder>("Order", orderSchema);

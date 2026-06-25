@@ -54,4 +54,6 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
   { timestamps: true },
 );
 
+userSchema.index({ sellerStatus: 1 });
+
 export const User = mongoose.model<IUser>("User", userSchema); // mongoose.model() is used to create the final model.
