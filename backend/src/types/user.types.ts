@@ -13,6 +13,10 @@ export interface IUser extends Document {
   googleId?: string;
   avatar?: string;
   refreshToken?: string;
+  emailVerificationToken?: string; // optional — only exists during verification
+  emailVerificationTokenExpiry?: Date; // optional — only exists during verification
+  passwordResetToken?: string; // optional — only exists during reset flow
+  passwordResetTokenExpiry?: Date;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

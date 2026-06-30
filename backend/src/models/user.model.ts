@@ -46,6 +46,22 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
       type: String,
       select: false,
     },
+    emailVerificationToken: {
+      type: String,
+      select: false, 
+    },
+    emailVerificationTokenExpiry: {
+      type: Date,
+      select: false,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetTokenExpiry: {
+      type: Date,
+      select: false,
+    },
     isActive: {
       type: Boolean,
       default: true,

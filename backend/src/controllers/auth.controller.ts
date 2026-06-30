@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
@@ -8,6 +9,10 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateTokens";
+import {
+  generateVerificationToken,
+  sendVerificationEmail,
+} from "../utils/sendVerificationEmail";
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {
@@ -36,6 +41,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // bcrypt.hash(password, saltRounds) — 12 rounds is industry standard for 2024
   const hashedPassword = await bcrypt.hash(password, 12);
 
+  // ✅ NEW — generate the token pair BEFORE creating the user
+  // rawToken → goes in the email
+  // hashedToken → goes in the DB
+  const { rawToken, hashedToken } = generateVerificationToken();
+
   // Step 6 — Create the user in DB
   const user = await User.create({
     name: name.trim(),
@@ -43,7 +53,21 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     password: hashedPassword,
     // role defaults to "customer" (set in schema)
     // isActive defaults to true (set in schema)
+    // ✅ NEW — save the hashed token + expiry directly on creation
+    emailVerificationToken: hashedToken,
+    emailVerificationTokenExpiry: new Date(Date.now() + 10 * 60 * 1000), //10 minutes from right now
   });
+
+  // ✅ NEW — fire the email AFTER the user is saved
+  // why after? if email sending fails, you don't want to roll back account creation
+  // user can always request a resend later (Step 5)
+  try {
+    await sendVerificationEmail(user, rawToken);
+  } catch (err) {
+    // don't crash registration just because email failed to send
+    // log it, but let the user account still exist
+    console.error("Failed to send verification email:", err);
+  }
 
   // Step 7 — Send back user data (never send password — even hashed)
   const userResponse = {
@@ -57,7 +81,13 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, "Account created successfully", userResponse));
+    .json(
+      new ApiResponse(
+        201,
+        "Account created. Please check your email to verify your account.",
+        userResponse,
+      ),
+    );
 });
 
 // POST /api/auth/login
@@ -236,3 +266,97 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     .clearCookie("refreshToken", { path: "/api/auth" })
     .json(new ApiResponse(200, "Logged out successfully"));
 });
+
+// GET /api/auth/verify-email?token=abc123...
+export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+  // Step 1 — pull the raw token from the query string
+  const { token } = req.query;
+
+  if (!token || typeof token !== "string") {
+    throw new ApiError(400, "Verification token is required");
+  }
+
+  // Step 2 — hash the incoming raw token THE SAME WAY we hashed it at registration
+  // we never stored the raw token anywhere — only the hash
+  // so to find a match, we must hash again and compare hash-to-hash
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  // Step 3 — find a user with this exact hashed token, that hasn't expired yet
+  // doing both checks in ONE query is more efficient than finding then checking separately
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationTokenExpiry: { $gt: new Date() },
+    //                              ↑
+    //                  $gt = "greater than" — expiry must be in the FUTURE
+    //                  if expiry already passed, this query finds nothing
+  }).select("+emailVerificationToken +emailVerificationTokenExpiry");
+
+  if (!user) {
+    // could mean: wrong token, already used token, or expired token
+    // deliberately vague — same principle as login errors
+    throw new ApiError(400, "Verification link is invalid or has expired");
+  }
+
+  // Step 4 — mark verified, wipe the token fields
+  user.isEmailVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationTokenExpiry = undefined;
+  //          ↑
+  //  CRITICAL — wipe both fields after success
+  //  this token is single-use. if you don't clear it, someone could
+  //  theoretically reuse the same link (until it naturally expires)
+
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json(new ApiResponse(200, "Email verified successfully"));
+});
+
+// POST /api/auth/resend-verification
+export const resendVerification = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new ApiError(400, "Email is required");
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // deliberately vague here too — don't confirm/deny if an email exists in your system
+    if (!user) {
+      res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            "If an account exists, a verification email has been sent",
+          ),
+        );
+      return;
+      // ← same response whether user exists or not
+      // this prevents attackers from using this endpoint to discover registered emails
+    }
+
+    if (user.isEmailVerified) {
+      throw new ApiError(400, "This email is already verified");
+    }
+
+    // generate a FRESH token pair — old one (if any) is now meaningless
+    const { rawToken, hashedToken } = generateVerificationToken();
+
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+
+    await sendVerificationEmail(user, rawToken);
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "If an account exists, a verification email has been sent",
+        ),
+      );
+  },
+);

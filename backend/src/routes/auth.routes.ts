@@ -5,6 +5,8 @@ import {
     logout,
     refreshAccessToken,
     register,
+    resendVerification,
+    verifyEmail,
 } from "../controllers/auth.controller";
 import {
     googleAuth,
@@ -17,6 +19,8 @@ import { loginSchema, registerSchema } from "../validators/auth.validator";
 const router = Router();
 
 router.post("/register", validate(registerSchema), register);
+router.get("/verify-email", verifyEmail); // public — no verifyToken needed
+router.post("/resend-verification", resendVerification); // public — user isn't logged in yet
 router.post("/login", validate(loginSchema), login);
 router.post("/refresh", refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
