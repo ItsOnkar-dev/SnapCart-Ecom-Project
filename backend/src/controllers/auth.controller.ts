@@ -5,10 +5,12 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { generateResetToken } from "../utils/generateResetToken";
 import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateTokens";
+import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail";
 import {
   generateVerificationToken,
   sendVerificationEmail,
@@ -358,5 +360,91 @@ export const resendVerification = asyncHandler(
           "If an account exists, a verification email has been sent",
         ),
       );
+  },
+);
+
+export const forgotPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    // security: same response whether or not the user exists
+    // never let this endpoint leak which emails are registered — that's an enumeration attack
+    if (!user) {
+      res
+        .status(200)     
+        .json(
+          new ApiResponse(
+            200,
+            "If that email exists, a reset link has been sent.",
+            null,
+          ),
+        );
+      return;
+    }
+
+    const { rawToken, hashedToken } = generateResetToken();
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min — matches email copy
+    await user.save();
+
+    // pass the whole user object, not just the email —
+    // sendPasswordResetEmail needs user.name for the greeting, same as sendVerificationEmail does
+    await sendPasswordResetEmail(user, rawToken);
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "If that email exists, a reset link has been sent.",
+          null,
+        ),
+      );
+    return;
+  },
+);
+
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+
+    // hash the incoming raw token the same way generateResetToken hashed it at creation —
+    // we never store raw tokens, only hashes, so we compare hash-to-hash
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiry: { $gt: new Date() }, // must still be within the 15-min window
+    });
+
+    if (!user) {
+      throw new ApiError(400, "Invalid or expired reset token.");
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+
+    // burn the token — one-time use, exactly like the verification token flow
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiry = undefined;
+
+    // force logout everywhere — if someone needed a password reset,
+    // don't leave old refresh tokens (possibly attacker-held) still valid
+    user.refreshToken = undefined;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "Password reset successful. Please log in again.",
+          null,
+        ),
+      );
+    return;
   },
 );
