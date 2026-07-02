@@ -363,6 +363,58 @@ export const resendVerification = asyncHandler(
   },
 );
 
+// PATCH /api/auth/change-password
+// For logged-in users who know their current password and want to change it
+export const changePassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { currentPassword, newPassword } = req.body;
+    // Pull the hashed password — select:false means we must request it explicitly
+    const user = await User.findById(req.user!._id).select("+password");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    // Google OAuth users have no password — they can't use this endpoint
+    if (!user.password) {
+      throw new ApiError(
+        400,
+        "Your account uses Google sign-in. Password change is not available.",
+      );
+    }
+    // Verify current password before allowing any change
+    const isCurrentPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isCurrentPasswordCorrect) {
+      throw new ApiError(401, "Current password is incorrect");
+    }
+    // Hash and save the new password
+    user.password = await bcrypt.hash(newPassword, 12);
+
+    user.passwordChangedAt = new Date();
+    // Wipe all refresh tokens — forces re-login on every other device
+    user.refreshToken = undefined;
+    await user.save({ validateBeforeSave: false });
+    const isProduction = process.env.NODE_ENV === "production";
+    // Clear cookies on current device too — user must log in again
+    res
+      .status(200)
+      .clearCookie("accessToken", { path: "/" })
+      .clearCookie("refreshToken", {
+        path: "/api/auth",
+        httpOnly: true,
+        secure: isProduction,
+      })
+      .json(
+        new ApiResponse(
+          200,
+          "Password changed successfully. Please log in again.",
+          null,
+        ),
+      );
+  },
+);
+
 export const forgotPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { email } = req.body;
@@ -373,7 +425,7 @@ export const forgotPassword = asyncHandler(
     // never let this endpoint leak which emails are registered — that's an enumeration attack
     if (!user) {
       res
-        .status(200)     
+        .status(200)
         .json(
           new ApiResponse(
             200,
@@ -425,7 +477,7 @@ export const resetPassword = asyncHandler(
     }
 
     user.password = await bcrypt.hash(newPassword, 12);
-
+    user.passwordChangedAt = new Date();
     // burn the token — one-time use, exactly like the verification token flow
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpiry = undefined;

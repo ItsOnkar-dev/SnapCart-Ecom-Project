@@ -1,34 +1,71 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
-    forgotPassword,
-    getCurrentUser,
-    login,
-    logout,
-    refreshAccessToken,
-    register,
-    resendVerification,
-    resetPassword,
-    verifyEmail,
+  changePassword,
+  forgotPassword,
+  getCurrentUser,
+  login,
+  logout,
+  refreshAccessToken,
+  register,
+  resendVerification,
+  resetPassword,
+  verifyEmail,
 } from "../controllers/auth.controller";
 import {
-    googleAuth,
-    googleCallback,
+  googleAuth,
+  googleCallback,
 } from "../controllers/googleAuth.controller";
 import { verifyToken } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
-import { loginSchema, registerSchema } from "../validators/auth.validator";
+import {
+  changePasswordSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from "../validators/auth.validator";
+
+// dedicated limiter for forgot-password — tighter than authLimiter
+// 5 attempts per 10 min is enough for any legit user; beyond that it's abuse
+const passwordResetLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: "Too many password reset attempts, please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 
 router.post("/register", validate(registerSchema), register);
-router.get("/verify-email", verifyEmail); // public — no verifyToken needed
-router.post("/resend-verification", resendVerification); // public — user isn't logged in yet
+router.get("/verify-email", verifyEmail);
+router.post("/resend-verification", resendVerification);
 router.post("/login", validate(loginSchema), login);
 router.post("/refresh", refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, logout);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.patch(
+  "/change-password",
+  verifyToken,
+  validate(changePasswordSchema),
+  changePassword,
+);
+router.post(
+  "/forgot-password",
+  passwordResetLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword,
+);
+router.post(
+  "/reset-password",
+  passwordResetLimiter,
+  validate(resetPasswordSchema),
+  resetPassword,
+);
 router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
 

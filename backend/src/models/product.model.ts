@@ -77,6 +77,8 @@ const productSchema = new Schema<IProduct>(
 
 productSchema.index({ category: 1 });
 productSchema.index({ seller: 1 });
-productSchema.index({ name: "text" }); // enables text search
+productSchema.index({ name: "text" });
+productSchema.index({ isActive: 1, category: 1 });
+productSchema.index({ isActive: 1, seller: 1 });
 
 export const Product = mongoose.model<IProduct>("Product", productSchema);

@@ -25,6 +25,7 @@
     "google-auth-library": "^10.7.0",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
+    "logger": "^0.0.1",
     "mongoose": "^9.7.0",
     "morgan": "^1.11.0",
     "resend": "^6.16.0",

@@ -12,8 +12,11 @@ import productRoutes from "./routes/product.routes";
 import reviewRoutes from "./routes/review.routes";
 import sellerRoutes from "./routes/seller.routes";
 import { ApiError } from "./utils/ApiResponse";
+import { logger } from "./utils/logger";
 
 const app = express();
+
+app.set("trust proxy", 1); // Trust the first proxy in front of Express, which is important for rate limiting and CORS when behind a reverse proxy or load balancer.
 
 app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
 
@@ -24,26 +27,29 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
 
-// Protects against NoSQL injection by stripping $ and . from req.body
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.body && typeof req.body === "object") {
-    const sanitize = (obj: Record<string, unknown>): void => {
-      for (const key of Object.keys(obj)) {
-        if (key.includes("$") || key.startsWith(".")) {
-          delete obj[key]; // remove dangerous keys
-        } else if (typeof obj[key] === "object" && obj[key] !== null) {
-          sanitize(obj[key] as Record<string, unknown>); // recurse into nested objects
-        }
-      }
-    };
-    sanitize(req.body);
+// NoSQL Injection Sanitization ────────────────────────────────────────────
+// Strips MongoDB operators ($ and .) from req.body, req.query AND req.params
+// to prevent NoSQL injection via any part of the request
+const sanitize = (obj: Record<string, unknown>): void => {
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith("$") || key.startsWith(".")) {
+      delete obj[key];
+    } else if (typeof obj[key] === "object" && obj[key] !== null) {
+      sanitize(obj[key] as Record<string, unknown>);
+    }
   }
+};
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  if (req.body && typeof req.body === "object") sanitize(req.body);
+  if (req.query && typeof req.query === "object")
+    sanitize(req.query as Record<string, unknown>);
+  if (req.params && typeof req.params === "object") sanitize(req.params);
   next();
 });
 
 const allowedOrigins = [
-  "http://localhost:5173", // your React dev server
-  process.env.FRONTEND_URL, // production frontend
+  "http://localhost:5173", 
+  process.env.FRONTEND_URL, 
 ].filter(Boolean) as string[];
 
 app.use(
@@ -64,8 +70,8 @@ app.use(
 
 // General limiter — all routes
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per IP per 15 min
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 100, // max 100 requests per IP per 10 min
   message: {
     success: false,
     message: "Too many requests, please try again later",
@@ -76,8 +82,8 @@ const generalLimiter = rateLimit({
 
 // Strict limiter — auth routes only
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // max 10 login attempts per IP per 15 min
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 10, // max 10 login attempts per IP per 10 min
   message: {
     success: false,
     message: "Too many login attempts, please try again later",
@@ -113,7 +119,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   }
 
   // If it's some unexpected error (DB crash, bug, etc.)
-  console.error("Unexpected error:", err);
+  logger.error("Unexpected error:", err);
   res.status(500).json({
     success: false,
     message: "Internal server error",

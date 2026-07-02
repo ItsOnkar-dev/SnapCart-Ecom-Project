@@ -4,8 +4,6 @@ import { User } from "../models/user.model";
 import { IUser } from "../types/user.types";
 import { ApiError } from "../utils/ApiResponse";
 
-// Extend Express's Request type so TypeScript knows req.user exists
-// Without this, TypeScript will complain: "Property 'user' does not exist on type 'Request'"
 declare global {
   namespace Express {
     interface Request {
@@ -18,9 +16,10 @@ declare global {
 interface DecodedToken {
   userId: string;
   role: string;
+  iat: number;
+  exp: number;
 }
 
-// verifyToken — confirms the user is logged in
 // Reads accessToken cookie → verifies it → attaches user to req.user
 export const verifyToken = async (
   req: Request,
@@ -42,12 +41,11 @@ export const verifyToken = async (
       process.env.ACCESS_TOKEN_SECRET as string,
     ) as DecodedToken;
   } catch (err) {
-    // Token is either tampered or expired
     throw new ApiError(401, "Session expired, please login again");
   }
 
   // Step 3 — Find the user in DB using the id inside the token
-  const user = await User.findById(decoded.userId);
+  const user = await User.findById(decoded.userId).select("+passwordChangedAt");
 
   if (!user) {
     throw new ApiError(401, "User no longer exists");
@@ -57,6 +55,17 @@ export const verifyToken = async (
     throw new ApiError(403, "Your account has been deactivated");
   }
 
+  // ── Token invalidation after password change
+  if (user.passwordChangedAt) {
+    const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000);
+    if (decoded.iat < changedAt) {
+      throw new ApiError(
+        401,
+        "Password was recently changed. Please log in again.",
+      );
+    }
+  }
+
   // Step 4 — Attach user to request so any route after this can use req.user
   req.user = user;
 
@@ -64,9 +73,6 @@ export const verifyToken = async (
   next();
 };
 
-// requireRole — confirms the user has the right role
-// Always used AFTER verifyToken, never alone
-// Usage: router.patch("/approve", verifyToken, requireRole("admin"), handler)
 export const requireRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     // req.user is guaranteed here because verifyToken ran first

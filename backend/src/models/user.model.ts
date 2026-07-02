@@ -13,7 +13,6 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
     email: {
       type: String,
       required: [true, "Email is required"],
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -48,7 +47,7 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
     },
     emailVerificationToken: {
       type: String,
-      select: false, 
+      select: false,
     },
     emailVerificationTokenExpiry: {
       type: Date,
@@ -62,6 +61,10 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
       type: Date,
       select: false,
     },
+    passwordChangedAt: {
+      type: Date,
+      select: false,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -71,5 +74,6 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
 );
 
 userSchema.index({ sellerStatus: 1 });
+userSchema.index({ email: 1 });
 
 export const User = mongoose.model<IUser>("User", userSchema); // mongoose.model() is used to create the final model.
