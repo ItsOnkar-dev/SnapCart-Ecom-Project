@@ -5,7 +5,7 @@ import { Product } from "../models/product.model";
 import { PopulatedCartItem } from "../types/cart.types";
 import { IShippingAddress } from "../types/order.types";
 import { ApiError } from "../utils/ApiResponse";
-import { logger } from "../utils/logger";
+import { Logger } from "../utils/logger";
 
 export const placeOrderService = async (
   userId: Types.ObjectId,
@@ -89,7 +89,7 @@ export const placeOrderService = async (
     // Step 7 — Commit — all three writes land atomically
     await session.commitTransaction();
 
-    logger.info("Order placed", { orderId: order._id, userId });
+    Logger.info("Order placed", { orderId: order._id, userId });
 
     return order;
   } catch (err) {

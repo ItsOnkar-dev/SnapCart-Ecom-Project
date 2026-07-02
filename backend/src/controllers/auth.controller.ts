@@ -40,12 +40,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Step 5 — Hash the password before saving
-  // bcrypt.hash(password, saltRounds) — 12 rounds is industry standard for 2024
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // ✅ NEW — generate the token pair BEFORE creating the user
-  // rawToken → goes in the email
-  // hashedToken → goes in the DB
+  // NEW — generate the token pair BEFORE creating the user
   const { rawToken, hashedToken } = generateVerificationToken();
 
   // Step 6 — Create the user in DB
@@ -53,21 +50,15 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     name: name.trim(),
     email: email.toLowerCase().trim(),
     password: hashedPassword,
-    // role defaults to "customer" (set in schema)
-    // isActive defaults to true (set in schema)
-    // ✅ NEW — save the hashed token + expiry directly on creation
+    // save the hashed token + expiry directly on creation
     emailVerificationToken: hashedToken,
     emailVerificationTokenExpiry: new Date(Date.now() + 10 * 60 * 1000), //10 minutes from right now
   });
 
-  // ✅ NEW — fire the email AFTER the user is saved
-  // why after? if email sending fails, you don't want to roll back account creation
-  // user can always request a resend later (Step 5)
+  // NEW — fire the email AFTER the user is saved
   try {
     await sendVerificationEmail(user, rawToken);
   } catch (err) {
-    // don't crash registration just because email failed to send
-    // log it, but let the user account still exist
     console.error("Failed to send verification email:", err);
   }
 
@@ -140,7 +131,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const accessTokenCookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+    sameSite: isProduction ? ("none" as const) : ("lax" as const),
     path: "/",
     maxAge: 15 * 60 * 1000,
   };
@@ -148,7 +139,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const refreshTokenCookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+    sameSite: isProduction ? ("none" as const) : ("lax" as const),
     path: "/api/auth",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
@@ -220,13 +211,13 @@ export const refreshAccessToken = asyncHandler(
       .cookie("accessToken", newAccessToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "strict" : "lax",
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 15 * 60 * 1000,
       })
       .cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "strict" : "lax",
+        sameSite: isProduction ? "none" : "lax",
         path: "/api/auth",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
@@ -254,18 +245,27 @@ export const getCurrentUser = asyncHandler(
 );
 
 // POST /api/auth/logout
-// verifyToken runs before this — so we know exactly who is logging out
 export const logout = asyncHandler(async (req: Request, res: Response) => {
-  // Step 1 — Remove refresh token from DB
-  // So even if someone has the old token, it's invalid on the server side
   await User.findByIdAndUpdate(req.user!._id, {
-    refreshToken: null,
+    refreshToken: null, // Step 1 — Remove refresh token from DB, So even if someone has the old token, it's invalid on the server side
   });
+
+  const isProduction = process.env.NODE_ENV === "production";
 
   res
     .status(200)
-    .clearCookie("accessToken", { path: "/" })
-    .clearCookie("refreshToken", { path: "/api/auth" })
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      path: "/",
+    })
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      path: "/api/auth",
+    })
     .json(new ApiResponse(200, "Logged out successfully"));
 });
 
@@ -395,15 +395,22 @@ export const changePassword = asyncHandler(
     // Wipe all refresh tokens — forces re-login on every other device
     user.refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
+
     const isProduction = process.env.NODE_ENV === "production";
     // Clear cookies on current device too — user must log in again
     res
       .status(200)
-      .clearCookie("accessToken", { path: "/" })
-      .clearCookie("refreshToken", {
-        path: "/api/auth",
+      .clearCookie("accessToken", {
         httpOnly: true,
         secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        path: "/",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        path: "/api/auth",
       })
       .json(
         new ApiResponse(
@@ -440,7 +447,7 @@ export const forgotPassword = asyncHandler(
 
     user.passwordResetToken = hashedToken;
     user.passwordResetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min — matches email copy
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     // pass the whole user object, not just the email —
     // sendPasswordResetEmail needs user.name for the greeting, same as sendVerificationEmail does

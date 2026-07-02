@@ -27,7 +27,6 @@ import {
 } from "../validators/auth.validator";
 
 // dedicated limiter for forgot-password — tighter than authLimiter
-// 5 attempts per 10 min is enough for any legit user; beyond that it's abuse
 const passwordResetLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,

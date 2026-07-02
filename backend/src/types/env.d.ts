@@ -2,7 +2,7 @@ declare namespace NodeJS {
   interface ProcessEnv {
     PORT: string;
     NODE_ENV: "development" | "production" | "test";
-    MONGODB_URI: string;
+    MONGO_URI: string; // fix: was MONGODB_URI
 
     ACCESS_TOKEN_SECRET: string;
     REFRESH_TOKEN_SECRET: string;
@@ -12,5 +12,8 @@ declare namespace NodeJS {
     GOOGLE_CALLBACK_URL: string;
 
     FRONTEND_URL: string;
+
+    RESEND_API_KEY: string;
+    RESEND_FROM_EMAIL: string;
   }
 }

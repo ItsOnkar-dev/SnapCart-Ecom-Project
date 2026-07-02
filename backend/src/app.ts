@@ -12,7 +12,7 @@ import productRoutes from "./routes/product.routes";
 import reviewRoutes from "./routes/review.routes";
 import sellerRoutes from "./routes/seller.routes";
 import { ApiError } from "./utils/ApiResponse";
-import { logger } from "./utils/logger";
+import { Logger } from "./utils/logger";
 
 const app = express();
 
@@ -119,7 +119,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   }
 
   // If it's some unexpected error (DB crash, bug, etc.)
-  logger.error("Unexpected error:", err);
+  Logger.error("Unexpected error:", err);
   res.status(500).json({
     success: false,
     message: "Internal server error",

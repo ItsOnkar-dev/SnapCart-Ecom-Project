@@ -1,13 +1,10 @@
 import mongoose from "mongoose";
+import { Logger } from "../utils/logger";
 
-export const connectDB = async (): Promise<void> => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI!);
+export const connectDB = async (uri: string): Promise<void> => {
+  await mongoose.connect(uri);
 
-    console.log("✅ Successfully connected to database");
-  } catch (error) {
-    console.error("❌ Database Connection Failed:", error);
-
-    process.exit(1);
-  }
+  Logger.info(
+    `✅ Successfully connected to database: ${mongoose.connection.name}`,
+  );
 };

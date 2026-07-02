@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { Order } from "../models/order.model";
-import { Product } from "../models/product.model";
-import { placeOrderService } from "../services/order.service";
+import { placeOrderService, restoreStockService  } from "../services/order.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -98,13 +97,7 @@ export const updateOrderStatus = asyncHandler(
       const session = await mongoose.startSession();
       session.startTransaction();
       try {
-        for (const item of order.items) {
-          await Product.findByIdAndUpdate(
-            item.product,
-            { $inc: { stock: item.quantity } },
-            { session },
-          );
-        }
+        await restoreStockService(order._id, session); // use the service you already wrote
         order.status = status;
         await order.save({ session });
         await session.commitTransaction();
@@ -118,7 +111,6 @@ export const updateOrderStatus = asyncHandler(
       order.status = status;
       await order.save();
     }
-
     res
       .status(200)
       .json(new ApiResponse(200, `Order status updated to "${status}"`, order));

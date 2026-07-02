@@ -31,7 +31,7 @@ const format = (level: LogLevel, message: string, meta?: unknown): string => {
   return `${c}[${ts}] [${level.toUpperCase()}] ${message}${extra}${r}`;
 };
 
-export const logger = {
+export const Logger = {
   error: (message: string, meta?: unknown): void => {
     if (shouldLog("error")) console.error(format("error", message, meta));
   },
