@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { Product } from "../models/product.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { uploadToCloudinary } from "../utils/uploadToCloudinary";
 
 // POST /api/products
 // Only approved sellers can create products
 export const createProduct = asyncHandler(
   async (req: Request, res: Response) => {
-    const { name, description, price, discountPrice, category, images, stock } =
+    const { name, description, price, discountPrice, category, stock } =
       req.body;
 
     // Step 1 — Validate required fields
@@ -26,6 +27,15 @@ export const createProduct = asyncHandler(
       );
     }
 
+    // Step 3 — Make sure an image was uploaded
+    if (!req.file) {
+      throw new ApiError(400, "Product image is required");
+    }
+
+    // upload Buffer directly to Cloudinary — no disk, no cleanup
+    const uploadedImage = await uploadToCloudinary(req.file.buffer);
+    const imageUrl = uploadedImage.secure_url;
+
     // Step 3 — Create product, attach seller from req.user
     const product = await Product.create({
       name,
@@ -33,7 +43,7 @@ export const createProduct = asyncHandler(
       price,
       discountPrice,
       category,
-      images: images || [],
+      images: [imageUrl],
       stock,
       seller: req.user!._id, // always taken from token — seller can't fake this
     });
@@ -145,6 +155,13 @@ export const updateProduct = asyncHandler(
         400,
         "Discount price must be less than the original price",
       );
+    }
+
+    // if a new image was uploaded, replace the first image in the array
+    // if not, leave images untouched — seller is only updating text fields
+    if (req.file) {
+      const uploadedImage = await uploadToCloudinary(req.file.buffer);
+      req.body.images = [uploadedImage.secure_url];
     }
 
     // Step 3 — Update only the fields that were sent

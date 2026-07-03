@@ -48,8 +48,8 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 const allowedOrigins = [
-  "http://localhost:5173", 
-  process.env.FRONTEND_URL, 
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
 app.use(
