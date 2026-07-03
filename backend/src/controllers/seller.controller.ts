@@ -36,7 +36,6 @@ export const applyForSeller = asyncHandler(
       await sendSellerApplicationEmail(user);
     } catch (err) {
       Logger.error("Failed to send seller application email:", err);
-      console.error("Resend error details:", JSON.stringify(err)); // add this line temporarily
     }
 
     res

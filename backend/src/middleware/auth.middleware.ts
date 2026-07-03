@@ -86,3 +86,17 @@ export const requireRole = (...roles: string[]) => {
     next();
   };
 };
+
+export const requireVerifiedEmail = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user!.isEmailVerified) {
+    throw new ApiError(
+      403,
+      "Please verify your email address before continuing",
+    );
+  }
+  next();
+};

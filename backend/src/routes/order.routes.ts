@@ -1,16 +1,20 @@
 import { Router } from "express";
 import {
-    getMyOrders,
-    getOrderById,
-    placeOrder,
-    updateOrderStatus,
+  getMyOrders,
+  getOrderById,
+  placeOrder,
+  updateOrderStatus,
 } from "../controllers/order.controller";
-import { requireRole, verifyToken } from "../middleware/auth.middleware";
+import {
+  requireRole,
+  requireVerifiedEmail,
+  verifyToken,
+} from "../middleware/auth.middleware";
 
 const router = Router();
 
 // Customer routes — must be logged in
-router.post("/", verifyToken, placeOrder);
+router.post("/", verifyToken, requireVerifiedEmail, placeOrder);
 router.get("/", verifyToken, getMyOrders);
 router.get("/:id", verifyToken, getOrderById);
 
