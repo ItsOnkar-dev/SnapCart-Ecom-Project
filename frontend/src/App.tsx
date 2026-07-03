@@ -1,12 +1,11 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
 
-import { Suspense } from "react";
-
 // const Home = lazy(() => import("@/pages/Home"));
-// const Login = lazy(() => import("@/pages/Login"));
-// const Register = lazy(() => import("@/pages/Register"));
+const Login = lazy(() => import("./pages/auth/LoginPage"));
+const Register = lazy(() => import("./pages/auth/RegisterPage"));
 // const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 // const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -26,8 +25,8 @@ import { Suspense } from "react";
 const router = createBrowserRouter([
   // ── public routes ─────────────────────────────────────────────────────────
   // { path: "/", element: <Home /> },
-  // { path: "/login", element: <Login /> },
-  // { path: "/register", element: <Register /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
   // { path: "/unauthorized", element: <Unauthorized /> },
   // { path: "*", element: <NotFound /> },
 
