@@ -11,6 +11,8 @@ declare namespace NodeJS {
     GOOGLE_CLIENT_SECRET: string;
     GOOGLE_CALLBACK_URL: string;
 
+    ADMIN_EMAIL: string;
+
     FRONTEND_URL: string;
 
     RESEND_API_KEY: string;

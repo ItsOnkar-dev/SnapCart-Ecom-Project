@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { Logger } from "../utils/logger";
+import { sendSellerApplicationEmail } from "../utils/sendSellerApplicationEmail";
 
 // POST /api/seller/apply
 // Only customers can apply — sellers and admins already have elevated roles
@@ -28,6 +30,13 @@ export const applyForSeller = asyncHandler(
     await User.findByIdAndUpdate(user._id, {
       sellerStatus: "pending",
     });
+
+    // notify admin — wrapped in try/catch so a Resend failure
+    try {
+      await sendSellerApplicationEmail(user);
+    } catch (err) {
+      Logger.error("Failed to send seller application email:", err);
+    }
 
     res
       .status(200)

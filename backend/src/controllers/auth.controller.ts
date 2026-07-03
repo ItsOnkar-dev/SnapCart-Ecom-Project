@@ -10,6 +10,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateTokens";
+import { sendPasswordChangedEmail } from "../utils/sendPasswordChangedEmail";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail";
 import {
   generateVerificationToken,
@@ -396,6 +397,8 @@ export const changePassword = asyncHandler(
     user.refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
 
+    await sendPasswordChangedEmail(user);
+
     const isProduction = process.env.NODE_ENV === "production";
     // Clear cookies on current device too — user must log in again
     res
@@ -494,6 +497,8 @@ export const resetPassword = asyncHandler(
     user.refreshToken = undefined;
 
     await user.save();
+
+    await sendPasswordChangedEmail(user);
 
     res
       .status(200)
