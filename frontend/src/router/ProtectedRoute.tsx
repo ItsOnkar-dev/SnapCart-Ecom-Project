@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router";
-import { useAuthStore } from "../store/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 
 // renders children if authenticated, otherwise redirects to /login
 // preserves the attempted URL so we can redirect back after login

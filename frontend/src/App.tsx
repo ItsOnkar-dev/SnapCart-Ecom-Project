@@ -6,6 +6,7 @@ import RoleRoute from "./router/RoleRoute";
 // const Home = lazy(() => import("@/pages/Home"));
 const Login = lazy(() => import("./pages/auth/LoginPage"));
 const Register = lazy(() => import("./pages/auth/RegisterPage"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmailPage"));
 // const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 // const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
   // { path: "/", element: <Home /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
+  { path: "/verify-email", element: <VerifyEmail /> },
   // { path: "/unauthorized", element: <Unauthorized /> },
   // { path: "*", element: <NotFound /> },
 

@@ -2,7 +2,8 @@
 // and the seller operating after approval.
 // These functions cover all three sides cleanly.
 
-import { api } from "../lib/axios";
+import { api } from "@/lib/axios";
+import type { SellerDecisionStatus } from "@/types/seller.types";
 
 // POST /api/seller/apply — customer applies to become a seller
 // requires: logged in + verified email + role is "customer"
@@ -17,5 +18,5 @@ export const getPendingSellersApi = () => api.get("/admin/sellers");
 // paste your updateSellerStatus controller to confirm body shape
 export const updateSellerStatusApi = (
   id: string,
-  status: "approved" | "rejected",
+  status: SellerDecisionStatus,
 ) => api.patch(`/admin/sellers/${id}`, { status });

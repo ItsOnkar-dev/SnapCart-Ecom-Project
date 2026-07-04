@@ -1,40 +1,11 @@
-// This file is the single place that knows how to talk to the every auth backend or URL.
-// Everything else just calls these functions — they don't know axios exists.
-
-// WHAT THIS FILE DOES:
-// Pure functions. No state. No hooks. No UI.
-// Input goes in → axios call happens → raw response comes out.
-
-import { api } from "../lib/axios";
-
-// ── input types for what we SEND to the backend (form inputs) ──────────────────────
-// these live here because they're tightly coupled to these specific API calls
-// user.types.ts holds what comes BACK (the User shape)
-
-export interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface ForgotPasswordInput {
-  email: string;
-}
-
-export interface ResetPasswordInput {
-  token: string;
-  newPassword: string;
-}
-
-export interface ChangePasswordInput {
-  currentPassword: string;
-  newPassword: string;
-}
+import { api } from "@/lib/axios";
+import type {
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "@/types/auth.types";
 
 // ── auth api functions ────────────────────────────────────────────────────────
 

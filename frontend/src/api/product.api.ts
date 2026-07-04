@@ -6,11 +6,11 @@
 // So createProduct and updateProduct use FormData, not a plain object.
 // Axios automatically sets the correct Content-Type when you pass FormData.
 
-import { api } from "../lib/axios";
+import { api } from "@/lib/axios";
 import type {
   ProductFormData,
   ProductQueryParams,
-} from "../types/product.types";
+} from "@/types/product.types";
 
 // ── api functions ─────────────────────────────────────────────────────────────
 

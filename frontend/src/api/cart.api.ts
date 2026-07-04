@@ -1,6 +1,6 @@
 // WHY: cart routes have slightly different URL patterns than you'd expect.
 
-import { api } from "../lib/axios";
+import { api } from "@/lib/axios";
 
 // GET /api/cart
 export const getCartApi = () => api.get("/cart");

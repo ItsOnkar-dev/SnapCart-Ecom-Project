@@ -1,15 +1,35 @@
+import { useAuthStore } from "@/store/auth.store";
 import axios from "axios";
-import { useAuthStore } from "../store/auth.store";
 
-// base instance — all API calls go through here
-// tokens are httpOnly cookies (accessToken + refreshToken) — the browser
-// attaches them automatically on every request, no manual header needed
+let csrfToken: string | null = null;
+let csrfPromise: Promise<string | null> | null = null;
+
+const getCsrfToken = async (): Promise<string | null> => {
+  if (csrfToken) return csrfToken;
+
+  if (!csrfPromise) {
+    csrfPromise = axios
+      .get(`${import.meta.env.VITE_API_URL}/auth/csrf-token`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        csrfToken = res.data?.data?.csrfToken ?? null;
+        return csrfToken;
+      })
+      .catch(() => null)
+      .finally(() => {
+        csrfPromise = null;
+      });
+  }
+
+  return csrfPromise;
+};
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // https://snapcart-production.up.railway.app/api
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // browser attaches httpOnly cookies automatically
 });
 
-// tracks whether a silent refresh is already in-flight
 // prevents multiple 401s from firing multiple refresh calls simultaneously
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -22,6 +42,20 @@ const processQueue = (error: unknown) => {
   failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
   failedQueue = [];
 };
+
+api.interceptors.request.use(async (config) => {
+  const method = (config.method ?? "get").toUpperCase();
+
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+    const token = await getCsrfToken();
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.set("x-csrf-token", token);
+    }
+  }
+
+  return config;
+});
 
 // ── RESPONSE INTERCEPTOR ─────────────────────────────────────────────────────
 api.interceptors.response.use(

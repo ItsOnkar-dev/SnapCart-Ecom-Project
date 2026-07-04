@@ -4,8 +4,8 @@
 // Frontend doesn't enforce this — it just sends the request.
 // Backend enforces it. Frontend just shows the error if it comes back.
 
-import { api } from "../lib/axios";
-import type { ReviewFormData } from "../types/review.types";
+import { api } from "@/lib/axios";
+import type { ReviewFormData } from "@/types/review.types";
 
 // GET /api/reviews/:productId — public, no auth
 export const getReviewsApi = (productId: string) =>

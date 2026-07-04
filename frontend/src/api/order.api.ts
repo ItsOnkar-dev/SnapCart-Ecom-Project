@@ -3,8 +3,8 @@
 // Backend uses MongoDB transactions for order creation (stock deducted + order created atomically).
 // Frontend just sends the request and trusts the backend's transaction.
 
-import { api } from "../lib/axios";
-import type { ShippingAddress } from "../types/order.types";
+import { api } from "@/lib/axios";
+import type { ShippingAddress } from "@/types/order.types";
 
 // POST /api/orders — requires verified email
 // backend: validates cart, deducts stock, creates order, clears cart in one transaction

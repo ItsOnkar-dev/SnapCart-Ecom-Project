@@ -3,6 +3,10 @@
 // We type it exactly as the backend selects it: name, email, sellerStatus, createdAt
 
 export type SellerStatus = "pending" | "approved" | "rejected";
+export type SellerDecisionStatus = Extract<
+  SellerStatus,
+  "approved" | "rejected"
+>;
 
 // what GET /api/admin/sellers returns per applicant
 export interface SellerApplicant {
