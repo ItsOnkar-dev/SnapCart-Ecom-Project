@@ -1,6 +1,6 @@
-import { create } from "zustand";
 import { api } from "@/lib/axios";
 import type { User } from "@/types/user.types";
+import { create } from "zustand";
 interface AuthState {
   user: User | null;
   isAuthLoading: boolean;
@@ -11,12 +11,12 @@ interface AuthState {
 }
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthLoading: true, 
+  isAuthLoading: true,
 
   setUser: (user) => set({ user }),
 
   clearAuth: () => set({ user: null }),
-  
+
   initAuth: async () => {
     try {
       const { data } = await api.get("/auth/me");

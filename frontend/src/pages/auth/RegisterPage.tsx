@@ -1,212 +1,181 @@
+// pages/auth/RegisterPage.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { Loader2, Lock, Mail, ShoppingBag, User } from "lucide-react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
-import { useRegister } from "../../hooks/useAuth";
-import {
-  registerSchema,
-  type RegisterFormData,
-} from "../../schemas/auth.schema";
+import { Link, useNavigate } from "react-router";
 
-const RegisterPage = () => {
-  const registerMutation = useRegister();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+import { useRegister } from "@/hooks/useAuth";
+import { registerSchema, type RegisterFormData } from "@/schemas/auth.schema";
+import { useAuthStore } from "@/store/auth.store";
+
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { mutate: register, isPending } = useRegister();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
 
   const {
-    register,
+    register: field,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  });
+  } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
-  const onSubmit = (values: RegisterFormData) => {
-    registerMutation.mutate({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-    });
+  const onSubmit = ({ name, email, password }: RegisterFormData) => {
+    register({ name, email, password });
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.2),transparent_30%),linear-gradient(135deg,#f8fbff_0%,#eef4ff_100%)] px-4 py-8 text-slate-800 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center">
-        <div className="grid w-full overflow-hidden rounded-4xl border border-white/70 bg-white/80 shadow-[0_25px_90px_rgba(15,23,42,0.14)] backdrop-blur-xl lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="flex flex-col justify-between bg-gradient-to-br from-sky-600 via-blue-600 to-violet-600 p-8 text-white sm:p-10">
-            <div>
-              <div className="mb-6 inline-flex rounded-full border border-white/30 bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
-                Join SnapCart today
-              </div>
-              <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
-                Create an account and unlock your next order.
-              </h1>
-              <p className="mt-4 max-w-md text-sm leading-6 text-sky-50 sm:text-base">
-                Sign up for a smoother shopping journey with secure payments,
-                personalized recommendations, and order history all in one
-                place.
-              </p>
-            </div>
-
-            <div className="mt-10 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <div className="flex items-center gap-3 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-base">
-                  ✦
-                </span>
-                <span>Fast account setup in under a minute</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 sm:p-8 lg:p-10">
-            <div className="mb-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">
-                Create account
-              </p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                Let&apos;s get started
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Use your email and choose a strong password to begin.
-              </p>
-            </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4"
-              noValidate
-            >
-              <div>
-                <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Full name
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  autoComplete="name"
-                  {...register("name")}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-200"
-                  placeholder="Alex Morgan"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  {...register("email")}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-200"
-                  placeholder="you@example.com"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    {...register("password")}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-200"
-                    placeholder="At least 8 characters"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-sky-600"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Confirm password
-                </label>
-                <div className="relative">
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    {...register("confirmPassword")}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-200"
-                    placeholder="Repeat your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-sky-600"
-                  >
-                    {showConfirmPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={registerMutation.isPending}
-                className="w-full rounded-2xl bg-gradient-to-r from-sky-600 to-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-200 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {registerMutation.isPending
-                  ? "Creating account..."
-                  : "Create account"}
-              </button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-slate-600">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="font-semibold text-sky-600 transition hover:text-sky-700"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <ShoppingBag className="w-8 h-8 text-indigo-600" />
+          <span className="text-2xl font-bold text-gray-900">SnapCart</span>
         </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <h1 className="text-xl font-semibold text-gray-900 mb-1">
+            Create your account
+          </h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Start shopping in seconds
+          </p>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  {...field("name")}
+                  type="text"
+                  placeholder="Onkar Jadhav"
+                  className={inputClass}
+                />
+              </div>
+              {errors.name && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  {...field("email")}
+                  type="email"
+                  placeholder="you@example.com"
+                  className={inputClass}
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  {...field("password")}
+                  type="password"
+                  placeholder="At least 8 characters"
+                  className={inputClass}
+                />
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  {...field("confirmPassword")}
+                  type="password"
+                  placeholder="••••••••"
+                  className={inputClass}
+                />
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700
+                         disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium
+                         py-2.5 rounded-lg transition-colors"
+            >
+              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isPending ? "Creating account..." : "Create account"}
+            </button>
+          </form>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-xs text-gray-400">or</span>
+            </div>
+          </div>
+
+          <a
+            href={`${import.meta.env.VITE_API_URL}/auth/google`}
+            className="w-full flex items-center justify-center gap-2 border border-gray-300
+                       hover:bg-gray-50 text-gray-700 text-sm font-medium py-2.5 rounded-lg transition-colors"
+          >
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google"
+              className="w-4 h-4"
+            />
+            Continue with Google
+          </a>
+        </div>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-indigo-600 font-medium hover:text-indigo-700"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
-};
+}
 
-export default RegisterPage;
+const inputClass =
+  "w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg " +
+  "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-gray-400";
