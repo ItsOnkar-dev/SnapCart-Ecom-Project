@@ -31,8 +31,7 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 
 // NoSQL Injection Sanitization ────────────────────────────────────────────
-// Strips MongoDB operators ($ and .) from req.body, req.query AND req.params
-// to prevent NoSQL injection via any part of the request
+// Strips MongoDB operators ($ and .) from req.body, req.query AND req.params to prevent NoSQL injection via any part of the request
 const sanitize = (obj: Record<string, unknown>): void => {
   for (const key of Object.keys(obj)) {
     if (key.startsWith("$") || key.startsWith(".")) {
