@@ -61,12 +61,13 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // Passing null, false rejects the origin cleanly without throwing a 500 error
+        callback(null, false);
       }
     },
     credentials: true, // allows cookies to be sent cross-origin
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   }),
 );
 

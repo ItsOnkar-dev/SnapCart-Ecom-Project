@@ -6,6 +6,7 @@ declare namespace NodeJS {
 
     ACCESS_TOKEN_SECRET: string;
     REFRESH_TOKEN_SECRET: string;
+    REFRESH_TOKEN_HASH_SECRET: string;
 
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;

@@ -66,12 +66,13 @@ const registerLimiter = rateLimit({
 });
 
 router.get("/csrf-token", (req, res) => {
+  // 1. Generate a secure random token
   const token = crypto.randomBytes(32).toString("hex");
   const isProduction = process.env.NODE_ENV === "production";
-
+  // 2. Set the token as an httpOnly cookie
   res
     .cookie("csrfToken", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       path: "/",
