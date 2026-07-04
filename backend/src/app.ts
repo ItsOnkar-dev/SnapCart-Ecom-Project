@@ -1,9 +1,11 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
+import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import { csrfProtection } from "./middleware/csrf.middleware";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
@@ -20,12 +22,13 @@ app.set("trust proxy", 1); // Trust the first proxy in front of Express, which i
 
 app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
 
-app.use(morgan("dev")); // logs: POST /api/auth/login 200 45ms
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // Body Parsing
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
+app.use(mongoSanitize());
 
 // NoSQL Injection Sanitization ────────────────────────────────────────────
 // Strips MongoDB operators ($ and .) from req.body, req.query AND req.params
@@ -63,7 +66,7 @@ app.use(
       }
     },
     credentials: true, // allows cookies to be sent cross-origin
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
@@ -96,6 +99,7 @@ app.use(generalLimiter);
 
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+app.use("/api", csrfProtection);
 
 // Routes
 app.use("/api/auth", authRoutes);

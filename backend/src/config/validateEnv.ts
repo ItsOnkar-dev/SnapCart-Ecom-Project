@@ -7,6 +7,9 @@ export const validateEnv = () => {
     "GOOGLE_CLIENT_SECRET",
     "GOOGLE_CALLBACK_URL",
     "FRONTEND_URL",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
   ];
 
   const missing = required.filter((key) => !process.env[key]);
@@ -16,5 +19,19 @@ export const validateEnv = () => {
       `❌ Missing required environment variables: ${missing.join(", ")}`,
     );
     process.exit(1);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const weakSecrets = [
+      process.env.ACCESS_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET,
+    ].filter((value) => !value || value.length < 32);
+
+    if (weakSecrets.length > 0) {
+      console.error(
+        "❌ JWT secrets must be at least 32 characters long in production",
+      );
+      process.exit(1);
+    }
   }
 };

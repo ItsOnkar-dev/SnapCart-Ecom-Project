@@ -26,51 +26,57 @@ export const verifyToken = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  // Step 1 — Read the accessToken cookie
-  const token = req.cookies?.accessToken;
-
-  if (!token) {
-    throw new ApiError(401, "You are not logged in");
-  }
-
-  // Step 2 — Verify the token is valid and not expired
-  let decoded: DecodedToken;
   try {
-    decoded = jwt.verify(
-      token,
-      process.env.ACCESS_TOKEN_SECRET as string,
-    ) as DecodedToken;
-  } catch (err) {
-    throw new ApiError(401, "Session expired, please login again");
-  }
+    // Step 1 — Read the accessToken cookie
+    const token = req.cookies?.accessToken;
 
-  // Step 3 — Find the user in DB using the id inside the token
-  const user = await User.findById(decoded.userId).select("+passwordChangedAt");
-
-  if (!user) {
-    throw new ApiError(401, "User no longer exists");
-  }
-
-  if (!user.isActive) {
-    throw new ApiError(403, "Your account has been deactivated");
-  }
-
-  // ── Token invalidation after password change
-  if (user.passwordChangedAt) {
-    const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000);
-    if (decoded.iat < changedAt) {
-      throw new ApiError(
-        401,
-        "Password was recently changed. Please log in again.",
-      );
+    if (!token) {
+      throw new ApiError(401, "You are not logged in");
     }
+
+    // Step 2 — Verify the token is valid and not expired
+    let decoded: DecodedToken;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET as string,
+      ) as DecodedToken;
+    } catch {
+      throw new ApiError(401, "Session expired, please login again");
+    }
+
+    // Step 3 — Find the user in DB using the id inside the token
+    const user = await User.findById(decoded.userId).select(
+      "+passwordChangedAt",
+    );
+
+    if (!user) {
+      throw new ApiError(401, "User no longer exists");
+    }
+
+    if (!user.isActive) {
+      throw new ApiError(403, "Your account has been deactivated");
+    }
+
+    // ── Token invalidation after password change
+    if (user.passwordChangedAt) {
+      const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000);
+      if (decoded.iat < changedAt) {
+        throw new ApiError(
+          401,
+          "Password was recently changed. Please log in again.",
+        );
+      }
+    }
+
+    // Step 4 — Attach user to request so any route after this can use req.user
+    req.user = user;
+
+    // Step 5 — Pass control to the next middleware or route handler
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  // Step 4 — Attach user to request so any route after this can use req.user
-  req.user = user;
-
-  // Step 5 — Pass control to the next middleware or route handler
-  next();
 };
 
 export const requireRole = (...roles: string[]) => {

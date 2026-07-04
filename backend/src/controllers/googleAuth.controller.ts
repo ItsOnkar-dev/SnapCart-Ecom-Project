@@ -7,6 +7,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateTokens";
+import { hashToken } from "../utils/hashToken";
 
 // GET /api/auth/google
 export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
@@ -87,7 +88,7 @@ export const googleCallback = asyncHandler(
     const refreshToken = generateRefreshToken(user._id.toString());
 
     // Step 7 — Save refresh token in DB
-    user.refreshToken = refreshToken;
+    user.refreshToken = hashToken(refreshToken);
     await user.save({ validateBeforeSave: false });
 
     // Step 8 — Set cookies and redirect to frontend

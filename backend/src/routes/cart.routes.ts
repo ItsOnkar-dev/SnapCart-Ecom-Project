@@ -1,22 +1,33 @@
 import { Router } from "express";
 import {
-    addToCart,
-    clearCart,
-    getCart,
-    removeFromCart,
-    updateCartItem,
+  addToCart,
+  clearCart,
+  getCart,
+  removeFromCart,
+  updateCartItem,
 } from "../controllers/cart.controller";
 import { verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
+import { validate } from "../middleware/validate.middleware";
+import {
+  addToCartSchema,
+  updateCartItemSchema,
+} from "../validators/cart.validator";
 
 const router = Router();
 
 // All cart routes require login — cart is personal
 router.use(verifyToken);
 
-router.post("/add", addToCart);
+router.post("/add", csrfProtection, validate(addToCartSchema), addToCart);
 router.get("/", getCart);
-router.patch("/:productId", updateCartItem);
-router.delete("/:productId", removeFromCart);
-router.delete("/", clearCart);
+router.patch(
+  "/:productId",
+  csrfProtection,
+  validate(updateCartItemSchema),
+  updateCartItem,
+);
+router.delete("/:productId", csrfProtection, removeFromCart);
+router.delete("/", csrfProtection, clearCart);
 
 export default router;

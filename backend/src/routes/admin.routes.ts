@@ -1,9 +1,12 @@
 import { Router } from "express";
 import {
-    getPendingSellers,
-    updateSellerStatus,
+  getPendingSellers,
+  updateSellerStatus,
 } from "../controllers/admin.controller";
 import { requireRole, verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
+import { validate } from "../middleware/validate.middleware";
+import { updateSellerStatusSchema } from "../validators/admin.validator";
 
 const router = Router();
 
@@ -13,6 +16,8 @@ router.patch(
   "/sellers/:id",
   verifyToken,
   requireRole("admin"),
+  csrfProtection,
+  validate(updateSellerStatusSchema),
   updateSellerStatus,
 );
 

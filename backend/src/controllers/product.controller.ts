@@ -1,8 +1,24 @@
 import { Request, Response } from "express";
 import { Product } from "../models/product.model";
+import {
+  createProductService,
+  deleteProductService,
+  updateProductService,
+} from "../services/product.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import { uploadToCloudinary } from "../utils/uploadToCloudinary";
+
+const getRouteParam = (value: string | string[] | undefined, name: string) => {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  throw new ApiError(400, `Invalid ${name} parameter`);
+};
 
 // POST /api/products
 // Only approved sellers can create products
@@ -11,42 +27,18 @@ export const createProduct = asyncHandler(
     const { name, description, price, discountPrice, category, stock } =
       req.body;
 
-    // Step 1 — Validate required fields
-    if (!name || !description || !price || !category || !stock) {
-      throw new ApiError(
-        400,
-        "Name, description, price, category and stock are required",
-      );
-    }
-
-    // Step 2 — Validate discount price is less than actual price
-    if (discountPrice && discountPrice >= price) {
-      throw new ApiError(
-        400,
-        "Discount price must be less than the original price",
-      );
-    }
-
-    // Step 3 — Make sure an image was uploaded
-    if (!req.file) {
-      throw new ApiError(400, "Product image is required");
-    }
-
-    // upload Buffer directly to Cloudinary — no disk, no cleanup
-    const uploadedImage = await uploadToCloudinary(req.file.buffer);
-    const imageUrl = uploadedImage.secure_url;
-
-    // Step 3 — Create product, attach seller from req.user
-    const product = await Product.create({
-      name,
-      description,
-      price,
-      discountPrice,
-      category,
-      images: [imageUrl],
-      stock,
-      seller: req.user!._id, // always taken from token — seller can't fake this
-    });
+    const product = await createProductService(
+      req.user!,
+      {
+        name,
+        description,
+        price,
+        discountPrice,
+        category,
+        stock,
+      },
+      req.file,
+    );
 
     res
       .status(201)
@@ -135,40 +127,12 @@ export const getProductById = asyncHandler(
 // Seller can only edit THEIR OWN products
 export const updateProduct = asyncHandler(
   async (req: Request, res: Response) => {
-    const product = await Product.findById(req.params.id);
-
-    if (!product || !product.isActive) {
-      throw new ApiError(404, "Product not found");
-    }
-
-    // Step 1 — Make sure this seller owns this product
-    if (product.seller.toString() !== req.user!._id.toString()) {
-      throw new ApiError(403, "You can only edit your own products");
-    }
-
-    // Step 2 — Validate discount price if being updated
-    const newPrice = req.body.price ?? product.price;
-    const newDiscountPrice = req.body.discountPrice ?? product.discountPrice;
-
-    if (newDiscountPrice && newDiscountPrice >= newPrice) {
-      throw new ApiError(
-        400,
-        "Discount price must be less than the original price",
-      );
-    }
-
-    // if a new image was uploaded, replace the first image in the array
-    // if not, leave images untouched — seller is only updating text fields
-    if (req.file) {
-      const uploadedImage = await uploadToCloudinary(req.file.buffer);
-      req.body.images = [uploadedImage.secure_url];
-    }
-
-    // Step 3 — Update only the fields that were sent
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body }, // only update fields that were sent
-      { new: true, runValidators: true }, // return updated doc + run schema validators
+    const productId = getRouteParam(req.params.id, "product id");
+    const updatedProduct = await updateProductService(
+      req.user!,
+      productId,
+      req.body,
+      req.file,
     );
 
     res
@@ -184,20 +148,8 @@ export const updateProduct = asyncHandler(
 // We never actually delete products — orders might reference them
 export const deleteProduct = asyncHandler(
   async (req: Request, res: Response) => {
-    const product = await Product.findById(req.params.id);
-
-    if (!product || !product.isActive) {
-      throw new ApiError(404, "Product not found");
-    }
-
-    // Make sure this seller owns this product
-    if (product.seller.toString() !== req.user!._id.toString()) {
-      throw new ApiError(403, "You can only delete your own products");
-    }
-
-    // Soft delete — just flip isActive to false
-    product.isActive = false;
-    await product.save();
+    const productId = getRouteParam(req.params.id, "product id");
+    await deleteProductService(req.user!, productId);
 
     res.status(200).json(new ApiResponse(200, "Product deleted successfully"));
   },

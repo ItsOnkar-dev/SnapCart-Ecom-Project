@@ -5,11 +5,13 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { auditLog } from "../utils/auditLogger";
 import { generateResetToken } from "../utils/generateResetToken";
 import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateTokens";
+import { hashToken } from "../utils/hashToken";
 import { sendPasswordChangedEmail } from "../utils/sendPasswordChangedEmail";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail";
 import {
@@ -122,7 +124,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = generateRefreshToken(user._id.toString());
 
   // Step 7 — Save refresh token in DB so we can invalidate it on logout
-  user.refreshToken = refreshToken;
+  user.refreshToken = hashToken(refreshToken);
   await user.save({ validateBeforeSave: false });
   // validateBeforeSave:false — only refreshToken changed, no need to re-run all validators
 
@@ -144,6 +146,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     path: "/api/auth",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
+
+  auditLog("auth.login", user._id.toString(), { email: user.email });
 
   // Step 9 — Attach cookies to response and send user data
   res
@@ -185,7 +189,7 @@ export const refreshAccessToken = asyncHandler(
     // Step 3 — Find user and check stored refresh token matches
     const user = await User.findById(decoded.userId).select("+refreshToken");
 
-    if (!user || user.refreshToken !== token) {
+    if (!user || !user.refreshToken || user.refreshToken !== hashToken(token)) {
       // Token reuse detected — someone is using an old refresh token
       // This means the token may have been stolen — wipe all tokens
       if (user) {
@@ -203,8 +207,10 @@ export const refreshAccessToken = asyncHandler(
     const newRefreshToken = generateRefreshToken(user._id.toString());
 
     // Step 5 — Save new refresh token, invalidate old one
-    user.refreshToken = newRefreshToken;
+    user.refreshToken = hashToken(newRefreshToken);
     await user.save({ validateBeforeSave: false });
+
+    auditLog("auth.refresh", user._id.toString(), { email: user.email });
 
     const isProduction = process.env.NODE_ENV === "production";
 
@@ -249,6 +255,10 @@ export const getCurrentUser = asyncHandler(
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   await User.findByIdAndUpdate(req.user!._id, {
     refreshToken: null, // Step 1 — Remove refresh token from DB, So even if someone has the old token, it's invalid on the server side
+  });
+
+  auditLog("auth.logout", req.user?._id?.toString(), {
+    email: req.user?.email,
   });
 
   const isProduction = process.env.NODE_ENV === "production";
@@ -310,6 +320,8 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   //  theoretically reuse the same link (until it naturally expires)
 
   await user.save({ validateBeforeSave: false });
+
+  auditLog("auth.email_verify", user._id.toString(), { email: user.email });
 
   res.status(200).json(new ApiResponse(200, "Email verified successfully"));
 });
@@ -393,11 +405,16 @@ export const changePassword = asyncHandler(
     user.password = await bcrypt.hash(newPassword, 12);
 
     user.passwordChangedAt = new Date();
+    auditLog("auth.password_reset", user._id.toString(), { email: user.email });
     // Wipe all refresh tokens — forces re-login on every other device
     user.refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
 
     await sendPasswordChangedEmail(user);
+
+    auditLog("auth.password_change", req.user?._id?.toString(), {
+      email: user.email,
+    });
 
     const isProduction = process.env.NODE_ENV === "production";
     // Clear cookies on current device too — user must log in again
@@ -475,7 +492,7 @@ export const resetPassword = asyncHandler(
 
     // hash the incoming raw token the same way generateResetToken hashed it at creation —
     // we never store raw tokens, only hashes, so we compare hash-to-hash
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = hashToken(token);
 
     const user = await User.findOne({
       passwordResetToken: hashedToken,

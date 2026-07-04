@@ -6,8 +6,17 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/product.controller";
-import { requireRole, verifyToken } from "../middleware/auth.middleware";
+import {
+  requireRole,
+  requireVerifiedEmail,
+  verifyToken,
+} from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
+import { validate } from "../middleware/validate.middleware";
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "../validators/product.validator";
 
 const router = Router();
 
@@ -20,15 +29,19 @@ router.get("/:id", getProductById);
 router.post(
   "/",
   verifyToken,
+  requireVerifiedEmail,
   requireRole("seller"),
   upload.single("image"),
+  validate(createProductSchema),
   createProduct,
 );
 router.patch(
   "/:id",
   verifyToken,
+  requireVerifiedEmail,
   requireRole("seller"),
   upload.single("image"),
+  validate(updateProductSchema),
   updateProduct,
 );
 router.delete("/:id", verifyToken, requireRole("seller"), deleteProduct);

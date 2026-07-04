@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
-import { ApiError, ApiResponse } from "../utils/ApiResponse";
+import { applyForSellerService } from "../services/seller.service";
+import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { auditLog } from "../utils/auditLogger";
 import { Logger } from "../utils/logger";
 import { sendSellerApplicationEmail } from "../utils/sendSellerApplicationEmail";
 
@@ -11,25 +12,9 @@ export const applyForSeller = asyncHandler(
   async (req: Request, res: Response) => {
     const user = req.user!;
 
-    // Step 1 — Only customers can apply
-    if (user.role !== "customer") {
-      throw new ApiError(400, "Only customers can apply to become a seller");
-    }
+    await applyForSellerService(user);
 
-    // Step 2 — Check if already applied
-    if (user.sellerStatus === "pending") {
-      throw new ApiError(400, "Your application is already under review");
-    }
-
-    if (user.sellerStatus === "approved") {
-      throw new ApiError(400, "You are already an approved seller");
-    }
-
-    // Step 3 — Update sellerStatus to pending
-    // Admin will review this and approve or reject
-    await User.findByIdAndUpdate(user._id, {
-      sellerStatus: "pending",
-    });
+    auditLog("seller.apply", user._id.toString(), { email: user.email });
 
     // notify admin — wrapped in try/catch so a Resend failure
     try {

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import {
@@ -17,7 +18,9 @@ import {
   googleCallback,
 } from "../controllers/googleAuth.controller";
 import { verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
+import { ApiResponse } from "../utils/ApiResponse";
 import {
   changePasswordSchema,
   forgotPasswordSchema,
@@ -40,16 +43,55 @@ const passwordResetLimiter = rateLimit({
 
 const router = Router();
 
-router.post("/register", validate(registerSchema), register);
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many login attempts, please try again later",
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many registration attempts, please try again later",
+  },
+});
+
+router.get("/csrf-token", (req, res) => {
+  const token = crypto.randomBytes(32).toString("hex");
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res
+    .cookie("csrfToken", token, {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      path: "/",
+      maxAge: 60 * 60 * 1000,
+    })
+    .status(200)
+    .json(new ApiResponse(200, "CSRF token generated", { csrfToken: token }));
+});
+
+router.post("/register", registerLimiter, validate(registerSchema), register);
 router.get("/verify-email", verifyEmail);
-router.post("/resend-verification", resendVerification);
-router.post("/login", validate(loginSchema), login);
-router.post("/refresh", refreshAccessToken);
+router.post("/resend-verification", passwordResetLimiter, resendVerification);
+router.post("/login", loginLimiter, validate(loginSchema), login);
+router.post("/refresh", loginLimiter, refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
-router.post("/logout", verifyToken, logout);
+router.post("/logout", verifyToken, csrfProtection, logout);
 router.patch(
   "/change-password",
   verifyToken,
+  csrfProtection,
   validate(changePasswordSchema),
   changePassword,
 );

@@ -10,11 +10,23 @@ import {
   requireVerifiedEmail,
   verifyToken,
 } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
+import { validate } from "../middleware/validate.middleware";
+import {
+  placeOrderSchema,
+  updateOrderStatusSchema,
+} from "../validators/order.validator";
 
 const router = Router();
 
 // Customer routes — must be logged in
-router.post("/", verifyToken, requireVerifiedEmail, placeOrder);
+router.post(
+  "/",
+  verifyToken,
+  requireVerifiedEmail,
+  validate(placeOrderSchema),
+  placeOrder,
+);
 router.get("/", verifyToken, getMyOrders);
 router.get("/:id", verifyToken, getOrderById);
 
@@ -23,6 +35,8 @@ router.patch(
   "/:id/status",
   verifyToken,
   requireRole("admin", "seller"),
+  csrfProtection,
+  validate(updateOrderStatusSchema),
   updateOrderStatus,
 );
 

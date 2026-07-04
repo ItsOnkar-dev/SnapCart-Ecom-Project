@@ -74,6 +74,7 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
 );
 
 userSchema.index({ sellerStatus: 1 });
-userSchema.index({ email: 1 });
+userSchema.index({ email: 1 }, { unique: true, sparse: true });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
 export const User = mongoose.model<IUser>("User", userSchema); // mongoose.model() is used to create the final model.
