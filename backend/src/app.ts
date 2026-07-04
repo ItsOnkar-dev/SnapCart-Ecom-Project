@@ -51,6 +51,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://127.0.0.1:5173",
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
@@ -122,8 +123,13 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
+  // PRINT THE FULL UNFILTERED ERROR TO RAILWAY CONSOLE:
+  console.error("--- unexpected error start ---");
+  console.error(err);
+  console.error("--- unexpected error end ---");
+
   // If it's some unexpected error (DB crash, bug, etc.)
-  Logger.error("Unexpected error:", err);
+  Logger.error("Unexpected error:", err instanceof Error ? err.stack : err); // Changed this line
   res.status(500).json({
     success: false,
     message: "Internal server error",
