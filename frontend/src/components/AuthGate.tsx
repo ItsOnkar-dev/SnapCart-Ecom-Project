@@ -1,5 +1,5 @@
 // src/components/AuthGate.tsx
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/auth.store";
 
@@ -13,8 +13,8 @@ export const AuthGate = ({ children }: { children: React.ReactNode }) => {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <Spinner className="w-10 h-10 animate-spin text-indigo-300" />
         <p className="text-sm font-medium text-slate-500">
           Loading SnapCart...
         </p>

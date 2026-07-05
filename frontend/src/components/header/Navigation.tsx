@@ -1,17 +1,15 @@
-// components/layout/Navigation.tsx
-// Main navbar — logo, search, wishlist (placeholder), cart (with badge), user menu.
-// Category strip below on desktop, slide-out menu on mobile.
-// Matches SnapCart's actual product categories from product.types.ts.
-
-import { Heart, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
+import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useAuthStore } from "@/store/auth.store";
+import type { CartItem } from "@/types/cart.types";
+import SearchAutocomplete from "../SearchAutocomplete";
 import UserMenu from "./UserMenu";
 
-// Mirrors ProductCategory type in product.types.ts exactly
 const CATEGORIES: { slug: string; label: string }[] = [
   { slug: "electronics", label: "Electronics" },
   { slug: "fashion", label: "Fashion" },
@@ -28,17 +26,19 @@ export default function Navigation() {
   const { data: cart } = useCart();
 
   const cartCount =
-    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
-
-  // "Become a seller" only shows for customers — sellers/admins already have that role
+    cart?.items?.reduce(
+      (sum: number, item: CartItem) => sum + item.quantity,
+      0,
+    ) ?? 0;
   const showBecomeSeller = user?.role === "customer";
 
   return (
-    <div className="bg-white/95 backdrop-blur-lg border-b border-gray-200">
-      {/* ── top row ─────────────────────────────────────────────────────── */}
+    <div className="bg-background/90 backdrop-blur-lg border-b border-border">
       <div className="flex items-center gap-3 h-16 px-4 md:px-6 max-w-7xl mx-auto">
-        <button
-          className="lg:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden text-foreground"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -47,50 +47,36 @@ export default function Navigation() {
           ) : (
             <Menu className="w-6 h-6" />
           )}
-        </button>
+        </Button>
 
-        <Link to="/" className="flex items-center gap-1.5 shrink-0">
-          <ShoppingBag className="w-6 h-6 text-indigo-600" />
-          <span className="text-lg font-bold text-gray-900">
-            Snap<span className="text-indigo-600">cart</span>
-          </span>
-        </Link>
+        <Logo className="shrink-0" />
 
-        {/* Desktop search */}
+        {/* Desktop search — live dropdown, debounced, wired to useProducts */}
         <div className="hidden md:flex flex-1 max-w-xl mx-auto">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products, brands and more..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 rounded-full
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white
-                         placeholder:text-gray-400 transition-colors"
-            />
-          </div>
+          <SearchAutocomplete />
         </div>
 
         <div className="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
-          {/* Wishlist — visual placeholder, no backend feature yet */}
-          <button
-            className="hidden sm:grid place-items-center p-2 text-gray-700 hover:text-gray-900 transition-colors"
+          <Link
+            to="/wishlist"
+            className="relative hidden sm:grid place-items-center p-2 text-nav-foreground hover:text-nav-hover transition-colors"
             aria-label="Favourites"
           >
             <Heart className="w-5 h-5" />
-          </button>
+          </Link>
 
           <UserMenu />
 
           <Link
             to="/cart"
-            className="relative p-2 text-gray-700 hover:text-gray-900 transition-colors"
+            className="relative p-2 text-foreground hover:text-primary transition-colors"
             aria-label="Cart"
           >
-            <ShoppingBag className="w-5 h-5" />
+            <ShoppingBagIcon />
             {cartCount > 0 && (
               <span
                 className="absolute -top-1 -right-1 grid place-items-center min-w-[18px] h-[18px] px-1
-                                rounded-full bg-indigo-600 text-white text-[10px] font-semibold"
+                                rounded-full bg-primary text-primary-foreground text-[10px] font-semibold"
               >
                 {cartCount}
               </span>
@@ -101,24 +87,18 @@ export default function Navigation() {
 
       {/* Mobile search */}
       <div className="md:hidden px-4 pb-3">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 rounded-full
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white
-                       placeholder:text-gray-400"
-          />
-        </div>
+        <SearchAutocomplete
+          placeholder="Search products..."
+          onNavigate={() => setMobileOpen(false)}
+        />
       </div>
 
       {/* ── desktop category strip ─────────────────────────────────────── */}
-      <nav className="hidden lg:block border-t border-gray-100">
+      <nav className="hidden lg:block border-t border-border/60">
         <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
           <Link
             to="/products"
-            className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors whitespace-nowrap"
+            className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap"
           >
             All Products
           </Link>
@@ -126,14 +106,14 @@ export default function Navigation() {
             <Link
               key={c.slug}
               to={`/products?category=${c.slug}`}
-              className="text-sm text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
             >
               {c.label}
             </Link>
           ))}
           <Link
             to="/products?sort=newest"
-            className="text-sm text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
           >
             New In
           </Link>
@@ -141,7 +121,7 @@ export default function Navigation() {
           {showBecomeSeller && (
             <Link
               to="/seller/apply"
-              className="ml-auto text-sm font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
+              className="ml-auto text-sm font-semibold text-primary hover:text-primary/80 whitespace-nowrap"
             >
               Become a seller
             </Link>
@@ -151,12 +131,12 @@ export default function Navigation() {
 
       {/* ── mobile slide-out menu ───────────────────────────────────────── */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-200 bg-white">
+        <div className="lg:hidden border-t border-border bg-background">
           <div className="px-4 py-4 space-y-1">
             <Link
               to="/products"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base font-medium text-gray-900 hover:text-indigo-600"
+              className="block py-2.5 text-base font-medium text-foreground hover:text-primary"
             >
               All Products
             </Link>
@@ -165,7 +145,7 @@ export default function Navigation() {
                 key={c.slug}
                 to={`/products?category=${c.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="block py-2.5 text-base text-gray-600 hover:text-indigo-600"
+                className="block py-2.5 text-base text-muted-foreground hover:text-primary"
               >
                 {c.label}
               </Link>
@@ -173,17 +153,17 @@ export default function Navigation() {
             <Link
               to="/products?sort=newest"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base text-gray-600 hover:text-indigo-600"
+              className="block py-2.5 text-base text-muted-foreground hover:text-primary"
             >
               New In
             </Link>
 
-            <div className="pt-3 mt-2 border-t border-gray-200 space-y-1">
+            <div className="pt-3 mt-2 border-t border-border space-y-1">
               {showBecomeSeller && (
                 <Link
                   to="/seller/apply"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base font-semibold text-indigo-600"
+                  className="block py-2.5 text-base font-semibold text-primary"
                 >
                   Become a seller
                 </Link>
@@ -192,14 +172,14 @@ export default function Navigation() {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base text-gray-600 hover:text-indigo-600"
+                  className="block py-2.5 text-base text-muted-foreground hover:text-primary"
                 >
                   Sign in
                 </Link>
               )}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="block w-full text-left py-2.5 text-base text-gray-600 hover:text-indigo-600"
+                className="block w-full text-left py-2.5 text-base text-muted-foreground hover:text-primary"
               >
                 Favourites
               </button>
@@ -210,3 +190,20 @@ export default function Navigation() {
     </div>
   );
 }
+
+const ShoppingBagIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.7}
+    stroke="currentColor"
+    className="w-5 h-5"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
+    />
+  </svg>
+);

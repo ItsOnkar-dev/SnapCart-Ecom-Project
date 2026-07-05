@@ -3,7 +3,7 @@
 // Auth pages don't show Header — cleaner full-screen forms, matches
 // what LoginPage/RegisterPage already look like (centered card, no nav).
 
-import Header from "@/components/layout/Header";
+import Header from "@/components/header/Header";
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import ProtectedRoute from "./router/ProtectedRoute";
