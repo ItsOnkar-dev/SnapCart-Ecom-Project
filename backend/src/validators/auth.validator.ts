@@ -67,23 +67,16 @@ export const forgotPasswordSchema = z.object({
     }),
 });
 
-export const resetPasswordSchema = z
-  .object({
-    token: z
-      .string({ error: "Reset token is required" })
-      .min(1, "Token is required"),
+export const resetPasswordSchema = z.object({
+  token: z
+    .string({ error: "Reset token is required" })
+    .min(1, "Token is required"),
 
-    newPassword: z
-      .string({ error: "Password is required" })
-      .min(8, "Password must be at least 8 characters")
-      .max(100, "Password is too long"),
-
-    confirmPassword: z.string({ error: "Please confirm your password" }),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+  newPassword: z
+    .string({ error: "Password is required" })
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password is too long"),
+});
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
