@@ -1,5 +1,11 @@
+// AppRouter.tsx
+// Header wraps every route via a layout component.
+// Auth pages don't show Header — cleaner full-screen forms, matches
+// what LoginPage/RegisterPage already look like (centered card, no nav).
+
+import Header from "@/components/layout/Header";
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
 
@@ -36,50 +42,66 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 // ── admin pages ───────────────────────────────────────────────────────────────
 // const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
 
+// ── layout wrapper — Header + page content via Outlet ────────────────────────
+function MainLayout() {
+  return (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
+}
+
 const router = createBrowserRouter([
-  // ── public routes ─────────────────────────────────────────────────────────
-  // { path: "/", element: <HomePage /> },
-  // { path: "/products", element: <ProductsPage /> },
-  // { path: "/products/:id", element: <ProductDetailPage /> },
-  {
-    path: "/",
-    element: (
-      <div className="p-8 text-xl font-bold">SnapCart Home — coming soon</div>
-    ),
-  },
+  // ── auth routes — no Header, full-screen centered forms ──────────────────
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/verify-email", element: <VerifyEmailPage /> },
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
-  // { path: "/unauthorized", element: <Unauthorized /> },
-  // { path: "*", element: <NotFound /> },
 
-  // ── protected: any authenticated user ─────────────────────────────────────
+  // ── everything else gets the Header ───────────────────────────────────────
   {
-    element: <ProtectedRoute />,
+    element: <MainLayout />,
     children: [
-      // { path: "/cart", element: <CartPage /> },
-      // { path: "/orders", element: <OrdersPage /> },
-      // { path: "/orders/:id", element: <OrderDetailPage /> },
-      // { path: "/seller/apply", element: <SellerApplyPage /> },
-
-      // ── seller + admin ────────────────────────────────────────────────────
       {
-        element: <RoleRoute allowedRoles={["seller", "admin"]} />,
-        children: [
-          // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
-          // { path: "/seller/products", element: <SellerProductsPage /> },
-          // { path: "/seller/products/new", element: <CreateProductPage /> },
-          // { path: "/seller/products/:id/edit", element: <EditProductPage /> },
-        ],
+        path: "/",
+        element: (
+          <div className="p-8 text-xl font-bold">
+            SnapCart Home — coming soon
+          </div>
+        ),
       },
+      // { path: "/products", element: <ProductsPage /> },
+      // { path: "/products/:id", element: <ProductDetailPage /> },
+      // { path: "/unauthorized", element: <Unauthorized /> },
+      // { path: "*", element: <NotFound /> },
 
-      // ── admin only ────────────────────────────────────────────────────────
+      // ── protected: any authenticated user ───────────────────────────────
       {
-        element: <RoleRoute allowedRoles={["admin"]} />,
+        element: <ProtectedRoute />,
         children: [
-          // { path: "/admin/sellers", element: <AdminSellersPage /> },
+          // { path: "/cart", element: <CartPage /> },
+          // { path: "/orders", element: <OrdersPage /> },
+          // { path: "/orders/:id", element: <OrderDetailPage /> },
+          // { path: "/seller/apply", element: <SellerApplyPage /> },
+
+          {
+            element: <RoleRoute allowedRoles={["seller", "admin"]} />,
+            children: [
+              // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
+              // { path: "/seller/products", element: <SellerProductsPage /> },
+              // { path: "/seller/products/new", element: <CreateProductPage /> },
+              // { path: "/seller/products/:id/edit", element: <EditProductPage /> },
+            ],
+          },
+
+          {
+            element: <RoleRoute allowedRoles={["admin"]} />,
+            children: [
+              // { path: "/admin/sellers", element: <AdminSellersPage /> },
+            ],
+          },
         ],
       },
     ],
