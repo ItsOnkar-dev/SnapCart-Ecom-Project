@@ -69,14 +69,14 @@ export default function Navigation() {
 
           <Link
             to="/cart"
-            className="relative p-2 text-foreground hover:text-primary transition-colors"
+            className="relative p-2 text-foreground hover:text-white transition-colors"
             aria-label="Cart"
           >
             <ShoppingBagIcon />
             {cartCount > 0 && (
               <span
-                className="absolute -top-1 -right-1 grid place-items-center min-w-[18px] h-[18px] px-1
-                                rounded-full bg-primary text-primary-foreground text-[10px] font-semibold"
+                className="absolute -top-1 -right-1 grid place-items-center min-w-4.5 h-4.5 px-1
+                                rounded-full bg-white text-white-foreground text-[10px] font-semibold"
               >
                 {cartCount}
               </span>
@@ -98,7 +98,7 @@ export default function Navigation() {
         <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
           <Link
             to="/products"
-            className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap"
+            className="text-sm font-medium text-foreground hover:text-white transition-colors whitespace-nowrap"
           >
             All Products
           </Link>
@@ -106,14 +106,14 @@ export default function Navigation() {
             <Link
               key={c.slug}
               to={`/products?category=${c.slug}`}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+              className="text-sm text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
             >
               {c.label}
             </Link>
           ))}
           <Link
             to="/products?sort=newest"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+            className="text-sm text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
           >
             New In
           </Link>
@@ -121,7 +121,7 @@ export default function Navigation() {
           {showBecomeSeller && (
             <Link
               to="/seller/apply"
-              className="ml-auto text-sm font-semibold text-primary hover:text-primary/80 whitespace-nowrap"
+              className="ml-auto text-sm font-semibold text-white hover:text-white/80 whitespace-nowrap"
             >
               Become a seller
             </Link>
@@ -136,7 +136,7 @@ export default function Navigation() {
             <Link
               to="/products"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base font-medium text-foreground hover:text-primary"
+              className="block py-2.5 text-base font-medium text-foreground hover:text-white"
             >
               All Products
             </Link>
@@ -145,7 +145,7 @@ export default function Navigation() {
                 key={c.slug}
                 to={`/products?category=${c.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="block py-2.5 text-base text-muted-foreground hover:text-primary"
+                className="block py-2.5 text-base text-muted-foreground hover:text-white"
               >
                 {c.label}
               </Link>
@@ -153,7 +153,7 @@ export default function Navigation() {
             <Link
               to="/products?sort=newest"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base text-muted-foreground hover:text-primary"
+              className="block py-2.5 text-base text-muted-foreground hover:text-white"
             >
               New In
             </Link>
@@ -163,7 +163,7 @@ export default function Navigation() {
                 <Link
                   to="/seller/apply"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base font-semibold text-primary"
+                  className="block py-2.5 text-base font-semibold text-white"
                 >
                   Become a seller
                 </Link>
@@ -172,14 +172,14 @@ export default function Navigation() {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base text-muted-foreground hover:text-primary"
+                  className="block py-2.5 text-base text-muted-foreground hover:text-white"
                 >
                   Sign in
                 </Link>
               )}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="block w-full text-left py-2.5 text-base text-muted-foreground hover:text-primary"
+                className="block w-full text-left py-2.5 text-base text-muted-foreground hover:text-white"
               >
                 Favourites
               </button>

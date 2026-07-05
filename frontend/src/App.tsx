@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
+import AuthLayout from "@/components/layout/AuthLayout";
 
 // ── auth pages ────────────────────────────────────────────────────────────────
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -54,11 +55,31 @@ function MainLayout() {
 
 const router = createBrowserRouter([
   // ── auth routes — no Header, full-screen centered forms ──────────────────
-  { path: "/login", element: <LoginPage /> },
-  { path: "/register", element: <RegisterPage /> },
-  { path: "/verify-email", element: <VerifyEmailPage /> },
-  { path: "/forgot-password", element: <ForgotPasswordPage /> },
-  { path: "/reset-password", element: <ResetPasswordPage /> },
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/register",
+        element: <RegisterPage />,
+      },
+      {
+        path: "/forgot-password",
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: "/verify-email",
+        element: <VerifyEmailPage />,
+      },
+      {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
+      },
+    ],
+  },
 
   // ── everything else gets the Header ───────────────────────────────────────
   {

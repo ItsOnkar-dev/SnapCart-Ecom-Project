@@ -21,11 +21,10 @@ export const Logo = ({ className, showText = true }: LogoProps) => {
         />
       </span>
       {showText && (
-        <span className="font-display text-xl font-bold tracking-tight text-foreground">
+        <h4 className="font-display text-xl font-bold tracking-tight text-foreground">
           Snap<span className="text-gradient">cart</span>
-        </span>
+        </h4>
       )}
     </Link>
   );
 };
-

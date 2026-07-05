@@ -11,6 +11,7 @@ import {
   Moon,
   Package,
   Sun,
+  User,
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -37,14 +38,15 @@ export default function UserMenu() {
     return (
       <Link
         to="/login"
-        className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+        className="flex items-center gap-1 p-2 text-nav-foreground hover:text-nav-hover transition-colors"
+        aria-label="Account"
       >
-        Sign In
+        <User className="w-5 h-5"/>
+        <span className="hidden lg:inline text-sm">Sign In</span>
       </Link>
     );
   }
 
-  // ── logged in: hover-triggered dropdown ─────────────────────────────────
   return (
     <div
       className="relative"

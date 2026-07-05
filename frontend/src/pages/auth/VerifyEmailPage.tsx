@@ -1,15 +1,21 @@
 // pages/auth/VerifyEmailPage.tsx
+// pages/auth/VerifyEmailPage.tsx
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle, Loader2, Mail, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useSearchParams } from "react-router";
 
-import { useResendVerification, useVerifyEmail } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import {
   resendVerificationSchema,
   type ResendVerificationFormData,
 } from "@/schemas/auth.schema";
+
+import { useResendVerification, useVerifyEmail } from "@/hooks/useAuth";
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -19,6 +25,7 @@ export default function VerifyEmailPage() {
   const [verifyError, setVerifyError] = useState(false);
 
   const { mutate: verifyEmail, isPending: isVerifying } = useVerifyEmail();
+
   const { mutate: resend, isPending: isResending } = useResendVerification();
 
   const {
@@ -29,7 +36,6 @@ export default function VerifyEmailPage() {
     resolver: zodResolver(resendVerificationSchema),
   });
 
-  // Auto-trigger when token is in URL
   useEffect(() => {
     if (token) {
       verifyEmail(token, {
@@ -39,41 +45,86 @@ export default function VerifyEmailPage() {
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── token present: verifying ───────────────────────────────────────────────
+  // ---------------- Loading ----------------
+
   if (token && isVerifying) {
     return (
-      <Shell>
-        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
-        <h1 className="text-lg font-semibold text-gray-900">
-          Verifying your email...
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Just a moment.</p>
-      </Shell>
+      <div className="h-full flex items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary mb-5" />
+
+          <h1 className="text-2xl font-light text-foreground mb-2">
+            Verifying your email...
+          </h1>
+
+          <p className="text-sm font-light text-muted-foreground">
+            Just a moment.
+          </p>
+        </div>
+      </div>
     );
   }
 
+  // ---------------- Success ----------------
+
   if (token && verified) {
     return (
-      <Shell>
-        <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-4" />
-        <h1 className="text-lg font-semibold text-gray-900">Email verified!</h1>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          Your account is ready.
-        </p>
-        <Link
-          to="/login"
-          className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white
-                     text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
-        >
-          Go to login
-        </Link>
-      </Shell>
+      <div className="h-full flex items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-5" />
+
+          <h1 className="text-2xl font-light text-foreground mb-2">
+            Email verified!
+          </h1>
+
+          <p className="text-sm font-light text-muted-foreground mb-8">
+            Your account is now ready.
+          </p>
+
+          <Button
+            asChild
+            className="w-full h-12 rounded-none bg-foreground text-background hover:bg-foreground/90 font-light"
+          >
+            <Link to="/login">Go to login</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------- Invalid Token ----------------
+
+  if (token && verifyError) {
+    return (
+      <div className="h-full flex items-center justify-center px-6">
+        <div className="w-full max-w-sm">
+          <div className="flex justify-center mb-5">
+            <XCircle className="h-12 w-12 text-destructive" />
+          </div>
+
+          <h1 className="text-2xl font-light text-center text-foreground mb-2">
+            Link expired
+          </h1>
+
+          <p className="text-sm font-light text-center text-muted-foreground mb-8">
+            Verification links expire after 10 minutes. Request a new one below.
+          </p>
+
+          <ResendForm
+            register={register}
+            handleSubmit={handleSubmit}
+            errors={errors}
+            isResending={isResending}
+            onResend={({ email }) => resend(email)}
+          />
+        </div>
+      </div>
     );
   }
 
   if (token && verifyError) {
     return (
-      <Shell>
+      <div>
         <XCircle className="w-10 h-10 text-red-500 mx-auto mb-4" />
         <h1 className="text-lg font-semibold text-gray-900">
           Link expired or invalid
@@ -88,42 +139,45 @@ export default function VerifyEmailPage() {
           isResending={isResending}
           onResend={({ email }) => resend(email)}
         />
-      </Shell>
+      </div>
     );
   }
 
   // ── no token: user just registered ────────────────────────────────────────
-  return (
-    <Shell>
-      <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-        <Mail className="w-7 h-7 text-indigo-600" />
-      </div>
-      <h1 className="text-lg font-semibold text-gray-900">Check your email</h1>
-      <p className="text-sm text-gray-500 mt-1 mb-6">
-        We sent a verification link to your email. It expires in 10 minutes.
-      </p>
-      <ResendForm
-        register={register}
-        handleSubmit={handleSubmit}
-        errors={errors}
-        isResending={isResending}
-        onResend={({ email }) => resend(email)}
-      />
-      <p className="text-xs text-gray-400 mt-4">
-        Already verified?{" "}
-        <Link to="/login" className="text-indigo-600 hover:text-indigo-700">
-          Sign in
-        </Link>
-      </p>
-    </Shell>
-  );
-}
+  // ---------------- No Token (After Registration) ----------------
 
-function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
-        {children}
+    <div className="h-full flex items-center justify-center px-6">
+      <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-5">
+          <Mail className="h-10 w-10 text-primary" />
+        </div>
+
+        <h1 className="text-2xl font-light text-center text-foreground mb-2">
+          Check your email
+        </h1>
+
+        <p className="text-sm font-light text-center text-muted-foreground mb-8">
+          We've sent you a verification link. It expires in 10 minutes.
+        </p>
+
+        <ResendForm
+          register={register}
+          handleSubmit={handleSubmit}
+          errors={errors}
+          isResending={isResending}
+          onResend={({ email }) => resend(email)}
+        />
+
+        <p className="mt-6 text-center text-sm font-light text-muted-foreground">
+          Already verified?{" "}
+          <Link
+            to="/login"
+            className="text-foreground underline hover:no-underline"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
@@ -147,32 +201,45 @@ function ResendForm({
   onResend: (data: ResendVerificationFormData) => void;
 }) {
   return (
-    <form onSubmit={handleSubmit(onResend)} className="text-left">
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <input
-            {...register("email")}
+    <form onSubmit={handleSubmit(onResend)} className="space-y-4">
+      <div>
+        <label htmlFor="email" className="text-sm font-light text-foreground">
+          Email
+        </label>
+
+        <div className="relative mt-2">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+
+          <Input
+            id="email"
             type="email"
-            placeholder="Enter your email"
-            className="w-full text-sm px-3 py-2.5 border border-gray-300 rounded-lg
-                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                       placeholder:text-gray-400"
+            placeholder="you@example.com"
+            {...register("email")}
+            className="pl-10 rounded-none"
           />
         </div>
-        <button
-          type="submit"
-          disabled={isResending}
-          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700
-                     disabled:opacity-60 disabled:cursor-not-allowed text-white
-                     text-sm font-medium px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
-        >
-          {isResending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          {isResending ? "Sending..." : "Resend link"}
-        </button>
+
+        {errors.email && (
+          <p className="mt-2 text-xs text-destructive">
+            {errors.email.message}
+          </p>
+        )}
       </div>
-      {errors.email && (
-        <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
-      )}
+
+      <Button
+        type="submit"
+        disabled={isResending}
+        className="w-full h-12 rounded-none bg-foreground text-background hover:bg-foreground/90 font-light"
+      >
+        {isResending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          "Resend verification link"
+        )}
+      </Button>
     </form>
   );
 }
