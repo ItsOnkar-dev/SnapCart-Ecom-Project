@@ -4,11 +4,12 @@
 // what LoginPage/RegisterPage already look like (centered card, no nav).
 
 import Header from "@/components/header/Header";
+import Footer from "./components/layout/Footer";
+import AuthLayout from "@/components/layout/AuthLayout";
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
-import AuthLayout from "@/components/layout/AuthLayout";
 
 // ── auth pages ────────────────────────────────────────────────────────────────
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -20,7 +21,7 @@ const ForgotPasswordPage = lazy(
 const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 
 // ── public pages ──────────────────────────────────────────────────────────────
-// const HomePage = lazy(() => import("@/pages/HomePage"));
+const HomePage = lazy(() => import("@/pages/HomePage"));
 // const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 // const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
 
@@ -49,6 +50,7 @@ function MainLayout() {
     <>
       <Header />
       <Outlet />
+      <Footer />
     </>
   );
 }
@@ -87,11 +89,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: (
-          <div className="p-8 text-xl font-bold">
-            SnapCart Home — coming soon
-          </div>
-        ),
+        element: <HomePage />,
       },
       // { path: "/products", element: <ProductsPage /> },
       // { path: "/products/:id", element: <ProductDetailPage /> },
