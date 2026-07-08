@@ -79,7 +79,6 @@ export const googleCallback = asyncHandler(
         googleId: googleUser.id,
         avatar: googleUser.picture,
         isEmailVerified: true,
-        // no password — they login via Google only
       });
     }
 
@@ -93,6 +92,7 @@ export const googleCallback = asyncHandler(
 
     // Step 8 — Set cookies and redirect to frontend
     const isProduction = process.env.NODE_ENV === "production";
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
     const accessTokenCookieOptions = {
       httpOnly: true,
@@ -110,9 +110,12 @@ export const googleCallback = asyncHandler(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 
+    const userName = encodeURIComponent(user.name);
+
     res
       .cookie("accessToken", accessToken, accessTokenCookieOptions)
-      .cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+      .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+      .redirect(`${frontendUrl}/login?googleAuth=success&name=${userName}`);
     if (isProduction) {
       res.redirect(process.env.FRONTEND_URL as string);
     } else {
@@ -124,6 +127,7 @@ export const googleCallback = asyncHandler(
           name: user.name,
           email: user.email,
           role: user.role,
+          avatar: user.avatar,
           isEmailVerified: user.isEmailVerified,
         },
       });

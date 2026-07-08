@@ -179,6 +179,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
         isEmailVerified: user.isEmailVerified,
       }),
     );
@@ -263,6 +264,7 @@ export const getCurrentUser = asyncHandler(
         name: req.user!.name,
         email: req.user!.email,
         role: req.user!.role,
+        avatar: req.user!.avatar,
         isEmailVerified: req.user!.isEmailVerified,
         createdAt: req.user!.createdAt,
       }),
