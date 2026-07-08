@@ -6,10 +6,12 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/product.controller";
+import { getRecommendations } from "../controllers/recommendation.controller";
 import {
   requireRole,
   requireVerifiedEmail,
   verifyToken,
+  optionalVerifyToken,
 } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
 import { validate } from "../middleware/validate.middleware";
@@ -22,6 +24,7 @@ const router = Router();
 
 // Public routes — no login needed
 router.get("/", getAllProducts);
+router.get("/recommendations", optionalVerifyToken, getRecommendations);
 router.get("/:id", getProductById);
 
 // Seller only — must be logged in + must be a seller

@@ -1,0 +1,35 @@
+import { Router } from "express";
+import {
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  moveWishlistToCart,
+  toggleWishlistShare,
+  getSharedWishlist,
+  emailWishlist,
+} from "../controllers/wishlist.controller";
+import { verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
+import { validate } from "../middleware/validate.middleware";
+import {
+  addToWishlistSchema,
+  toggleWishlistShareSchema,
+  emailWishlistSchema,
+} from "../validators/wishlist.validator";
+
+const router = Router();
+
+// Public routes - get shared wishlist
+router.get("/share/:shareId", getSharedWishlist);
+
+// Authenticated routes
+router.use(verifyToken);
+
+router.get("/", getWishlist);
+router.post("/add", csrfProtection, validate(addToWishlistSchema), addToWishlist);
+router.delete("/remove/:productId", csrfProtection, removeFromWishlist);
+router.post("/move-to-cart", csrfProtection, moveWishlistToCart);
+router.patch("/share", csrfProtection, validate(toggleWishlistShareSchema), toggleWishlistShare);
+router.post("/email", csrfProtection, validate(emailWishlistSchema), emailWishlist);
+
+export default router;

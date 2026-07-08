@@ -106,3 +106,36 @@ export const requireVerifiedEmail = (
   }
   next();
 };
+
+export const optionalVerifyToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const token = req.cookies?.accessToken;
+    if (!token) {
+      return next();
+    }
+
+    let decoded: DecodedToken;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET as string,
+      ) as DecodedToken;
+    } catch {
+      return next();
+    }
+
+    const user = await User.findById(decoded.userId);
+
+    if (user && user.isActive) {
+      req.user = user;
+    }
+    next();
+  } catch (error) {
+    next();
+  }
+};
+

@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
+import { Order } from "../models/order.model";
+import { Product } from "../models/product.model";
 import { updateSellerStatusService } from "../services/seller.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -61,3 +63,129 @@ export const updateSellerStatus = asyncHandler(
     );
   },
 );
+
+// GET /api/admin/analytics
+export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
+  // 1. KPI Stats
+  const revenueAgg = await Order.aggregate([
+    { $match: { status: { $ne: "cancelled" } } },
+    { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+  ]);
+  const totalRevenue = revenueAgg[0]?.total ?? 0;
+
+  const totalOrders = await Order.countDocuments();
+
+  const avgOrderAgg = await Order.aggregate([
+    { $match: { status: { $ne: "cancelled" } } },
+    { $group: { _id: null, avg: { $avg: "$totalPrice" } } },
+  ]);
+  const avgOrderValue = avgOrderAgg[0]?.avg ?? 0;
+
+  const lowStockCount = await Product.countDocuments({
+    isActive: true,
+    stock: { $lt: 10 },
+  });
+
+  // 2. 14-Day Revenue Chart Data
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 13);
+  fourteenDaysAgo.setHours(0, 0, 0, 0);
+
+  const dailyRevenueAgg = await Order.aggregate([
+    {
+      $match: {
+        status: { $ne: "cancelled" },
+        createdAt: { $gte: fourteenDaysAgo },
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        revenue: { $sum: "$totalPrice" },
+        orders: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Fill in missing days
+  const dailyRevenue: Array<{ date: string; revenue: number; orders: number }> = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - (13 - i));
+    const dateStr = d.toISOString().split("T")[0];
+    const match = dailyRevenueAgg.find((r) => r._id === dateStr);
+    dailyRevenue.push({
+      date: dateStr,
+      revenue: match ? match.revenue : 0,
+      orders: match ? match.orders : 0,
+    });
+  }
+
+  // 3. Top Products by Quantity
+  const topProducts = await Order.aggregate([
+    { $match: { status: { $ne: "cancelled" } } },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.product",
+        name: { $first: "$items.name" },
+        quantity: { $sum: "$items.quantity" },
+      },
+    },
+    { $sort: { quantity: -1 } },
+    { $limit: 5 },
+  ]);
+
+  // 4. Order Status Distribution (Donut Chart)
+  const orderStatusAgg = await Order.aggregate([
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+  const orderStatuses = orderStatusAgg.map((item) => ({
+    status: item._id,
+    count: item.count,
+  }));
+
+  // 5. Revenue by Category (Pie Chart)
+  const revenueByCategory = await Order.aggregate([
+    { $match: { status: { $ne: "cancelled" } } },
+    { $unwind: "$items" },
+    {
+      $lookup: {
+        from: "products",
+        localField: "items.product",
+        foreignField: "_id",
+        as: "productDetails",
+      },
+    },
+    { $unwind: "$productDetails" },
+    {
+      $group: {
+        _id: "$productDetails.category",
+        revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+      },
+    },
+    { $sort: { revenue: -1 } },
+  ]);
+
+  const categoriesData = revenueByCategory.map((c) => ({
+    category: c._id,
+    revenue: c.revenue,
+  }));
+
+  res.status(200).json(
+    new ApiResponse(200, "Analytics fetched successfully", {
+      kpis: {
+        totalRevenue,
+        totalOrders,
+        avgOrderValue,
+        lowStockCount,
+      },
+      dailyRevenue,
+      topProducts,
+      orderStatuses,
+      revenueByCategory: categoriesData,
+    })
+  );
+});
+
