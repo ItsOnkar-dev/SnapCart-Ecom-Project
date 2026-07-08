@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
-import { Product } from "../models/product.model";
 import { Cart } from "../models/cart.model";
-import { Wishlist } from "../models/wishlist.model";
 import { Order } from "../models/order.model";
+import { Product } from "../models/product.model";
+import { Wishlist } from "../models/wishlist.model";
 
 // Helper to tokenize and clean string for simple text similarity
 const getTokens = (str: string): string[] => {
@@ -101,12 +101,13 @@ export const getFrequentlyBoughtTogether = async (productId: string, limit: numb
 
 // 3. Personalized Recommendations (Based on user interaction categories)
 export const getPersonalizedRecommendations = async (userId: string, limit: number = 8) => {
-  // Fetch user interaction data in parallel
-  const [cart, wishlist, orders] = await Promise.all([
-    Cart.findOne({ user: userId }),
-    Wishlist.findOne({ user: userId }),
-    Order.find({ user: userId, status: { $ne: "cancelled" } }).limit(10),
-  ]);
+  try {
+    // Fetch user interaction data in parallel
+    const [cart, wishlist, orders] = await Promise.all([
+      Cart.findOne({ user: userId }),
+      Wishlist.findOne({ user: userId }),
+      Order.find({ user: userId, status: { $ne: "cancelled" } }).limit(10),
+    ]);
 
   const excludedProductIds = new Set<string>();
   const categoryInteractions: Record<string, number> = {};
@@ -171,7 +172,7 @@ export const getPersonalizedRecommendations = async (userId: string, limit: numb
 
   // Query candidate products in user's favorite categories
   const candidates = await Product.find({
-    category: { $in: favoriteCategories },
+    category: { $in: favoriteCategories as any },
     _id: { $nin: Array.from(excludedProductIds).map((id) => new Types.ObjectId(id)) },
     isActive: true,
   });
@@ -211,4 +212,11 @@ export const getPersonalizedRecommendations = async (userId: string, limit: numb
   }
 
   return recs;
+  } catch (error) {
+    console.error("Error in personalized recommendations:", error);
+    // Fallback to top rated products
+    return Product.find({ isActive: true })
+      .sort({ averageRating: -1, totalReviews: -1 })
+      .limit(limit);
+  }
 };

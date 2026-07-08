@@ -1,20 +1,20 @@
 import { Router } from "express";
 import {
-  getWishlist,
-  addToWishlist,
-  removeFromWishlist,
-  moveWishlistToCart,
-  toggleWishlistShare,
-  getSharedWishlist,
-  emailWishlist,
+    addToWishlist,
+    emailWishlist,
+    getSharedWishlist,
+    getWishlist,
+    moveWishlistToCart,
+    removeFromWishlist,
+    toggleWishlistShare,
 } from "../controllers/wishlist.controller";
 import { verifyToken } from "../middleware/auth.middleware";
 import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import {
-  addToWishlistSchema,
-  toggleWishlistShareSchema,
-  emailWishlistSchema,
+    addToWishlistSchema,
+    emailWishlistSchema,
+    toggleWishlistShareSchema,
 } from "../validators/wishlist.validator";
 
 const router = Router();
@@ -26,8 +26,8 @@ router.get("/share/:shareId", getSharedWishlist);
 router.use(verifyToken);
 
 router.get("/", getWishlist);
-router.post("/add", csrfProtection, validate(addToWishlistSchema), addToWishlist);
-router.delete("/remove/:productId", csrfProtection, removeFromWishlist);
+router.post("/add", validate(addToWishlistSchema), addToWishlist);
+router.delete("/remove/:productId", removeFromWishlist);
 router.post("/move-to-cart", csrfProtection, moveWishlistToCart);
 router.patch("/share", csrfProtection, validate(toggleWishlistShareSchema), toggleWishlistShare);
 router.post("/email", csrfProtection, validate(emailWishlistSchema), emailWishlist);
