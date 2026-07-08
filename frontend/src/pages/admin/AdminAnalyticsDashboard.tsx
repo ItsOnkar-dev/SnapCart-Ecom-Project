@@ -12,7 +12,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { DollarSign, ShoppingBag, TrendingUp, AlertTriangle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -269,7 +268,7 @@ export default function AdminAnalyticsDashboard() {
                         cy="50%"
                         outerRadius={80}
                       >
-                        {revenueByCategory.map((entry: any, index: number) => (
+                        {revenueByCategory.map((_: any, index: number) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
@@ -277,7 +276,9 @@ export default function AdminAnalyticsDashboard() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(val: number) => formatPrice(val)}
+                        formatter={(val) =>
+                          typeof val === "number" ? formatPrice(val) : String(val ?? "")
+                        }
                         contentStyle={{ backgroundColor: "#171717", borderColor: "#262626", borderRadius: "12px" }}
                       />
                     </PieChart>

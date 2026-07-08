@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Heart, Trash2, ShoppingBag, Share2, Copy, Mail, ExternalLink } from "lucide-react";
+import { Heart, Trash2, ShoppingBag, Share2, Copy, Mail } from "lucide-react";
 import {
   useWishlist,
   useRemoveFromWishlist,

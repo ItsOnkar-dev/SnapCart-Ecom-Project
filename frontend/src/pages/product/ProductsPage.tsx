@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router";
 import ProductCard from "@/components/home/ProductCard";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
-import type { ProductCategory } from "@/types/product.types";
+import type { Product, ProductCategory } from "@/types/product.types";
 
 const CATEGORIES: { label: string; value: ProductCategory }[] = [
   { label: "Electronics", value: "electronics" },
@@ -315,7 +315,7 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {products.map((product: Product) => (
               <ProductCard key={product._id} product={product} showNewBadge={newArrivalsOnly} />
             ))}
           </div>
