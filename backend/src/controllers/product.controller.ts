@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { Product } from "../models/product.model";
 import {
-  createProductService,
-  deleteProductService,
-  updateProductService,
+    createProductService,
+    deleteProductService,
+    updateProductService,
 } from "../services/product.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -51,8 +51,8 @@ export const createProduct = asyncHandler(
 export const getAllProducts = asyncHandler(
   async (req: Request, res: Response) => {
     // Basic filters from query params
-    // Example: /api/products?category=electronics&minPrice=100&maxPrice=5000&page=1&limit=10
-    const { category, minPrice, maxPrice, search, page, limit } = req.query;
+    // Example: /api/products?category=electronics&minPrice=100&maxPrice=5000&page=1&limit=10&sort=price_asc
+    const { category, minPrice, maxPrice, search, page, limit, sort, inStock } = req.query;
 
     // Pagination — default to page 1, 10 products per page
     const currentPage = Math.max(1, Number(page) || 1); // never go below page 1
@@ -78,11 +78,27 @@ export const getAllProducts = asyncHandler(
       filter.name = { $regex: search, $options: "i" };
     }
 
+    if (inStock === "true") {
+      filter.stock = { $gt: 0 }; // only show products with stock > 0
+    }
+
+    // Build sort object based on sort parameter
+    let sortObj: Record<string, 1 | -1> = { createdAt: -1 }; // default: newest first
+    if (sort === "price_asc") {
+      sortObj = { price: 1 };
+    } else if (sort === "price_desc") {
+      sortObj = { price: -1 };
+    } else if (sort === "rating") {
+      sortObj = { averageRating: -1, totalReviews: -1 };
+    } else if (sort === "newest") {
+      sortObj = { createdAt: -1 };
+    }
+
     // Run both queries in parallel — faster than running one after the other
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate("seller", "name email") // replace seller ObjectId with their name + email
-        .sort({ createdAt: -1 }) // newest first
+        .sort(sortObj)
         .skip(skip) // skip products from previous pages
         .limit(pageLimit), // only return this many products
       Product.countDocuments(filter), // total count matching the filter
