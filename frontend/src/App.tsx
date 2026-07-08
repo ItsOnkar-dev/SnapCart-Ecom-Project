@@ -24,6 +24,7 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 const HomePage = lazy(() => import("@/pages/HomePage"));
 // const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 // const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const WishlistSharePage = lazy(() => import("@/pages/WishlistSharePage"));
 
 // ── utility pages ─────────────────────────────────────────────────────────────
 // const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -34,6 +35,7 @@ const HomePage = lazy(() => import("@/pages/HomePage"));
 // const OrdersPage = lazy(() => import("@/pages/buyer/OrdersPage"));
 // const OrderDetailPage = lazy(() => import("@/pages/buyer/OrderDetailPage"));
 // const SellerApplyPage = lazy(() => import("@/pages/buyer/SellerApplyPage"));
+const WishlistPage = lazy(() => import("@/pages/buyer/WishlistPage"));
 
 // ── seller pages ──────────────────────────────────────────────────────────────
 // const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
@@ -43,6 +45,7 @@ const HomePage = lazy(() => import("@/pages/HomePage"));
 
 // ── admin pages ───────────────────────────────────────────────────────────────
 // const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
+const AdminAnalyticsDashboard = lazy(() => import("@/pages/admin/AdminAnalyticsDashboard"));
 
 // ── layout wrapper — Header + page content via Outlet ────────────────────────
 function MainLayout() {
@@ -91,6 +94,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <HomePage />,
       },
+      {
+        path: "/wishlist/share/:shareId",
+        element: <WishlistSharePage />,
+      },
       // { path: "/products", element: <ProductsPage /> },
       // { path: "/products/:id", element: <ProductDetailPage /> },
       // { path: "/unauthorized", element: <Unauthorized /> },
@@ -104,6 +111,10 @@ const router = createBrowserRouter([
           // { path: "/orders", element: <OrdersPage /> },
           // { path: "/orders/:id", element: <OrderDetailPage /> },
           // { path: "/seller/apply", element: <SellerApplyPage /> },
+          {
+            path: "/wishlist",
+            element: <WishlistPage />,
+          },
 
           {
             element: <RoleRoute allowedRoles={["seller", "admin"]} />,
@@ -119,6 +130,7 @@ const router = createBrowserRouter([
             element: <RoleRoute allowedRoles={["admin"]} />,
             children: [
               // { path: "/admin/sellers", element: <AdminSellersPage /> },
+              { path: "/admin/analytics", element: <AdminAnalyticsDashboard /> },
             ],
           },
         ],

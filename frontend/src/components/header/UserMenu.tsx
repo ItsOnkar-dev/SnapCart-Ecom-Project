@@ -13,6 +13,7 @@ import {
   Sun,
   User,
   UserCircle,
+  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -94,6 +95,11 @@ export default function UserMenu() {
           <MenuLink to="/wishlist" icon={Heart}>
             Wishlist
           </MenuLink>
+          {user.role === "admin" && (
+            <MenuLink to="/admin/analytics" icon={TrendingUp}>
+              Admin Analytics
+            </MenuLink>
+          )}
 
           <button
             onClick={toggleTheme}

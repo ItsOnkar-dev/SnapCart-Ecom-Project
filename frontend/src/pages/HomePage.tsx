@@ -7,6 +7,7 @@ import Hero from "@/components/home/Hero";
 import ProductRail from "@/components/home/ProductRail";
 import SellerCTA from "@/components/home/SellerCTA";
 import TrustBar from "@/components/home/TrustBar";
+import RecommendationRail from "@/components/home/RecommendationRail";
 
 export default function HomePage() {
   return (
@@ -30,6 +31,13 @@ export default function HomePage() {
         subtitle="Popular products across Snapcart"
         params={{ sort: "rating" }}
         viewAllHref="/products?sort=rating"
+      />
+
+      <RecommendationRail
+        title="Recommended For You"
+        subtitle="AI-powered suggestions based on your interests"
+        type="personalized"
+        limit={4}
       />
     </main>
   );
