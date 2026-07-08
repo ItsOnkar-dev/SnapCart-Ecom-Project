@@ -3,13 +3,15 @@
 // These functions cover all three sides cleanly.
 
 import { api } from "@/lib/axios";
-import type { SellerDecisionStatus } from "@/types/seller.types";
+import type {
+  SellerApplicationInput,
+  SellerDecisionStatus,
+} from "@/types/seller.types";
 
 // POST /api/seller/apply — customer applies to become a seller
 // requires: logged in + verified email + role is "customer"
-// backend reads user from cookie (req.user), sets sellerStatus: "pending"
-// confirmed: controller takes nothing from req.body
-export const applyAsSellerApi = () => api.post("/seller/apply");
+export const applyAsSellerApi = (body: SellerApplicationInput) =>
+  api.post("/seller/apply", body);
 
 // GET /api/admin/sellers — admin sees all pending seller applications
 export const getPendingSellersApi = () => api.get("/admin/sellers");
@@ -20,3 +22,6 @@ export const updateSellerStatusApi = (
   id: string,
   status: SellerDecisionStatus,
 ) => api.patch(`/admin/sellers/${id}`, { status });
+
+// GET /api/seller/products — fetch the logged-in seller's inventory
+export const getSellerProductsApi = () => api.get("/seller/products");

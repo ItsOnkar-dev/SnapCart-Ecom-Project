@@ -1,6 +1,6 @@
 export type UserRole = "customer" | "seller" | "admin";
 
-export type SellerStatus = "pending" | "approved" | "rejected";
+export type SellerStatus = "none" | "pending" | "approved" | "rejected";
 
 export interface User {
   _id: string;

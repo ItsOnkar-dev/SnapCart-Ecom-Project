@@ -2,7 +2,7 @@
 // getPendingSellers returns a specific shape — not the full User object.
 // We type it exactly as the backend selects it: name, email, sellerStatus, createdAt
 
-export type SellerStatus = "pending" | "approved" | "rejected";
+export type SellerStatus = "none" | "pending" | "approved" | "rejected";
 export type SellerDecisionStatus = Extract<
   SellerStatus,
   "approved" | "rejected"
@@ -14,6 +14,9 @@ export interface SellerApplicant {
   name: string;
   email: string;
   sellerStatus: SellerStatus;
+  sellerApplication?: SellerApplicationInput & {
+    appliedAt?: string;
+  };
   createdAt: string;
 }
 
@@ -24,4 +27,13 @@ export interface SellerStatusUpdateResponse {
   email: string;
   role: string;
   sellerStatus: SellerStatus;
+}
+
+export interface SellerApplicationInput {
+  storeName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  taxId?: string;
+  businessAddress?: string;
+  storeDescription?: string;
 }

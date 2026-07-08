@@ -25,6 +25,7 @@ import type {
   RegisterInput,
   ResetPasswordInput,
 } from "@/types/auth.types";
+import type { SellerApplicationInput } from "@/types/seller.types";
 
 // POST /auth/login → { email, password }
 // Server sets httpOnly cookies. Then we call initAuth()
@@ -189,7 +190,7 @@ export function useApplyForSeller() {
   const initAuth = useAuthStore((s) => s.initAuth);
 
   return useMutation({
-    mutationFn: () => applyAsSellerApi(),
+    mutationFn: (body: SellerApplicationInput) => applyAsSellerApi(body),
     onSuccess: async () => {
       await initAuth();
       toast.success("Application submitted! Pending admin review.");

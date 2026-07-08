@@ -120,7 +120,7 @@ export default function Navigation() {
 
           {showBecomeSeller && (
             <Link
-              to="/seller/apply"
+            to="/seller/apply"
               className="ml-auto text-sm font-semibold text-white hover:text-white/80 whitespace-nowrap"
             >
               Become a seller
@@ -161,7 +161,7 @@ export default function Navigation() {
             <div className="pt-3 mt-2 border-t border-border space-y-1">
               {showBecomeSeller && (
                 <Link
-                  to="/seller/apply"
+                to="/seller/apply"
                   onClick={() => setMobileOpen(false)}
                   className="block py-2.5 text-base font-semibold text-white"
                 >

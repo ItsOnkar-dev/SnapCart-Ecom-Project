@@ -8,6 +8,7 @@ import {
   getReviewsApi,
 } from "@/api/review.api";
 import { getApiErrorMessage } from "@/types/api.types";
+import { productKeys } from "@/hooks/useProducts";
 
 import type { ReviewFormData } from "@/types/review.types";
 
@@ -38,6 +39,7 @@ export function useCreateReview(productId: string) {
     mutationFn: (data: ReviewFormData) => createReviewApi(productId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.list(productId) });
+      queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) });
       toast.success("Review submitted!");
     },
     onError: (err: unknown) => {

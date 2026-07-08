@@ -1,14 +1,23 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router";
-import { Heart, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Heart, ChevronDown, ChevronUp, Star, X } from "lucide-react";
 import { useProduct } from "@/hooks/useProducts";
 import { useAddToCart } from "@/hooks/useCart";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist";
+import { useCreateReview, useReviews } from "@/hooks/useReviews";
 import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import RecommendationRail from "@/components/home/RecommendationRail";
+import type { Review } from "@/types/review.types";
 import toast from "react-hot-toast";
 
 const formatPrice = (value: number) =>
@@ -23,12 +32,15 @@ export default function ProductDetailPage() {
   const user = useAuthStore((s) => s.user);
 
   const { data: product, isLoading, error } = useProduct(id);
+  const { data: reviewsData } = useReviews(id);
+  const { mutate: createReview, isPending: isSubmittingReview } = useCreateReview(id ?? "");
   const { mutate: addToCart, isPending: isAdding } = useAddToCart();
   const { data: wishlist } = useWishlist();
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
 
   const [quantity, setQuantity] = useState(1);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     description: true,
     details: false,
@@ -80,6 +92,23 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     addToCart({ productId: product._id, quantity });
+  };
+
+  const reviews = reviewsData?.reviews ?? [];
+
+  const handleReviewSubmit = (data: {
+    rating: number;
+    title?: string;
+    comment: string;
+  }) => {
+    if (!user) {
+      toast.error("Please login to write a review.");
+      return;
+    }
+
+    createReview(data, {
+      onSuccess: () => setReviewDialogOpen(false),
+    });
   };
 
   const hasDiscount = typeof product.discountPrice === "number" && product.discountPrice < product.price;
@@ -268,10 +297,57 @@ export default function ProductDetailPage() {
                         </div>
                         <span className="text-xs text-muted-foreground">({product.totalReviews} reviews)</span>
                       </div>
+                      <div className="space-y-3">
+                        {reviews.map((review: Review) => (
+                          <article
+                            key={review._id}
+                            className="border-t border-border/70 pt-3"
+                          >
+                            <div className="mb-1 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2">
+                                <div className="grid size-8 place-items-center rounded-full bg-secondary text-xs font-semibold text-foreground">
+                                  {review.user?.name?.charAt(0).toUpperCase() ?? "U"}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">
+                                    {review.user?.name ?? "Customer"}
+                                  </p>
+                                  <div className="flex text-primary-glow">
+                                    {Array.from({ length: 5 }).map((_, index) => (
+                                      <Star
+                                        key={index}
+                                        className={`size-3.5 ${
+                                          index < review.rating ? "fill-current" : "text-muted-foreground/40"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {review.title && (
+                              <h4 className="mt-2 text-sm font-semibold text-foreground">
+                                {review.title}
+                              </h4>
+                            )}
+                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                              {review.comment}
+                            </p>
+                          </article>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No customer reviews yet. Be the first to leave one!</p>
                   )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 h-12 w-full rounded-none"
+                    onClick={() => setReviewDialogOpen(true)}
+                  >
+                    Write a review
+                  </Button>
                 </div>
               )}
             </div>
@@ -289,6 +365,136 @@ export default function ProductDetailPage() {
           limit={4}
         />
       </div>
+
+      <ReviewDialog
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        isSubmitting={isSubmittingReview}
+        onSubmit={handleReviewSubmit}
+      />
     </div>
+  );
+}
+
+function ReviewDialog({
+  open,
+  onOpenChange,
+  isSubmitting,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isSubmitting: boolean;
+  onSubmit: (data: { rating: number; title?: string; comment: string }) => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState("");
+  const [comment, setComment] = useState("");
+
+  const canSubmit = rating > 0 && comment.trim().length >= 10;
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit) {
+      toast.error("Please add a rating and at least 10 characters.");
+      return;
+    }
+    onSubmit({
+      rating,
+      title: title.trim() || undefined,
+      comment: comment.trim(),
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-xl rounded-none border border-border bg-popover p-8"
+      >
+        <DialogHeader>
+          <div className="flex items-start justify-between gap-4">
+            <DialogTitle className="text-2xl font-bold text-foreground">
+              Review product
+            </DialogTitle>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="text-muted-foreground transition hover:text-foreground"
+              aria-label="Close review dialog"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <p className="mb-3 text-sm font-medium text-foreground">Rating</p>
+            <div className="flex gap-2">
+              {Array.from({ length: 5 }).map((_, index) => {
+                const value = index + 1;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRating(value)}
+                    className="text-muted-foreground transition hover:text-primary-glow"
+                    aria-label={`Rate ${value} stars`}
+                  >
+                    <Star
+                      className={`size-7 ${
+                        value <= rating ? "fill-primary-glow text-primary-glow" : "fill-muted text-muted"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-foreground">
+              Title
+            </span>
+            <Input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Sum it up"
+              maxLength={80}
+              className="h-14 rounded-none"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-foreground">
+              Your review
+            </span>
+            <textarea
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              placeholder="Share your thoughts about this product..."
+              className="min-h-32 w-full rounded-none border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+              maxLength={500}
+            />
+          </label>
+
+          <Button
+            type="submit"
+            disabled={!canSubmit || isSubmitting}
+            className="h-14 w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner className="mr-2 size-4 text-background" />
+                Submitting...
+              </>
+            ) : (
+              "Submit review"
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

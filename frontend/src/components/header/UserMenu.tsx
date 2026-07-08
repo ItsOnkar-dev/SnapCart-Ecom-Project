@@ -11,9 +11,9 @@ import {
   Moon,
   Package,
   Sun,
+  TrendingUp,
   User,
   UserCircle,
-  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -42,7 +42,7 @@ export default function UserMenu() {
         className="flex items-center gap-1 p-2 text-nav-foreground hover:text-nav-hover transition-colors"
         aria-label="Account"
       >
-        <User className="w-5 h-5"/>
+        <User className="w-5 h-5" />
         <span className="hidden lg:inline text-sm">Sign In</span>
       </Link>
     );
@@ -95,10 +95,22 @@ export default function UserMenu() {
           <MenuLink to="/wishlist" icon={Heart}>
             Wishlist
           </MenuLink>
+          {user.role === "seller" && (
+            <>
+              <MenuLink to="/seller/products" icon={TrendingUp}>
+                Manage Products
+              </MenuLink>
+            </>
+          )}
           {user.role === "admin" && (
-            <MenuLink to="/admin/analytics" icon={TrendingUp}>
-              Admin Analytics
-            </MenuLink>
+            <>
+              <MenuLink to="/admin/analytics" icon={TrendingUp}>
+                Admin Analytics
+              </MenuLink>
+              <MenuLink to="/admin/sellers" icon={UserCircle}>
+                Seller Applications
+              </MenuLink>
+            </>
           )}
 
           <button

@@ -1,8 +1,3 @@
-// AppRouter.tsx
-// Header wraps every route via a layout component.
-// Auth pages don't show Header — cleaner full-screen forms, matches
-// what LoginPage/RegisterPage already look like (centered card, no nav).
-
 import Header from "@/components/header/Header";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { lazy, Suspense } from "react";
@@ -23,28 +18,31 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 // ── public pages ──────────────────────────────────────────────────────────────
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ProductsPage = lazy(() => import("@/pages/product/ProductsPage"));
-const ProductDetailPage = lazy(() => import("@/pages/product/ProductDetailPage"));
-const WishlistSharePage = lazy(() => import("@/pages/wishlist/WishlistSharePage"));
-
-// ── utility pages ─────────────────────────────────────────────────────────────
-// const NotFound = lazy(() => import("@/pages/NotFound"));
-// const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
+const ProductDetailPage = lazy(
+  () => import("@/pages/product/ProductDetailPage"),
+);
+const WishlistSharePage = lazy(
+  () => import("@/pages/wishlist/WishlistSharePage"),
+);
 
 // ── protected buyer pages ─────────────────────────────────────────────────────
 const CartPage = lazy(() => import("@/pages/cart/CartPage"));
 const OrdersPage = lazy(() => import("@/pages/order/OrdersPage"));
 const OrderDetailPage = lazy(() => import("@/pages/order/OrderDetailPage"));
-// const SellerApplyPage = lazy(() => import("@/pages/buyer/SellerApplyPage"));
+const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const WishlistPage = lazy(() => import("@/pages/wishlist/WishlistPage"));
+const Unauthorized = lazy(() => import("@/pages/error/Unauthorized"));
+const NotFound = lazy(() => import("@/pages/error/NotFound"));
 
 // ── seller pages ──────────────────────────────────────────────────────────────
 // const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
-// const SellerProductsPage = lazy(() => import("@/pages/seller/SellerProductsPage"));
-// const CreateProductPage = lazy(() => import("@/pages/seller/CreateProductPage"));
-// const EditProductPage = lazy(() => import("@/pages/seller/EditProductPage"));
+const SellerApplyPage = lazy(() => import("@/pages/seller/SellerApplyPage"));
+const SellerProductsPage = lazy(
+  () => import("@/pages/seller/SellerProductsPage"),
+);
 
 // ── admin pages ───────────────────────────────────────────────────────────────
-// const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
+const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
 const AdminAnalyticsDashboard = lazy(
   () => import("@/pages/admin/AdminAnalyticsDashboard"),
 );
@@ -102,8 +100,8 @@ const router = createBrowserRouter([
       },
       { path: "/products", element: <ProductsPage /> },
       { path: "/products/:id", element: <ProductDetailPage /> },
-      // { path: "/unauthorized", element: <Unauthorized /> },
-      // { path: "*", element: <NotFound /> },
+      { path: "/unauthorized", element: <Unauthorized /> },
+      { path: "*", element: <NotFound /> },
 
       // ── protected: any authenticated user ───────────────────────────────
       {
@@ -112,7 +110,10 @@ const router = createBrowserRouter([
           { path: "/cart", element: <CartPage /> },
           { path: "/orders", element: <OrdersPage /> },
           { path: "/orders/:id", element: <OrderDetailPage /> },
-          // { path: "/seller/apply", element: <SellerApplyPage /> },
+          { path: "/profile", element: <ProfilePage /> },
+          { path: "/account", element: <ProfilePage /> },
+          { path: "/seller/apply", element: <SellerApplyPage /> },
+          { path: "/sell", element: <SellerApplyPage /> },
           {
             path: "/wishlist",
             element: <WishlistPage />,
@@ -122,16 +123,14 @@ const router = createBrowserRouter([
             element: <RoleRoute allowedRoles={["seller", "admin"]} />,
             children: [
               // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
-              // { path: "/seller/products", element: <SellerProductsPage /> },
-              // { path: "/seller/products/new", element: <CreateProductPage /> },
-              // { path: "/seller/products/:id/edit", element: <EditProductPage /> },
+              { path: "/seller/products", element: <SellerProductsPage /> },
             ],
           },
 
           {
             element: <RoleRoute allowedRoles={["admin"]} />,
             children: [
-              // { path: "/admin/sellers", element: <AdminSellersPage /> },
+              { path: "/admin/sellers", element: <AdminSellersPage /> },
               {
                 path: "/admin/analytics",
                 element: <AdminAnalyticsDashboard />,
