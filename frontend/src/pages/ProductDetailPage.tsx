@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router";
-import { Heart, ShoppingBag, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Heart, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { useProduct } from "@/hooks/useProducts";
 import { useAddToCart } from "@/hooks/useCart";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist";

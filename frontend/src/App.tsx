@@ -4,10 +4,10 @@
 // what LoginPage/RegisterPage already look like (centered card, no nav).
 
 import Header from "@/components/header/Header";
-import Footer from "./components/layout/Footer";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
+import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
 
@@ -23,7 +23,7 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 // ── public pages ──────────────────────────────────────────────────────────────
 const HomePage = lazy(() => import("@/pages/HomePage"));
 // const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
-// const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
 const WishlistSharePage = lazy(() => import("@/pages/WishlistSharePage"));
 
 // ── utility pages ─────────────────────────────────────────────────────────────
@@ -45,7 +45,9 @@ const WishlistPage = lazy(() => import("@/pages/buyer/WishlistPage"));
 
 // ── admin pages ───────────────────────────────────────────────────────────────
 // const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
-const AdminAnalyticsDashboard = lazy(() => import("@/pages/admin/AdminAnalyticsDashboard"));
+const AdminAnalyticsDashboard = lazy(
+  () => import("@/pages/admin/AdminAnalyticsDashboard"),
+);
 
 // ── layout wrapper — Header + page content via Outlet ────────────────────────
 function MainLayout() {
@@ -99,7 +101,7 @@ const router = createBrowserRouter([
         element: <WishlistSharePage />,
       },
       // { path: "/products", element: <ProductsPage /> },
-      // { path: "/products/:id", element: <ProductDetailPage /> },
+      { path: "/products/:id", element: <ProductDetailPage /> },
       // { path: "/unauthorized", element: <Unauthorized /> },
       // { path: "*", element: <NotFound /> },
 
@@ -130,7 +132,10 @@ const router = createBrowserRouter([
             element: <RoleRoute allowedRoles={["admin"]} />,
             children: [
               // { path: "/admin/sellers", element: <AdminSellersPage /> },
-              { path: "/admin/analytics", element: <AdminAnalyticsDashboard /> },
+              {
+                path: "/admin/analytics",
+                element: <AdminAnalyticsDashboard />,
+              },
             ],
           },
         ],
