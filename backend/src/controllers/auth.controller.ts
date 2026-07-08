@@ -19,6 +19,14 @@ import {
   sendVerificationEmail,
 } from "../utils/sendVerificationEmail";
 
+const getVerificationLink = (rawToken: string) =>
+  `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+const isDemoVerificationEnabled = () =>
+  process.env.EMAIL_VERIFICATION_DEMO_MODE === "true" ||
+  !process.env.RESEND_API_KEY ||
+  !process.env.RESEND_FROM_EMAIL;
+
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {
   // Step 1 — Pull data from request body
@@ -59,10 +67,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 
   // NEW — fire the email AFTER the user is saved
+  let demoVerificationUrl: string | undefined;
   try {
-    await sendVerificationEmail(user, rawToken);
+    if (isDemoVerificationEnabled()) {
+      demoVerificationUrl = getVerificationLink(rawToken);
+      console.info("Demo verification link:", demoVerificationUrl);
+    } else {
+      await sendVerificationEmail(user, rawToken);
+    }
   } catch (err) {
     console.error("Failed to send verification email:", err);
+    demoVerificationUrl = getVerificationLink(rawToken);
+    console.info("Fallback demo verification link:", demoVerificationUrl);
   }
 
   // Step 7 — Send back user data (never send password — even hashed)
@@ -73,6 +89,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     role: user.role,
     isEmailVerified: user.isEmailVerified,
     createdAt: user.createdAt,
+    demoVerificationUrl,
   };
 
   res
@@ -80,7 +97,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse(
         201,
-        "Account created. Please check your email to verify your account.",
+        demoVerificationUrl
+          ? "Account created. Email delivery is in demo mode, so use the verification link shown on screen."
+          : "Account created. Please check your email to verify your account.",
         userResponse,
       ),
     );
@@ -363,14 +382,29 @@ export const resendVerification = asyncHandler(
     user.emailVerificationTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
-    await sendVerificationEmail(user, rawToken);
+    let demoVerificationUrl: string | undefined;
+    try {
+      if (isDemoVerificationEnabled()) {
+        demoVerificationUrl = getVerificationLink(rawToken);
+        console.info("Demo verification link:", demoVerificationUrl);
+      } else {
+        await sendVerificationEmail(user, rawToken);
+      }
+    } catch (err) {
+      console.error("Failed to resend verification email:", err);
+      demoVerificationUrl = getVerificationLink(rawToken);
+      console.info("Fallback demo verification link:", demoVerificationUrl);
+    }
 
     res
       .status(200)
       .json(
         new ApiResponse(
           200,
-          "If an account exists, a verification email has been sent",
+          demoVerificationUrl
+            ? "Email delivery is in demo mode, so use the verification link shown on screen."
+            : "If an account exists, a verification email has been sent",
+          demoVerificationUrl ? { demoVerificationUrl } : null,
         ),
       );
   },

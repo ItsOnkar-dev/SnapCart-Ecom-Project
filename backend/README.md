@@ -1,265 +1,277 @@
-# SnapCart — Backend API
+# SnapCart Backend
 
-> A production-grade REST API for a full-featured multi-vendor e-commerce platform.
-> Built with Node.js, Express, TypeScript, and MongoDB — engineered with a focus on security, data integrity, and clean architecture.
+Production-minded backend system for a multi-vendor e-commerce platform. Built with Node.js, Express, TypeScript, MongoDB, and Mongoose, with a focus on secure authentication, transactional checkout, seller workflows, wishlist sharing, recommendations, and admin analytics.
 
----
+## Live API
 
-## 🚀 Live API
-
-```
+```txt
 https://snapcart-production.up.railway.app/api
 ```
 
----
+## Highlights
 
-## 🛠 Tech Stack
+- JWT auth with short-lived access tokens, refresh-token rotation, reuse detection, and httpOnly cookies.
+- Email verification with hashed one-time tokens, plus demo-mode verification for portfolio deployments without a paid sender domain.
+- Google OAuth 2.0 login and account linking by email.
+- Product catalog with search, sorting, filtering, Cloudinary image upload, and soft deletes.
+- Cart and order flow with MongoDB transactions for stock decrement, order creation, and cart clearing.
+- Wishlist system with heart toggles, move-to-cart, public share links, and email sharing.
+- AI-style product recommendations for related products, frequently bought together, and personalized picks.
+- Admin analytics dashboard powered by MongoDB aggregations.
+- Seller application and approval workflow with role-based access control.
+- Review system restricted to verified purchasers.
 
-| Layer            | Technology                    |
-| ---------------- | ----------------------------- |
-| Runtime          | Node.js                       |
-| Framework        | Express.js                    |
-| Language         | TypeScript                    |
-| Database         | MongoDB + Mongoose            |
-| Authentication   | JWT (Access + Refresh tokens) |
-| Password Hashing | bcrypt (cost 12)              |
-| Email            | Resend                        |
-| OAuth            | Google OAuth 2.0              |
-| Validation       | Zod v4                        |
-| Image Upload     | Multer + Cloudinary           |
-| Logging          | Custom structured logger      |
-| Deployment       | Railway                       |
+## Tech Stack
 
----
+| Layer                   | Technology                                  |
+| ----------------------- | ------------------------------------------- |
+| Runtime                 | Node.js                                     |
+| Framework               | Express.js                                  |
+| Language                | TypeScript                                  |
+| Database                | MongoDB + Mongoose                          |
+| Auth                    | JWT access/refresh tokens, httpOnly cookies |
+| OAuth                   | Google OAuth 2.0                            |
+| Validation              | Zod                                         |
+| Password Hashing        | bcrypt                                      |
+| Email                   | Resend                                      |
+| Uploads                 | Multer memory storage + Cloudinary          |
+| Charts/Analytics Source | MongoDB aggregation pipelines               |
+| Deployment              | Railway                                     |
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```txt
 backend/
-└── src/
-    ├── app.ts                              # Express app — middleware, routes, error handler
-    ├── server.ts                           # Entry point — DB connect, server start
-    │
-    ├── config/
-    │   ├── cloudinary.ts                   # Cloudinary v2 client setup
-    │   ├── db.ts                           # MongoDB Atlas connection
-    │   ├── googleClient.ts                 # Google OAuth client
-    │   └── validateEnv.ts                  # Startup env variable validation
-    │
-    ├── controllers/
-    │   ├── auth.controller.ts              # Register, login, logout, refresh, me, password flows
-    │   ├── googleAuth.controller.ts        # Google OAuth callback handler
-    │   ├── product.controller.ts           # Product CRUD + image upload
-    │   ├── cart.controller.ts              # Cart management
-    │   ├── order.controller.ts             # Order placement + status management
-    │   ├── review.controller.ts            # Product reviews
-    │   ├── seller.controller.ts            # Seller application flow
-    │   └── admin.controller.ts             # Admin controls
-    │
-    ├── middleware/
-    │   ├── auth.middleware.ts              # JWT verification + token invalidation + RBAC
-    │   ├── multer.middleware.ts            # File upload validation (memory storage)
-    │   └── validate.middleware.ts          # Zod request validation
-    │
-    ├── models/
-    │   ├── user.model.ts
-    │   ├── product.model.ts
-    │   ├── cart.model.ts
-    │   ├── order.model.ts
-    │   └── review.model.ts
-    │
-    ├── routes/
-    │   ├── auth.routes.ts
-    │   ├── product.routes.ts
-    │   ├── cart.routes.ts
-    │   ├── order.routes.ts
-    │   ├── review.routes.ts
-    │   ├── seller.routes.ts
-    │   └── admin.routes.ts
-    │
-    ├── services/
-    │   ├── order.service.ts                # Order placement with MongoDB transactions
-    │   └── review.service.ts               # Rating recalculation
-    │
-    ├── types/
-    │   ├── env.d.ts                        # TypeScript declarations for process.env
-    │   ├── user.types.ts
-    │   ├── product.types.ts
-    │   ├── cart.types.ts
-    │   ├── order.types.ts
-    │   └── review.types.ts
-    │
-    ├── utils/
-    │   ├── ApiResponse.ts                  # Unified ApiResponse + ApiError classes
-    │   ├── asyncHandler.ts                 # Async error wrapper — no try/catch in controllers
-    │   ├── generateTokens.ts               # JWT access + refresh token generation
-    │   ├── generateResetToken.ts           # Crypto token pair (raw + SHA-256 hash)
-    │   ├── logger.ts                       # Structured logger with levels + timestamps
-    │   ├── uploadToCloudinary.ts           # Buffer → Cloudinary upload stream
-    │   ├── sendVerificationEmail.ts        # Email verification sender
-    │   ├── sendPasswordResetEmail.ts       # Password reset link sender
-    │   ├── sendPasswordChangedEmail.ts     # Password change security notification
-    │   └── sendSellerApplicationEmail.ts   # Seller application admin notification
-    │
-    └── validators/
-        ├── auth.validator.ts               # Zod schemas for all auth endpoints
-        └── product.validator.ts            # Zod schemas for product endpoints
+  src/
+    app.ts                         Express app, middleware, routes, error handler
+    server.ts                      DB connection and server startup
+    config/
+      cloudinary.ts                Cloudinary v2 client
+      db.ts                        MongoDB connection
+      googleClient.ts              Google OAuth client
+      validateEnv.ts               Required environment checks
+    controllers/
+      auth.controller.ts           Register, login, refresh, email verification, password flows
+      googleAuth.controller.ts     Google OAuth redirect and callback
+      product.controller.ts        Product CRUD, catalog query, image upload
+      recommendation.controller.ts Product recommendation endpoint
+      cart.controller.ts           Cart read/add/update/remove/clear
+      order.controller.ts          Checkout, order list/detail, status updates
+      review.controller.ts         Verified-purchase reviews
+      wishlist.controller.ts       Wishlist, public sharing, email sharing
+      seller.controller.ts         Seller application flow
+      admin.controller.ts          Seller moderation and analytics
+    middleware/
+      auth.middleware.ts           JWT verification, optional auth, RBAC, verified email guard
+      csrf.middleware.ts           Double-submit CSRF protection
+      multer.middleware.ts         File validation and memory upload
+      validate.middleware.ts       Zod request validation
+    models/
+      user.model.ts
+      product.model.ts
+      cart.model.ts
+      order.model.ts
+      review.model.ts
+      wishlist.model.ts
+    routes/
+      auth.routes.ts
+      product.routes.ts
+      cart.routes.ts
+      order.routes.ts
+      review.routes.ts
+      wishlist.routes.ts
+      seller.routes.ts
+      admin.routes.ts
+    services/
+      cart.service.ts
+      order.service.ts             Transactional checkout logic
+      product.service.ts
+      recommendation.service.ts    Recommendation scoring engine
+      review.service.ts            Rating recalculation
+      seller.service.ts
+      wishlist.service.ts
+    utils/
+      ApiResponse.ts               Unified success/error response classes
+      asyncHandler.ts              Async controller wrapper
+      auditLogger.ts               Security/audit events
+      generateTokens.ts            JWT creation
+      generateResetToken.ts        Raw/hash token pair generator
+      hashToken.ts                 SHA-256 hashing helper
+      logger.ts                    Structured logging
+      uploadToCloudinary.ts        Buffer to Cloudinary upload stream
+      sendVerificationEmail.ts
+      sendPasswordResetEmail.ts
+      sendPasswordChangedEmail.ts
+      sendSellerApplicationEmail.ts
+      sendWishlistEmail.ts
+    validators/
+      auth.validator.ts
+      product.validator.ts
+      cart.validator.ts
+      order.validator.ts
+      review.validator.ts
+      wishlist.validator.ts
+      seller.validator.ts
+      admin.validator.ts
 ```
 
----
+## Authentication And Account Security
 
-## 🔐 Authentication System
+### Register And Email Verification
 
-### Register + Email Verification
+Registration creates an account with `isEmailVerified: false`, stores a SHA-256 hash of a random verification token, and sends the raw token in a frontend verification link.
 
-- User registers → account created with `isEmailVerified: false` → verification email sent via Resend
-- SHA-256 hashed token stored in DB, raw token emailed as a link
-- Token expires in 10 minutes, single-use — cleared from DB on success
-- Enumeration-safe: `resendVerification` returns the same response whether the email exists or not
+- Verification token expires after 10 minutes.
+- Token is single-use and cleared after success.
+- Raw token is never stored in MongoDB.
+- Resend verification is enumeration-safe for unknown emails.
+- Verified email is required before sensitive flows such as checkout, seller application, and seller product writes.
 
-### Login
+### Demo Verification Mode
 
-- bcrypt password comparison (cost factor 12)
-- Issues both access token (15 min) and refresh token (7 days)
-- Tokens delivered via `httpOnly` cookies — never exposed to JavaScript
-- Refresh token stored in DB for rotation + reuse detection
+Portfolio demos should not be blocked by a paid email sender domain. SnapCart keeps the real verification architecture, but adds a demo fallback:
 
-### JWT Rotation + Reuse Detection
+- If `EMAIL_VERIFICATION_DEMO_MODE=true`, the backend returns `demoVerificationUrl` in the register/resend response.
+- If Resend is missing or email delivery fails, the backend also returns a fallback `demoVerificationUrl`.
+- The frontend verify page shows a "Verify in demo mode" button.
+- The same one-time token, hash lookup, expiry, and clearing logic still runs. This is not bypassing verification; it only changes how the verification link is delivered.
 
-- Every `/refresh` call issues a brand new refresh token and invalidates the old one
-- If an old (already-rotated) refresh token is used → reuse detected → all tokens wiped → force re-login everywhere
-- Access tokens rejected if issued before `passwordChangedAt` — stale tokens from before a password change stop working immediately
+Recommended for local/demo:
 
-### Google OAuth 2.0
-
-- Full OAuth flow via `google-auth-library` (no Passport.js)
-- New users auto-created on first Google login
-- Existing users linked by email — no duplicate accounts
-
-### Password Reset
-
-- `forgotPassword` → generates raw/hashed token pair → emails raw token → stores hash + 15-min expiry in DB
-- Enumeration-safe: same 200 response whether the email exists or not
-- `resetPassword` → hashes incoming raw token → matched against DB hash + expiry in a single query → sets new password + `passwordChangedAt` → burns token → wipes refresh token
-- Security notification email fired to user confirming the change
-
-### Change Password
-
-- Requires current password verification first
-- Google OAuth users blocked — no password to change
-- Sets `passwordChangedAt` → invalidates all existing sessions on every device
-- Security notification email fired immediately after success
-
----
-
-## 📸 Image Upload
-
-Built with **Multer (memory storage) + Cloudinary v2** — no disk involved anywhere in the pipeline.
-
-```
-Request (multipart/form-data)
-  → Multer        — validates MIME type + 5MB size limit, holds file in RAM as Buffer
-  → Cloudinary    — Buffer streamed directly via upload_stream
-                  — stored in snapcart/products/ folder
-                  — dimensions capped at 1000×1000 (crop: limit)
-  → Controller    — saves secure_url to MongoDB images array
+```env
+EMAIL_VERIFICATION_DEMO_MODE=true
 ```
 
-**Why memory storage:** Railway uses an ephemeral filesystem — files written to disk can vanish between requests. Memory storage means nothing ever touches disk.
+Recommended for production:
 
-**Why not `multer-storage-cloudinary`:** That package requires `cloudinary@^1.x` — SnapCart uses `cloudinary@^2.x`. The upload stream approach is the correct pattern for v2 and gives more control.
+```env
+EMAIL_VERIFICATION_DEMO_MODE=false
+RESEND_API_KEY=your_resend_key
+RESEND_FROM_EMAIL=verify@your-verified-domain.com
+```
 
-Image upload is wired on:
+### Login, Cookies, And Refresh Rotation
 
-- `POST /api/products` — required (product must have an image)
-- `PATCH /api/products/:id` — optional (only replaces if a new file is sent)
+- Passwords are compared with bcrypt.
+- Access tokens are short-lived.
+- Refresh tokens are stored as hashes and rotated on refresh.
+- Tokens are delivered with httpOnly cookies, so frontend JavaScript cannot read them.
+- Refresh-token reuse detection clears the stored token and forces re-login.
+- Tokens issued before a password change are rejected.
 
----
+### Google OAuth
 
-## 📧 Email Notifications
+- Google login is implemented through `google-auth-library`.
+- Google users are marked email-verified when Google reports a verified email.
+- Existing accounts are linked by email to prevent duplicate users.
 
-All emails sent via Resend with `httpOnly` delivery pattern — fire and forget with `try/catch` so a Resend failure never fails the primary operation.
+### Password Reset And Change
 
-| Trigger                      | Recipient | Email                        |
-| ---------------------------- | --------- | ---------------------------- |
-| Register                     | New user  | Verify your SnapCart account |
-| Resend verification          | User      | Verify your SnapCart account |
-| Forgot password              | User      | Reset your SnapCart password |
-| Password reset success       | User      | Your password was changed    |
-| Password change success      | User      | Your password was changed    |
-| Seller application submitted | Admin     | New seller application       |
+- Forgot password uses the same raw-token/hash-token pattern as email verification.
+- Reset links expire after 15 minutes.
+- Reset and change-password flows clear refresh tokens to invalidate old sessions.
+- Password change notifications are emailed to the user.
 
----
-
-## 🛡 Security
-
-| Measure                | Implementation                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------ |
-| Helmet                 | Secure HTTP headers on every response                                          |
-| CORS                   | Strict origin allowlist, credentials enabled, `sameSite: "none"` in production |
-| Rate limiting          | General (100/10min), Auth (10/10min), Password reset (5/15min)                 |
-| NoSQL injection        | Custom sanitizer strips `$` and `.` from `req.body`, `req.query`, `req.params` |
-| Body size limit        | 10kb max via `express.json`                                                    |
-| Token storage          | `httpOnly` cookies — inaccessible to JavaScript                                |
-| Password hashing       | bcrypt cost 12                                                                 |
-| Reset tokens           | SHA-256 hash stored, raw token emailed — DB leak reveals nothing usable        |
-| Token invalidation     | Access tokens rejected if issued before `passwordChangedAt`                    |
-| Enumeration prevention | Auth endpoints return identical responses for existing/non-existing emails     |
-| Trust proxy            | Enabled for accurate IP-based rate limiting behind Railway's reverse proxy     |
-| File validation        | MIME type check + 5MB limit before any file reaches Cloudinary                 |
-
----
-
-## 🛒 E-Commerce Features
+## Core E-Commerce Features
 
 ### Products
 
-- Full CRUD with role-based access (approved sellers only for write operations)
-- Pagination, filtering by category, price range, and text search by name
-- Image upload via Cloudinary — stored as URL in DB
-- Soft deletes (`isActive: false`) — products hidden from customers but preserved in order history
-- Compound indexes on `{ isActive, category }` and `{ isActive, seller }` for query performance
+- Public product catalog with pagination, text search, category filtering, price filtering, and sorting.
+- Seller-only create/update/delete routes.
+- Product image upload through Multer memory storage and Cloudinary upload streams.
+- Soft delete through `isActive: false`, preserving historical order data.
+- Seller ownership checks prevent sellers from editing other sellers' products.
+- Frontend category pages include a right-side filter drawer matching the app design.
 
 ### Cart
 
-- Add, update quantity, remove items
-- Stock validation at cart-add time
-- Total price calculated and stored on the cart document
+- Authenticated cart with add, update quantity, remove item, and clear cart.
+- Stock validation when items are added or updated.
+- Cart totals are recalculated on server-side updates.
+- Frontend cart page includes a wide checkout panel and AI picks under "Complete your order".
 
 ### Orders
 
-- Checkout pulls from cart — entire operation wrapped in a MongoDB transaction:
-  - Atomic stock check + decrement (race condition safe via `findOneAndUpdate` with `$gte` guard)
-  - Order creation with price snapshot
-  - Cart clear
-  - All three writes commit together or roll back entirely
-- Price snapshot on order items — historical order data unaffected by future price changes
-- Order status progression: `pending → confirmed → shipped → delivered`
-- Cancellation restores stock atomically via transaction
-- Logic extracted to `order.service.ts` — controller stays thin
+Checkout is handled through a MongoDB transaction:
+
+1. Validate cart and stock.
+2. Atomically decrement stock using a guarded `findOneAndUpdate`.
+3. Create order with name, price, quantity, and image snapshots.
+4. Clear the cart.
+5. Commit all writes together or roll everything back.
+
+Other order behavior:
+
+- Users can view their own order list and order details.
+- Status flow supports `pending`, `confirmed`, `shipped`, `delivered`, and `cancelled`.
+- Cancellation restores stock through service logic.
+- Admin/seller status updates are protected by role middleware.
 
 ### Reviews
 
-- Restricted to verified purchasers — must have a `delivered` order containing the product
-- One review per user per product (enforced at DB level)
-- `recalculateRating()` runs after every create/update/delete — keeps `averageRating` and `totalReviews` accurate
-- Logic extracted to `review.service.ts`
+- Reviews require authentication.
+- Review creation is restricted to verified purchasers with delivered orders.
+- One review per user per product.
+- Product `averageRating` and `totalReviews` are recalculated after review changes.
+
+### Wishlist, Sharing, And Email
+
+Wishlist support was added as a complete buyer feature:
+
+- One wishlist per user.
+- Add/remove products through product cards and product details.
+- Move all wishlist items to cart in one action.
+- Public sharing can be enabled/disabled.
+- `shareId` is generated only when sharing is enabled.
+- Shared wishlist pages are public and can be viewed by anyone with the link.
+- Wishlist links can be emailed to another person through Resend.
+
+### AI Product Recommendations
+
+The recommendation engine is heuristic and explainable, which is useful for a portfolio project because it shows the data flow clearly.
+
+Supported recommendation modes:
+
+- `related`: compares product name/description tokens and category, then blends text similarity with rating.
+- `frequently-bought`: analyzes historical order co-occurrence and falls back to related products.
+- `personalized`: uses the user's cart, wishlist, and order categories to score candidate products.
+- Cold-start fallback returns highly rated products.
+
+Frontend usage:
+
+- Homepage "Recommended For You" rail.
+- Product detail recommendations.
+- Cart "Complete your order" AI picks.
 
 ### Seller System
 
-- Customers apply to become sellers via `POST /api/seller/apply`
-- Admin notified by email on every new application
-- Admin approves or rejects via `PATCH /api/admin/sellers/:id`
-- Approved sellers can create and manage their own products only
-- Role-based middleware protects all seller and admin routes
+- Customers can apply to become sellers.
+- Seller applications require a verified email.
+- Admin receives a seller application notification email.
+- Admin can approve or reject sellers.
+- Approved sellers can manage their own products.
 
----
+### Admin Analytics
 
-## 📡 API Reference
+The admin analytics endpoint uses aggregation pipelines instead of hardcoded dashboard values.
+
+Metrics include:
+
+- Total revenue.
+- Total orders.
+- Average order value.
+- Low stock product count.
+- 14-day daily revenue and order history.
+- Top-selling products by quantity.
+- Order status distribution.
+- Revenue by category.
+
+## API Reference
 
 ### Auth
 
-```
+```txt
+GET    /api/auth/csrf-token
 POST   /api/auth/register
 GET    /api/auth/verify-email?token=
 POST   /api/auth/resend-verification
@@ -274,28 +286,32 @@ GET    /api/auth/google
 GET    /api/auth/google/callback
 ```
 
-### Products
+### Products And Recommendations
 
-```
-GET    /api/products                    # public — paginated, filterable
-GET    /api/products/:id               # public
-POST   /api/products                    # seller only — multipart/form-data
-PATCH  /api/products/:id               # seller only — multipart/form-data
-DELETE /api/products/:id               # seller only — soft delete
+```txt
+GET    /api/products
+GET    /api/products/recommendations?type=personalized&limit=4
+GET    /api/products/recommendations?type=related&productId=:id
+GET    /api/products/recommendations?type=frequently-bought&productId=:id
+GET    /api/products/:id
+POST   /api/products
+PATCH  /api/products/:id
+DELETE /api/products/:id
 ```
 
 ### Cart
 
-```
+```txt
 GET    /api/cart
-POST   /api/cart
-PATCH  /api/cart/:itemId
-DELETE /api/cart/:itemId
+POST   /api/cart/add
+PATCH  /api/cart/:productId
+DELETE /api/cart/:productId
+DELETE /api/cart
 ```
 
 ### Orders
 
-```
+```txt
 POST   /api/orders
 GET    /api/orders
 GET    /api/orders/:id
@@ -304,104 +320,140 @@ PATCH  /api/orders/:id/status
 
 ### Reviews
 
-```
+```txt
 GET    /api/reviews/:productId
 POST   /api/reviews/:productId
-PATCH  /api/reviews/:reviewId
-DELETE /api/reviews/:reviewId
+DELETE /api/reviews/:id
+```
+
+### Wishlist
+
+```txt
+GET    /api/wishlist
+POST   /api/wishlist/add
+DELETE /api/wishlist/remove/:productId
+POST   /api/wishlist/move-to-cart
+PATCH  /api/wishlist/share
+GET    /api/wishlist/share/:shareId
+POST   /api/wishlist/email
 ```
 
 ### Seller
 
-```
+```txt
 POST   /api/seller/apply
-GET    /api/seller/status
 ```
 
 ### Admin
 
-```
+```txt
 GET    /api/admin/sellers
 PATCH  /api/admin/sellers/:id
+GET    /api/admin/analytics
 ```
 
----
+## Email Notifications
 
-## ⚙️ Local Setup
+| Trigger                 | Recipient         | Purpose                 |
+| ----------------------- | ----------------- | ----------------------- |
+| Register                | New user          | Email verification      |
+| Resend verification     | User              | New verification link   |
+| Forgot password         | User              | Password reset link     |
+| Password reset success  | User              | Password changed notice |
+| Password change success | User              | Password changed notice |
+| Seller application      | Admin             | Seller approval alert   |
+| Wishlist email share    | Entered recipient | Shared wishlist link    |
+
+## Security Measures
+
+| Measure                   | Implementation                                                   |
+| ------------------------- | ---------------------------------------------------------------- |
+| HTTP headers              | Helmet                                                           |
+| CORS                      | Credentials enabled, strict frontend origin                      |
+| Cookies                   | httpOnly access and refresh tokens                               |
+| CSRF                      | CSRF token route and protected state-changing routes             |
+| Rate limiting             | General auth and password reset limiters                         |
+| Request size              | JSON body limit                                                  |
+| Validation                | Zod schemas at route boundary                                    |
+| Password storage          | bcrypt hashes only                                               |
+| Verification/reset tokens | Raw token delivered, SHA-256 hash stored                         |
+| Refresh tokens            | Hashed refresh token stored, rotated on refresh                  |
+| RBAC                      | Role middleware for customer/seller/admin flows                  |
+| Verified email guard      | Sensitive operations require verified accounts                   |
+| Upload safety             | MIME validation, size limit, memory storage                      |
+| Audit logging             | Login, refresh, logout, verification, seller and password events |
+
+## Environment Variables
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGO_URI=
+
+ACCESS_TOKEN_SECRET=
+REFRESH_TOKEN_SECRET=
+
+FRONTEND_URL=http://localhost:5173
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+ADMIN_EMAIL=
+EMAIL_VERIFICATION_DEMO_MODE=true
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+## Local Setup
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project.git
-cd SnapCart-Ecom-Project/backend
-
-# 2. Install dependencies
+cd backend
 npm install
-
-# 3. Set up environment variables
-cp .env.example .env
-# Fill in your values in .env
-
-# 4. Start development server
 npm run dev
 ```
 
-### Environment Variables
+Build and run production output:
 
 ```bash
-NODE_ENV=development
-MONGO_URI=                      # MongoDB Atlas connection string
-ACCESS_TOKEN_SECRET=            # Random string, min 32 chars
-REFRESH_TOKEN_SECRET=           # Different random string, min 32 chars
-GOOGLE_CLIENT_ID=               # Google Cloud Console
-GOOGLE_CLIENT_SECRET=           # Google Cloud Console
-GOOGLE_CALLBACK_URL=            # http://localhost:5000/api/auth/google/callback
-FRONTEND_URL=                   # http://localhost:5173
-RESEND_API_KEY=                 # Resend dashboard
-RESEND_FROM_EMAIL=              # Verified sender address
-ADMIN_EMAIL=                    # Email that receives seller application notifications
-CLOUDINARY_CLOUD_NAME=          # Cloudinary dashboard
-CLOUDINARY_API_KEY=             # Cloudinary dashboard
-CLOUDINARY_API_SECRET=          # Cloudinary dashboard
+npm run build
+npm start
 ```
 
----
+## Scripts
 
-## 📦 Scripts
+| Command         | Description                              |
+| --------------- | ---------------------------------------- |
+| `npm run dev`   | Start development server with hot reload |
+| `npm run build` | Compile TypeScript to `dist/`            |
+| `npm start`     | Run compiled production server           |
 
-```bash
-npm run dev      # Start with ts-node-dev (hot reload)
-npm run build    # Compile TypeScript → dist/
-npm start        # Run compiled output (production)
-```
+## Architecture Decisions
 
----
+### Why httpOnly cookies instead of localStorage?
 
-## 🏗 Architecture Decisions
+`localStorage` is readable by JavaScript, so an XSS bug can steal tokens. httpOnly cookies cannot be read by frontend JavaScript, which greatly reduces token-theft risk.
 
-**Why `httpOnly` cookies over `localStorage` for tokens?**
-`localStorage` is accessible via JavaScript — any XSS vulnerability exposes tokens instantly. `httpOnly` cookies are invisible to JavaScript entirely, making XSS token theft impossible.
+### Why hash verification and reset tokens?
 
-**Why SHA-256 for email/reset tokens instead of bcrypt?**
-Verification and reset tokens are already high-entropy random values (32 bytes = 256 bits of entropy). bcrypt is designed for low-entropy secrets like passwords. SHA-256 is faster, deterministic, and sufficient for random tokens — bcrypt's intentional slowness would add latency with zero security benefit.
+Verification and reset links contain high-entropy random tokens. The backend stores only the SHA-256 hash. If the database leaks, attackers cannot use the stored hashes as valid links.
 
-**Why MongoDB transactions for order placement?**
-Stock decrement, order creation, and cart clearing must all succeed or all fail together. Without a transaction, a server crash mid-checkout could decrement stock without creating an order, or create an order without clearing the cart. Transactions make the entire operation atomic — all three writes land together or none of them do.
+### Why demo verification instead of removing email verification?
 
-**Why `sameSite: "none"` in production?**
-Frontend and backend live on different domains in production. `sameSite: "strict"` blocks all cross-origin cookie sending — every authenticated API call would arrive with no cookie, silently breaking auth. `"none"` with `secure: true` (HTTPS only) allows cross-origin cookies safely.
+Email verification is a strong CV feature, but Resend production sending requires a verified sender domain. Demo verification keeps the real token architecture while making the hosted project usable without paid domain setup.
 
-**Why memory storage for Multer instead of disk?**
-Railway's filesystem is ephemeral — files written to disk can disappear between requests or on redeploy. Memory storage keeps the file in RAM only for the duration of the upload stream, then it's gone. No temp files, no cleanup logic, no silent production failures.
+### Why MongoDB transactions for checkout?
 
-**Why extract order and review logic into services?**
-Controllers should only handle HTTP — reading the request, calling business logic, sending the response. Anything involving DB transactions, multi-step operations, or reusable logic belongs in a service. `order.service.ts` and `review.service.ts` make the code testable in isolation and keep controllers thin and readable.
+Checkout touches stock, orders, and carts. Transactions make those writes atomic, so the system cannot decrement stock without creating an order or create an order without clearing the cart.
 
----ntend and backend live on different domains in production. `sameSite: "strict"` blocks all cross-origin cookie sending — every authenticated API call would arrive with no cookie, silently breaking auth. `"none"` with `secure: true` (HTTPS only) allows cross-origin cookies safely.
+### Why Multer memory storage?
 
-**Why memory storage for Multer instead of disk?**
-Railway's filesystem is ephemeral — files written to disk can disappear between requests or on redeploy. Memory storage keeps the file in RAM only for the duration of the upload stream, then it's gone. No temp files, no cleanup logic, no silent production failures.
+Railway's filesystem is ephemeral. Keeping uploads in memory and streaming directly to Cloudinary avoids temporary files and cleanup issues.
 
-**Why extract order and review logic into services?**
-Controllers should only handle HTTP — reading the request, calling business logic, sending the response. Anything involving DB transactions, multi-step operations, or reusable logic belongs in a service. `order.service.ts` and `review.service.ts` make the code testable in isolation and keep controllers thin and readable.
+### Why a heuristic recommendation engine?
 
----
+It is transparent, deterministic, and easy to explain in interviews. It demonstrates user-signal modeling without requiring paid ML infrastructure.
