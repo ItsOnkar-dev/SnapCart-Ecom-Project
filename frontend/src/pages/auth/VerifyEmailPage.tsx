@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle, Loader2, Mail, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useSearchParams } from "react-router";
+import { Link, useLocation, useSearchParams } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,17 @@ import { useResendVerification, useVerifyEmail } from "@/hooks/useAuth";
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const token = searchParams.get("token");
+  const initialDemoVerificationUrl =
+    (location.state as { demoVerificationUrl?: string } | null)
+      ?.demoVerificationUrl ?? "";
 
   const [verified, setVerified] = useState(false);
   const [verifyError, setVerifyError] = useState(false);
+  const [demoVerificationUrl, setDemoVerificationUrl] = useState(
+    initialDemoVerificationUrl,
+  );
 
   const { mutate: verifyEmail, isPending: isVerifying } = useVerifyEmail();
 
@@ -110,35 +117,23 @@ export default function VerifyEmailPage() {
             Verification links expire after 10 minutes. Request a new one below.
           </p>
 
+          <DemoVerificationLink demoVerificationUrl={demoVerificationUrl} />
+
           <ResendForm
             register={register}
             handleSubmit={handleSubmit}
             errors={errors}
             isResending={isResending}
-            onResend={({ email }) => resend(email)}
+            onResend={({ email }) =>
+              resend(email, {
+                onSuccess: (res) =>
+                  setDemoVerificationUrl(
+                    res.data?.data?.demoVerificationUrl ?? "",
+                  ),
+              })
+            }
           />
         </div>
-      </div>
-    );
-  }
-
-  if (token && verifyError) {
-    return (
-      <div>
-        <XCircle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-        <h1 className="text-lg font-semibold text-gray-900">
-          Link expired or invalid
-        </h1>
-        <p className="text-sm text-gray-500 mt-1 mb-6">
-          Verification links expire after 10 minutes. Request a new one below.
-        </p>
-        <ResendForm
-          register={register}
-          handleSubmit={handleSubmit}
-          errors={errors}
-          isResending={isResending}
-          onResend={({ email }) => resend(email)}
-        />
       </div>
     );
   }
@@ -161,12 +156,21 @@ export default function VerifyEmailPage() {
           We've sent you a verification link. It expires in 10 minutes.
         </p>
 
+        <DemoVerificationLink demoVerificationUrl={demoVerificationUrl} />
+
         <ResendForm
           register={register}
           handleSubmit={handleSubmit}
           errors={errors}
           isResending={isResending}
-          onResend={({ email }) => resend(email)}
+          onResend={({ email }) =>
+            resend(email, {
+              onSuccess: (res) =>
+                setDemoVerificationUrl(
+                  res.data?.data?.demoVerificationUrl ?? "",
+                ),
+            })
+          }
         />
 
         <p className="mt-6 text-center text-sm font-light text-muted-foreground">
@@ -179,6 +183,28 @@ export default function VerifyEmailPage() {
           </Link>
         </p>
       </div>
+    </div>
+  );
+}
+
+function DemoVerificationLink({
+  demoVerificationUrl,
+}: {
+  demoVerificationUrl?: string;
+}) {
+  if (!demoVerificationUrl) return null;
+
+  return (
+    <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 p-4 text-center">
+      <p className="mb-3 text-sm font-light text-muted-foreground">
+        Demo mode is active, so you can verify without a paid email domain.
+      </p>
+      <Button
+        asChild
+        className="h-11 w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90"
+      >
+        <a href={demoVerificationUrl}>Verify in demo mode</a>
+      </Button>
     </div>
   );
 }

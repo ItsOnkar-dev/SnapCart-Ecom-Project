@@ -54,9 +54,16 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: (body: RegisterInput) => registerApi(body),
-    onSuccess: () => {
-      toast.success("Account created! Check your email to verify.");
-      navigate("/verify-email");
+    onSuccess: (res) => {
+      const demoVerificationUrl = res.data?.data?.demoVerificationUrl;
+      toast.success(
+        demoVerificationUrl
+          ? "Account created! Use demo verification to continue."
+          : "Account created! Check your email to verify.",
+      );
+      navigate("/verify-email", {
+        state: { demoVerificationUrl },
+      });
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Registration failed. Try again."));
@@ -113,8 +120,13 @@ export function useVerifyEmail() {
 export function useResendVerification() {
   return useMutation({
     mutationFn: (email: string) => resendVerificationApi(email),
-    onSuccess: () => {
-      toast.success("Verification email resent. Check your inbox.");
+    onSuccess: (res) => {
+      const demoVerificationUrl = res.data?.data?.demoVerificationUrl;
+      toast.success(
+        demoVerificationUrl
+          ? "Demo verification link is ready."
+          : "Verification email resent. Check your inbox.",
+      );
     },
     onError: (err: unknown) => {
       toast.error(
