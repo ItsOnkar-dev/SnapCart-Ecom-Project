@@ -8,25 +8,27 @@ export type OrderStatus =
   | "cancelled";
 
 export interface OrderItem {
-  product: Pick<Product, "_id" | "name" | "images">;
+  product: string | Pick<Product, "_id" | "name" | "images">;
+  name: string;
   quantity: number;
-  priceAtPurchase: number; 
+  price: number;
+  image?: string;
 }
 
 export interface ShippingAddress {
-  line1: string;
-  line2?: string;
+  fullName: string;
+  phone: string;
+  street: string;
   city: string;
   state: string;
   pincode: string;
-  country: string;
 }
 
 export interface Order {
   _id: string;
   user: string;
   items: OrderItem[];
-  totalAmount: number;
+  totalPrice: number;
   status: OrderStatus;
   shippingAddress: ShippingAddress;
   createdAt: string;

@@ -2,7 +2,10 @@ import type { Product } from "./product.types";
 
 export interface CartItem {
   _id: string;
-  product: Pick<Product, "_id" | "name" | "price" | "images" | "stock">;
+  product: Pick<
+    Product,
+    "_id" | "name" | "price" | "discountPrice" | "images" | "stock"
+  >;
   quantity: number;
 }
 

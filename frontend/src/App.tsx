@@ -22,20 +22,20 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 
 // ── public pages ──────────────────────────────────────────────────────────────
 const HomePage = lazy(() => import("@/pages/HomePage"));
-const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
-const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
-const WishlistSharePage = lazy(() => import("@/pages/WishlistSharePage"));
+const ProductsPage = lazy(() => import("@/pages/product/ProductsPage"));
+const ProductDetailPage = lazy(() => import("@/pages/product/ProductDetailPage"));
+const WishlistSharePage = lazy(() => import("@/pages/wishlist/WishlistSharePage"));
 
 // ── utility pages ─────────────────────────────────────────────────────────────
 // const NotFound = lazy(() => import("@/pages/NotFound"));
 // const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 
 // ── protected buyer pages ─────────────────────────────────────────────────────
-// const CartPage = lazy(() => import("@/pages/buyer/CartPage"));
-// const OrdersPage = lazy(() => import("@/pages/buyer/OrdersPage"));
-// const OrderDetailPage = lazy(() => import("@/pages/buyer/OrderDetailPage"));
+const CartPage = lazy(() => import("@/pages/cart/CartPage"));
+const OrdersPage = lazy(() => import("@/pages/order/OrdersPage"));
+const OrderDetailPage = lazy(() => import("@/pages/order/OrderDetailPage"));
 // const SellerApplyPage = lazy(() => import("@/pages/buyer/SellerApplyPage"));
-const WishlistPage = lazy(() => import("@/pages/buyer/WishlistPage"));
+const WishlistPage = lazy(() => import("@/pages/wishlist/WishlistPage"));
 
 // ── seller pages ──────────────────────────────────────────────────────────────
 // const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
@@ -109,9 +109,9 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          // { path: "/cart", element: <CartPage /> },
-          // { path: "/orders", element: <OrdersPage /> },
-          // { path: "/orders/:id", element: <OrderDetailPage /> },
+          { path: "/cart", element: <CartPage /> },
+          { path: "/orders", element: <OrdersPage /> },
+          { path: "/orders/:id", element: <OrderDetailPage /> },
           // { path: "/seller/apply", element: <SellerApplyPage /> },
           {
             path: "/wishlist",
