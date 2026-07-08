@@ -1,13 +1,28 @@
-import { ArrowRight, Minus, PackageCheck, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Minus,
+  PackageCheck,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/useCart";
+import {
+  useAddToCart,
+  useCart,
+  useRemoveCartItem,
+  useUpdateCartItem,
+} from "@/hooks/useCart";
 import { usePlaceOrder } from "@/hooks/useOrders";
+import { useRecommendations } from "@/hooks/useRecommendations";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
+import type { Product } from "@/types/product.types";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
@@ -34,10 +49,17 @@ export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { mutate: updateCartItem, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
+  const { mutate: addToCart, isPending: isAddingPick } = useAddToCart();
   const { mutate: placeOrder, isPending: isPlacingOrder } = usePlaceOrder();
+  const { data: recommendedProducts = [], isLoading: isLoadingPicks } =
+    useRecommendations({ type: "personalized", limit: 6 });
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
 
   const items = cart?.items ?? [];
+  const cartProductIds = new Set(items.map((item: CartItem) => item.product._id));
+  const aiPicks = (recommendedProducts as Product[])
+    .filter((product) => !cartProductIds.has(product._id))
+    .slice(0, 2);
   const subtotal = useMemo(
     () => items.reduce((sum: number, item: CartItem) => sum + getItemPrice(item) * item.quantity, 0),
     [items],
@@ -196,6 +218,98 @@ export default function CartPage() {
                   </div>
                   <ShieldCheck className="size-6 text-primary-glow" />
                 </div>
+
+                {(isLoadingPicks || aiPicks.length > 0) && (
+                  <section className="mb-6 border-b border-sidebar-border pb-6">
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
+                        <Sparkles className="size-4 fill-current" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-foreground">
+                            Complete your order
+                          </h3>
+                          <span className="rounded-full border border-primary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-glow">
+                            AI picks
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Smart additions based on your shopping signals
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {isLoadingPicks
+                        ? Array.from({ length: 2 }).map((_, index) => (
+                            <div
+                              key={index}
+                              className="aspect-[4/5] animate-pulse rounded-xl border border-sidebar-border bg-muted"
+                            />
+                          ))
+                        : aiPicks.map((product) => {
+                            const image = product.images?.[0];
+                            const pickPrice =
+                              product.discountPrice &&
+                              product.discountPrice < product.price
+                                ? product.discountPrice
+                                : product.price;
+
+                            return (
+                              <article
+                                key={product._id}
+                                className="overflow-hidden rounded-xl border border-sidebar-border bg-background"
+                              >
+                                <Link
+                                  to={`/products/${product._id}`}
+                                  className="block aspect-square overflow-hidden bg-muted"
+                                >
+                                  {image ? (
+                                    <img
+                                      src={image}
+                                      alt={product.name}
+                                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                                    />
+                                  ) : (
+                                    <div className="grid h-full place-items-center text-xs text-muted-foreground">
+                                      No image
+                                    </div>
+                                  )}
+                                </Link>
+                                <div className="p-3">
+                                  <Link
+                                    to={`/products/${product._id}`}
+                                    className="line-clamp-1 text-sm font-semibold text-foreground hover:text-primary"
+                                  >
+                                    {product.name}
+                                  </Link>
+                                  <div className="mt-2 flex items-center justify-between gap-2">
+                                    <span className="text-sm font-bold text-foreground">
+                                      {formatPrice(pickPrice)}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      className="h-8 rounded-md px-3"
+                                      disabled={isAddingPick || product.stock < 1}
+                                      onClick={() =>
+                                        addToCart({
+                                          productId: product._id,
+                                          quantity: 1,
+                                        })
+                                      }
+                                    >
+                                      Add
+                                    </Button>
+                                  </div>
+                                </div>
+                              </article>
+                            );
+                          })}
+                    </div>
+                  </section>
+                )}
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input placeholder="Full name" value={address.fullName} onChange={(e) => handleAddressChange("fullName", e.target.value)} />
