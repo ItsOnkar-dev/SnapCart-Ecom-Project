@@ -22,7 +22,7 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 
 // ── public pages ──────────────────────────────────────────────────────────────
 const HomePage = lazy(() => import("@/pages/HomePage"));
-// const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
+const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
 const WishlistSharePage = lazy(() => import("@/pages/WishlistSharePage"));
 
@@ -100,7 +100,7 @@ const router = createBrowserRouter([
         path: "/wishlist/share/:shareId",
         element: <WishlistSharePage />,
       },
-      // { path: "/products", element: <ProductsPage /> },
+      { path: "/products", element: <ProductsPage /> },
       { path: "/products/:id", element: <ProductDetailPage /> },
       // { path: "/unauthorized", element: <Unauthorized /> },
       // { path: "*", element: <NotFound /> },

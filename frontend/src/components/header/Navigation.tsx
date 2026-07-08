@@ -98,7 +98,7 @@ export default function Navigation() {
         <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
           <Link
             to="/products"
-            className="text-sm font-medium text-foreground hover:text-white transition-colors whitespace-nowrap"
+            className="text-sm font-medium text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
           >
             All Products
           </Link>
