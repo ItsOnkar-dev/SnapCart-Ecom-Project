@@ -1,9 +1,3 @@
-// components/layout/UserMenu.tsx
-// Logged out: plain "Sign In" text link, no dropdown, routes to /login.
-// Logged in: avatar + name + chevron, dropdown OPENS ON HOVER.
-// Contains: My Profile, Orders, Wishlist, Theme toggle, Logout.
-// "Become a Seller" intentionally NOT here — stays in Navbar only.
-
 import {
   ChevronDown,
   Heart,
@@ -34,7 +28,6 @@ export default function UserMenu() {
     setIsLight((v) => !v);
   };
 
-  // ── logged out: plain text link, no dropdown ────────────────────────────
   if (!user) {
     return (
       <Link
@@ -59,9 +52,19 @@ export default function UserMenu() {
         aria-label="Account menu"
         aria-expanded={open}
       >
-        <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
+        {user.avatar ? (
+          <img
+            src={user.avatar}
+            alt={user.name}
+            referrerPolicy="no-referrer"
+            className="w-8 h-8 rounded-full object-cover border border-border"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+
         <span className="hidden lg:inline text-sm font-medium text-foreground">
           {user.name.split(" ")[0]}
         </span>
@@ -77,13 +80,29 @@ export default function UserMenu() {
           className="absolute right-0 top-full w-64 bg-popover rounded-xl shadow-lg border border-border
                      py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
         >
-          <div className="px-4 py-2.5 border-b border-border">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user.name}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {user.email}
-            </p>
+          <div className="flex items-center">
+            <div className="pl-4">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  referrerPolicy="no-referrer"
+                  className="w-8 h-8 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="px-4 py-2.5 border-b border-border">
+              <p className="text-sm font-medium text-foreground truncate">
+                {user.name}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user.email}
+              </p>
+            </div>
           </div>
 
           <MenuLink to="/profile" icon={UserCircle}>

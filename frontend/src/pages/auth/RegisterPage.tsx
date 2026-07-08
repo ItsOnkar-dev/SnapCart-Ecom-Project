@@ -1,10 +1,9 @@
-// pages/auth/RegisterPage.tsx
-
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Lock, Mail, User } from "lucide-react";
+import { Loader2, Lock, Mail, User as UserIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import toast from "react-hot-toast"; // <-- Added toast
+import { Link, useNavigate, useSearchParams } from "react-router"; // <-- Added useSearchParams
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,14 +13,33 @@ import { useAuthStore } from "@/store/auth.store";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // <-- Initialize search parameters
   const { user } = useAuthStore();
   const { mutate: register, isPending } = useRegister();
 
+  // Handle standard redirect if already logged in via state
   useEffect(() => {
     if (user) {
       navigate("/", { replace: true });
     }
   }, [user, navigate]);
+
+  // Catch Google Auth Redirect (Just like LoginPage)
+  useEffect(() => {
+    const authStatus = searchParams.get("googleAuth");
+    const userName = searchParams.get("name");
+
+    if (authStatus === "success") {
+      toast.success(`Welcome to Snapcart, ${userName || "User"}!`, {
+        duration: 4000,
+        position: "top-center",
+      });
+
+      navigate("/", { replace: true });
+    } else if (authStatus === "error") {
+      toast.error("Google authentication failed. Please try again.");
+    }
+  }, [searchParams, navigate]);
 
   const {
     register: field,
@@ -46,7 +64,7 @@ export default function RegisterPage() {
           Join Snapcart to save your bag, favourites and orders.
         </p>
 
-        {/* Google */}
+        {/* Google Sign In */}
         <Button
           variant="outline"
           className="w-full h-10 rounded-none font-light mb-6"
@@ -83,7 +101,7 @@ export default function RegisterPage() {
             </label>
 
             <div className="relative mt-2">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="name"
                 {...field("name")}

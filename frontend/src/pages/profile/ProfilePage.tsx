@@ -39,16 +39,28 @@ export default function ProfilePage() {
     return null;
   }
 
-  const sellerStatus = user.role === "seller" ? "approved" : user.sellerStatus ?? "none";
+  const sellerStatus =
+    user.role === "seller" ? "approved" : (user.sellerStatus ?? "none");
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 md:px-6">
       <div className="mx-auto max-w-6xl">
         <section className="mb-10 grid gap-6 border-b border-border pb-10 lg:grid-cols-[1fr_auto]">
           <div className="flex items-start gap-5">
-            <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            {/* AVATAR LOGIC ADDED HERE */}
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                referrerPolicy="no-referrer"
+                className="size-16 shrink-0 rounded-2xl object-cover shadow-sm border border-border"
+              />
+            ) : (
+              <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground shadow-sm">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+
             <div>
               <p className="mb-2 text-sm text-muted-foreground">Account</p>
               <h1 className="text-4xl font-bold tracking-tight text-foreground">
@@ -58,13 +70,23 @@ export default function ProfilePage() {
               <div className="mt-4 flex flex-wrap gap-2">
                 <StatusPill
                   icon={user.isEmailVerified ? BadgeCheck : ShieldCheck}
-                  label={user.isEmailVerified ? "Email verified" : "Email not verified"}
+                  label={
+                    user.isEmailVerified
+                      ? "Email verified"
+                      : "Email not verified"
+                  }
                   tone={user.isEmailVerified ? "success" : "warning"}
                 />
                 <StatusPill
                   icon={Store}
                   label={`Seller: ${sellerStatus}`}
-                  tone={sellerStatus === "approved" ? "success" : sellerStatus === "pending" ? "warning" : "muted"}
+                  tone={
+                    sellerStatus === "approved"
+                      ? "success"
+                      : sellerStatus === "pending"
+                        ? "warning"
+                        : "muted"
+                  }
                 />
               </div>
             </div>
@@ -72,7 +94,11 @@ export default function ProfilePage() {
 
           <div className="flex flex-wrap items-start gap-3 lg:justify-end">
             {sellerStatus === "none" || sellerStatus === "rejected" ? (
-              <Button asChild variant="outline" className="h-12 rounded-none px-6">
+              <Button
+                asChild
+                variant="outline"
+                className="h-12 rounded-none px-6"
+              >
                 <Link to="/seller/apply">Become a seller</Link>
               </Button>
             ) : null}
@@ -82,22 +108,48 @@ export default function ProfilePage() {
               onClick={() => logout()}
               disabled={isLoggingOut}
             >
-              {isLoggingOut ? <Spinner className="mr-2 size-4" /> : <LogOut className="mr-2 size-4" />}
+              {isLoggingOut ? (
+                <Spinner className="mr-2 size-4" />
+              ) : (
+                <LogOut className="mr-2 size-4" />
+              )}
               Sign out
             </Button>
           </div>
         </section>
 
         <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <QuickLink to="/orders" icon={Package} label="Orders" value={`${orders.length}`} />
-          <QuickLink to="/wishlist" icon={Heart} label="Wishlist" value="Saved items" />
-          <QuickLink to="/cart" icon={ShoppingBag} label="Bag" value="Checkout" />
-          <QuickLink to="/products" icon={Store} label="Shop" value="Continue shopping" />
+          <QuickLink
+            to="/orders"
+            icon={Package}
+            label="Orders"
+            value={`${orders.length}`}
+          />
+          <QuickLink
+            to="/wishlist"
+            icon={Heart}
+            label="Wishlist"
+            value="Saved items"
+          />
+          <QuickLink
+            to="/cart"
+            icon={ShoppingBag}
+            label="Bag"
+            value="Checkout"
+          />
+          <QuickLink
+            to="/products"
+            icon={Store}
+            label="Shop"
+            value="Continue shopping"
+          />
         </section>
 
         <section>
           <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
-            <h2 className="text-2xl font-bold text-foreground">Order history</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              Order history
+            </h2>
             <Button asChild variant="link" className="px-0 text-foreground">
               <Link to="/orders">View all</Link>
             </Button>
@@ -119,10 +171,12 @@ export default function ProfilePage() {
                 >
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Order #{order._id.slice(-8).toUpperCase()} - {formatDate(order.createdAt)}
+                      Order #{order._id.slice(-8).toUpperCase()} -{" "}
+                      {formatDate(order.createdAt)}
                     </p>
                     <p className="mt-1 font-semibold capitalize text-foreground">
-                      {order.status} - {order.items.length} {order.items.length === 1 ? "item" : "items"}
+                      {order.status} - {order.items.length}{" "}
+                      {order.items.length === 1 ? "item" : "items"}
                     </p>
                   </div>
                   <p className="text-lg font-bold text-foreground">
@@ -155,7 +209,9 @@ function StatusPill({
         : "border-border bg-secondary text-muted-foreground";
 
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${toneClass}`}>
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${toneClass}`}
+    >
       <Icon className="size-3.5" />
       {label}
     </span>

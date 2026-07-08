@@ -1,10 +1,9 @@
-// pages/auth/LoginPage.tsx
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import toast from "react-hot-toast"; // Add react-hot-toast
+import { Link, useNavigate, useSearchParams } from "react-router"; // Add useSearchParams
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,14 +13,33 @@ import { useAuthStore } from "@/store/auth.store";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // Initialize search parameters
   const { user } = useAuthStore();
   const { mutate: login, isPending } = useLogin();
 
+  // Handle standard redirect if already logged in via state
   useEffect(() => {
     if (user) {
       navigate("/", { replace: true });
     }
   }, [user, navigate]);
+
+  // Handle Google Auth Redirect
+  useEffect(() => {
+    const authStatus = searchParams.get("googleAuth");
+    const userName = searchParams.get("name");
+
+    if (authStatus === "success") {
+      toast.success(`Welcome back, ${userName || "User"}!`, {
+        duration: 4000,
+        position: "top-center",
+      });
+
+      // The cookies are already set by the backend.
+      // Redirect to homepage, and your app's global auth check will load the user.
+      navigate("/", { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const {
     register,
