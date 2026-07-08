@@ -7,22 +7,18 @@ export const createProductSchema = z
       .trim()
       .min(3, "Product name must be at least 3 characters")
       .max(100, "Product name cannot exceed 100 characters"),
-
     description: z
       .string({ error: "Description is required" })
       .trim()
       .min(10, "Description must be at least 10 characters")
       .max(2000, "Description cannot exceed 2000 characters"),
-
-    price: z
+    price: z.coerce
       .number({ error: "Price is required" })
       .min(0, "Price cannot be negative"),
-
-    discountPrice: z
+    discountPrice: z.coerce
       .number()
       .min(0, "Discount price cannot be negative")
       .optional(),
-
     category: z.enum(
       [
         "All Products",
@@ -37,12 +33,7 @@ export const createProductSchema = z
       ],
       { error: "Category is required" },
     ),
-
-    images: z
-      .array(z.string().url("Each image must be a valid URL"))
-      .optional(),
-
-    stock: z
+    stock: z.coerce
       .number({ error: "Stock is required" })
       .min(0, "Stock cannot be negative"),
   })
@@ -67,9 +58,11 @@ export const updateProductSchema = z
       .max(2000, "Description cannot exceed 2000 characters")
       .optional(),
 
-    price: z.number().min(0, "Price cannot be negative").optional(),
+    price: z.coerce
+      .number({ error: "Price is required" })
+      .min(0, "Price cannot be negative"),
 
-    discountPrice: z
+    discountPrice: z.coerce
       .number()
       .min(0, "Discount price cannot be negative")
       .optional(),
@@ -88,7 +81,9 @@ export const updateProductSchema = z
       ])
       .optional(),
 
-    stock: z.number().min(0, "Stock cannot be negative").optional(),
+    stock: z.coerce
+      .number({ error: "Stock is required" })
+      .min(0, "Stock cannot be negative"),
   })
   .refine(
     (data) =>

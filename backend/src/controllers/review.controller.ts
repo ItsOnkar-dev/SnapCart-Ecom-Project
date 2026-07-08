@@ -25,12 +25,13 @@ const getRouteParam = (value: string | string[] | undefined, name: string) => {
 export const createReview = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = getRouteParam(req.params.productId, "product id");
-    const { rating, comment } = req.body;
+    const { rating, title, comment } = req.body;
 
     const review = await createReviewService(
       req.user!._id,
       productId,
       rating,
+      title,
       comment,
     );
 

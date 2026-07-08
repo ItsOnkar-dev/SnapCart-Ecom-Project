@@ -29,6 +29,7 @@ export const createReviewService = async (
   userId: Types.ObjectId | string,
   productId: string,
   rating: number,
+  title?: string,
   comment?: string,
 ) => {
   const product = await Product.findById(productId);
@@ -62,6 +63,7 @@ export const createReviewService = async (
     product: productId,
     user: userId,
     rating,
+    title,
     comment,
   });
 

@@ -6,6 +6,7 @@ export const createReviewSchema = z.object({
     .int()
     .min(1, "Rating must be between 1 and 5")
     .max(5, "Rating must be between 1 and 5"),
+  title: z.string().trim().max(80, "Title cannot exceed 80 characters").optional(),
   comment: z
     .string()
     .trim()

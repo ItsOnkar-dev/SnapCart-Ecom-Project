@@ -11,7 +11,19 @@ type SellerUser = {
   name: string;
 };
 
-export const applyForSellerService = async (user: SellerUser) => {
+export type SellerApplicationInput = {
+  storeName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  taxId?: string;
+  businessAddress?: string;
+  storeDescription?: string;
+};
+
+export const applyForSellerService = async (
+  user: SellerUser,
+  application: SellerApplicationInput,
+) => {
   if (user.role !== "customer") {
     throw new ApiError(400, "Only customers can apply to become a seller");
   }
@@ -31,11 +43,19 @@ export const applyForSellerService = async (user: SellerUser) => {
     throw new ApiError(400, "You are already an approved seller");
   }
 
-  await User.findByIdAndUpdate(user._id, {
-    sellerStatus: "pending",
-  });
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    {
+      sellerStatus: "pending",
+      sellerApplication: {
+        ...application,
+        appliedAt: new Date(),
+      },
+    },
+    { new: true },
+  );
 
-  return { success: true };
+  return updatedUser;
 };
 
 export const updateSellerStatusService = async (

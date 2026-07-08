@@ -120,6 +120,34 @@ export const getAllProducts = asyncHandler(
   },
 );
 
+// GET /api/products/seller/mine
+// Seller dashboard â€” includes inactive products so sellers can understand what was removed.
+export const getSellerProducts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const products = await Product.find({ seller: req.user!._id })
+      .populate("seller", "name email")
+      .sort({ createdAt: -1 });
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Seller products fetched successfully", products));
+  },
+);
+
+// GET /api/products/admin/all
+// Admin catalog controls â€” all products, including inactive soft-deleted records.
+export const getAdminProducts = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const products = await Product.find({})
+      .populate("seller", "name email")
+      .sort({ createdAt: -1 });
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Admin products fetched successfully", products));
+  },
+);
+
 // GET /api/products/:id
 // Public — single product detail page
 export const getProductById = asyncHandler(
@@ -168,5 +196,36 @@ export const deleteProduct = asyncHandler(
     await deleteProductService(req.user!, productId);
 
     res.status(200).json(new ApiResponse(200, "Product deleted successfully"));
+  },
+);
+
+// PATCH /api/products/admin/:id/status
+// Admin can hide/restore products without taking ownership from sellers.
+export const updateAdminProductStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const productId = getRouteParam(req.params.id, "product id");
+    const { isActive } = req.body as { isActive?: boolean };
+
+    if (typeof isActive !== "boolean") {
+      throw new ApiError(400, "isActive must be true or false");
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      { $set: { isActive } },
+      { new: true, runValidators: true },
+    ).populate("seller", "name email");
+
+    if (!product) {
+      throw new ApiError(404, "Product not found");
+    }
+
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        isActive ? "Product restored successfully" : "Product hidden successfully",
+        product,
+      ),
+    );
   },
 );

@@ -1,8 +1,9 @@
 import { Router } from "express";
 import {
+  getAdminDashboardMetrics,
+  getAnalytics,
   getPendingSellers,
   updateSellerStatus,
-  getAnalytics,
 } from "../controllers/admin.controller";
 import { requireRole, verifyToken } from "../middleware/auth.middleware";
 import { csrfProtection } from "../middleware/csrf.middleware";
@@ -21,6 +22,14 @@ router.patch(
   csrfProtection,
   validate(updateSellerStatusSchema),
   updateSellerStatus,
+);
+// GET /api/admin/dashboard
+// Protect with token AND strict admin role check
+router.get(
+  "/dashboard",
+  verifyToken,
+  requireRole("admin"),
+  getAdminDashboardMetrics,
 );
 
 export default router;

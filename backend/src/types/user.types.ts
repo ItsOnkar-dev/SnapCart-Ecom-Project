@@ -9,6 +9,15 @@ export interface IUser extends Document {
   password?: string;
   role: UserRole;
   sellerStatus: SellerStatus;
+  sellerApplication?: {
+    storeName: string;
+    contactEmail: string;
+    contactPhone?: string;
+    taxId?: string;
+    businessAddress?: string;
+    storeDescription?: string;
+    appliedAt?: Date;
+  };
   isEmailVerified: boolean;
   googleId?: string;
   avatar?: string;

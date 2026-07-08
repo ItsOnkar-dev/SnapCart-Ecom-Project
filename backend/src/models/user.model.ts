@@ -31,6 +31,15 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
       enum: ["none", "pending", "approved", "rejected"],
       default: "none",
     },
+    sellerApplication: {
+      storeName: { type: String, trim: true },
+      contactEmail: { type: String, trim: true, lowercase: true },
+      contactPhone: { type: String, trim: true },
+      taxId: { type: String, trim: true },
+      businessAddress: { type: String, trim: true },
+      storeDescription: { type: String, trim: true },
+      appliedAt: { type: Date },
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,

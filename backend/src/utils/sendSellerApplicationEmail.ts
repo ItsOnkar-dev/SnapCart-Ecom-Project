@@ -5,6 +5,7 @@ import { IUser } from "../types/user.types";
 // notifies admin so they don't miss pending applications
 export const sendSellerApplicationEmail = async (applicant: IUser) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
+  const application = applicant.sellerApplication;
 
   await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL as string,
@@ -27,6 +28,22 @@ export const sendSellerApplicationEmail = async (applicant: IUser) => {
             <td style="padding:8px; color:#888;">Applied at</td>
             <td style="padding:8px;">${new Date().toLocaleString()}</td>
           </tr>
+          ${
+            application?.storeName
+              ? `<tr style="background:#f9f9f9;">
+                  <td style="padding:8px; color:#888;">Store</td>
+                  <td style="padding:8px;">${application.storeName}</td>
+                </tr>`
+              : ""
+          }
+          ${
+            application?.contactPhone
+              ? `<tr>
+                  <td style="padding:8px; color:#888;">Phone</td>
+                  <td style="padding:8px;">${application.contactPhone}</td>
+                </tr>`
+              : ""
+          }
         </table>
         <a href="${process.env.FRONTEND_URL}/admin/sellers"
            style="display:inline-block; padding:12px 24px; background:#000; color:#fff;

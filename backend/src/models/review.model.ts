@@ -19,6 +19,11 @@ const reviewSchema = new Schema<IReview>(
       min: [1, "Rating must be at least 1"],
       max: [5, "Rating cannot exceed 5"],
     },
+    title: {
+      type: String,
+      trim: true,
+      maxlength: [80, "Review title cannot exceed 80 characters"],
+    },
     comment: {
       type: String,
       required: [true, "Review comment is required"],

@@ -10,11 +10,11 @@ const orderItemSchema = new Schema(
     },
     name: {
       type: String,
-      required: true, // snapshot — saved at order time
+      required: true, 
     },
     price: {
       type: Number,
-      required: true, // snapshot — saved at order time
+      required: true, 
     },
     quantity: {
       type: Number,
