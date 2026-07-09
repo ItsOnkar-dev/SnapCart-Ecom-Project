@@ -62,11 +62,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Never attempt refresh logic for the refresh endpoint itself —
-    // this is what was causing the deadlock. Without this guard, a
-    // failed /auth/refresh call re-enters this same interceptor,
-    // sees isRefreshing === true, and queues itself waiting on a
-    // refresh that is itself stuck waiting on it. Nothing ever resolves.
     if (originalRequest?.url?.includes("/auth/refresh")) {
       return Promise.reject(error);
     }

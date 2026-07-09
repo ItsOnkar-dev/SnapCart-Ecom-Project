@@ -29,16 +29,16 @@ export default function LoginPage() {
     const authStatus = searchParams.get("googleAuth");
     const userName = searchParams.get("name");
 
-    if (authStatus === "success") {
-      toast.success(`Welcome back, ${userName || "User"}!`, {
-        duration: 4000,
-        position: "top-center",
-      });
+    const initializeGoogleLogin = async () => {
+      if (authStatus === "success") {
+        await useAuthStore.getState().initAuth();
 
-      // The cookies are already set by the backend.
-      // Redirect to homepage, and your app's global auth check will load the user.
-      navigate("/", { replace: true });
-    }
+        toast.success(`Welcome back, ${userName || "User"}!`);
+
+        navigate("/", { replace: true });
+      }
+    };
+    initializeGoogleLogin();
   }, [searchParams, navigate]);
 
   const {
