@@ -16,6 +16,7 @@ interface ProductRailProps {
   params: ProductQueryParams;
   viewAllHref: string;
   showNewBadge?: boolean;
+  limit?: number;
 }
 
 export default function ProductRail({
@@ -24,8 +25,9 @@ export default function ProductRail({
   params,
   viewAllHref,
   showNewBadge = false,
+  limit = 4,
 }: ProductRailProps) {
-  const { data, isLoading, isError } = useProducts({ limit: 4, ...params });
+  const { data, isLoading, isError } = useProducts({ limit, ...params });
   const products: Product[] = data?.products ?? [];
 
   return (

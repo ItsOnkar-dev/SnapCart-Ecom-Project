@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useAuthStore } from "@/store/auth.store";
 import type { CartItem } from "@/types/cart.types";
-import SearchAutocomplete from "../SearchAutocomplete";
+import SearchAutocomplete from "./SearchAutocomplete";
 import UserMenu from "./UserMenu";
 
 const CATEGORIES: { slug: string; label: string }[] = [

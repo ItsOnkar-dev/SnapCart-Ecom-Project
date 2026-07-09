@@ -1,13 +1,8 @@
-// Snapcart homepage — composed from small section components.
-// Product rails ("New arrivals", "Trending now") are LIVE from
-// GET /api/products via useProducts (see ProductRail).
-
 import DepartmentGrid from "@/components/home/DepartmentGrid";
 import Hero from "@/components/home/Hero";
 import ProductRail from "@/components/home/ProductRail";
 import SellerCTA from "@/components/home/SellerCTA";
 import TrustBar from "@/components/home/TrustBar";
-import RecommendationRail from "@/components/home/RecommendationRail";
 
 export default function HomePage() {
   return (
@@ -22,6 +17,7 @@ export default function HomePage() {
         params={{ sort: "newest" }}
         viewAllHref="/products?sort=newest"
         showNewBadge
+        limit={4}
       />
 
       <SellerCTA />
@@ -30,14 +26,8 @@ export default function HomePage() {
         title="Trending now"
         subtitle="Popular products across Snapcart"
         params={{ sort: "rating" }}
+        limit={12}
         viewAllHref="/products?sort=rating"
-      />
-
-      <RecommendationRail
-        title="Recommended For You"
-        subtitle="AI-powered suggestions based on your interests"
-        type="personalized"
-        limit={4}
       />
     </main>
   );

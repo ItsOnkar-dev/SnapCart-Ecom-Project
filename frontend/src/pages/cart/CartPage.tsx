@@ -56,19 +56,31 @@ export default function CartPage() {
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
 
   const items = cart?.items ?? [];
-  const cartProductIds = new Set(items.map((item: CartItem) => item.product._id));
+  const cartProductIds = new Set(
+    items.map((item: CartItem) => item.product._id),
+  );
   const aiPicks = (recommendedProducts as Product[])
     .filter((product) => !cartProductIds.has(product._id))
     .slice(0, 2);
   const subtotal = useMemo(
-    () => items.reduce((sum: number, item: CartItem) => sum + getItemPrice(item) * item.quantity, 0),
+    () =>
+      items.reduce(
+        (sum: number, item: CartItem) =>
+          sum + getItemPrice(item) * item.quantity,
+        0,
+      ),
     [items],
   );
-  const itemCount = items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
+  const itemCount = items.reduce(
+    (sum: number, item: CartItem) => sum + item.quantity,
+    0,
+  );
   const shipping = subtotal >= 75 || subtotal === 0 ? 0 : 8;
   const total = subtotal + shipping;
 
-  const hasInvalidStock = items.some((item: CartItem) => item.quantity > item.product.stock);
+  const hasInvalidStock = items.some(
+    (item: CartItem) => item.quantity > item.product.stock,
+  );
   const canCheckout =
     items.length > 0 &&
     !hasInvalidStock &&
@@ -108,8 +120,12 @@ export default function CartPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-3 border-b border-border/70 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-2 text-sm text-muted-foreground">Home / Shopping Bag</p>
-            <h1 className="text-3xl font-bold text-foreground md:text-5xl">Shopping Bag</h1>
+            <p className="mb-2 text-sm text-muted-foreground">
+              Home / Shopping Bag
+            </p>
+            <h1 className="text-3xl font-bold text-foreground md:text-5xl">
+              Shopping Bag
+            </h1>
           </div>
           <p className="text-sm text-muted-foreground">
             {itemCount} {itemCount === 1 ? "item" : "items"} ready for checkout
@@ -120,8 +136,12 @@ export default function CartPage() {
           <section className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-card px-6 text-center">
             <div>
               <PackageCheck className="mx-auto mb-5 size-12 text-primary" />
-              <h2 className="text-2xl font-semibold text-foreground">Your bag is empty</h2>
-              <p className="mt-2 text-muted-foreground">Add a few Snapcart picks and they will appear here.</p>
+              <h2 className="text-2xl font-semibold text-foreground">
+                Your bag is empty
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Add a few Snapcart picks and they will appear here.
+              </p>
               <Button asChild className="mt-6">
                 <Link to="/products">Start shopping</Link>
               </Button>
@@ -140,11 +160,20 @@ export default function CartPage() {
                     key={item._id}
                     className="grid gap-4 rounded-2xl border border-border bg-card p-4 md:grid-cols-[132px_1fr_auto]"
                   >
-                    <Link to={`/products/${item.product._id}`} className="aspect-square overflow-hidden rounded-xl bg-muted">
+                    <Link
+                      to={`/products/${item.product._id}`}
+                      className="aspect-square overflow-hidden rounded-xl bg-muted"
+                    >
                       {image ? (
-                        <img src={image} alt={item.product.name} className="h-full w-full object-cover" />
+                        <img
+                          src={image}
+                          alt={item.product.name}
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
-                        <div className="grid h-full place-items-center text-sm text-muted-foreground">No image</div>
+                        <div className="grid h-full place-items-center text-sm text-muted-foreground">
+                          No image
+                        </div>
                       )}
                     </Link>
 
@@ -156,11 +185,14 @@ export default function CartPage() {
                         {item.product.name}
                       </Link>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {item.product.stock > 0 ? `${item.product.stock} in stock` : "Out of stock"}
+                        {item.product.stock > 0
+                          ? `${item.product.stock} in stock`
+                          : "Out of stock"}
                       </p>
                       {outOfStock && (
                         <p className="mt-2 text-sm text-destructive">
-                          Reduce quantity to {item.product.stock} before checkout.
+                          Reduce quantity to {item.product.stock} before
+                          checkout.
                         </p>
                       )}
 
@@ -171,7 +203,9 @@ export default function CartPage() {
                           size="icon"
                           className="rounded-none"
                           disabled={item.quantity <= 1 || isUpdating}
-                          onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                          onClick={() =>
+                            handleQuantityChange(item, item.quantity - 1)
+                          }
                         >
                           <Minus className="size-4" />
                         </Button>
@@ -183,8 +217,12 @@ export default function CartPage() {
                           variant="ghost"
                           size="icon"
                           className="rounded-none"
-                          disabled={item.quantity >= item.product.stock || isUpdating}
-                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                          disabled={
+                            item.quantity >= item.product.stock || isUpdating
+                          }
+                          onClick={() =>
+                            handleQuantityChange(item, item.quantity + 1)
+                          }
                         >
                           <Plus className="size-4" />
                         </Button>
@@ -192,7 +230,9 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex items-start justify-between gap-4 md:block md:text-right">
-                      <p className="text-lg font-bold text-foreground">{formatPrice(itemPrice * item.quantity)}</p>
+                      <p className="text-lg font-bold text-foreground">
+                        {formatPrice(itemPrice * item.quantity)}
+                      </p>
                       <Button
                         type="button"
                         variant="ghost"
@@ -210,11 +250,18 @@ export default function CartPage() {
             </section>
 
             <aside className="lg:sticky lg:top-32 lg:self-start">
-              <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-sidebar p-6 shadow-[var(--shadow-card)]">
+              <form
+                onSubmit={handleSubmit}
+                className="rounded-2xl border border-border bg-sidebar p-6 shadow-[var(--shadow-card)]"
+              >
                 <div className="mb-6 flex items-center justify-between border-b border-sidebar-border pb-5">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground">Checkout</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Secure order details</p>
+                    <h2 className="text-2xl font-bold text-foreground">
+                      Checkout
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Secure order details
+                    </p>
                   </div>
                   <ShieldCheck className="size-6 text-primary-glow" />
                 </div>
@@ -292,7 +339,9 @@ export default function CartPage() {
                                       type="button"
                                       size="sm"
                                       className="h-8 rounded-md px-3"
-                                      disabled={isAddingPick || product.stock < 1}
+                                      disabled={
+                                        isAddingPick || product.stock < 1
+                                      }
                                       onClick={() =>
                                         addToCart({
                                           productId: product._id,
@@ -312,22 +361,64 @@ export default function CartPage() {
                 )}
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Input placeholder="Full name" value={address.fullName} onChange={(e) => handleAddressChange("fullName", e.target.value)} />
-                  <Input placeholder="Phone" value={address.phone} onChange={(e) => handleAddressChange("phone", e.target.value)} />
-                  <Input className="sm:col-span-2" placeholder="Street address" value={address.street} onChange={(e) => handleAddressChange("street", e.target.value)} />
-                  <Input placeholder="City" value={address.city} onChange={(e) => handleAddressChange("city", e.target.value)} />
-                  <Input placeholder="State" value={address.state} onChange={(e) => handleAddressChange("state", e.target.value)} />
-                  <Input className="sm:col-span-2" placeholder="Pincode" value={address.pincode} onChange={(e) => handleAddressChange("pincode", e.target.value)} />
+                  <Input
+                    placeholder="Full name"
+                    value={address.fullName}
+                    onChange={(e) =>
+                      handleAddressChange("fullName", e.target.value)
+                    }
+                  />
+                  <Input
+                    placeholder="Phone"
+                    value={address.phone}
+                    onChange={(e) =>
+                      handleAddressChange("phone", e.target.value)
+                    }
+                  />
+                  <Input
+                    className="sm:col-span-2"
+                    placeholder="Street address"
+                    value={address.street}
+                    onChange={(e) =>
+                      handleAddressChange("street", e.target.value)
+                    }
+                  />
+                  <Input
+                    placeholder="City"
+                    value={address.city}
+                    onChange={(e) =>
+                      handleAddressChange("city", e.target.value)
+                    }
+                  />
+                  <Input
+                    placeholder="State"
+                    value={address.state}
+                    onChange={(e) =>
+                      handleAddressChange("state", e.target.value)
+                    }
+                  />
+                  <Input
+                    className="sm:col-span-2"
+                    placeholder="Pincode"
+                    value={address.pincode}
+                    onChange={(e) =>
+                      handleAddressChange("pincode", e.target.value)
+                    }
+                  />
                 </div>
 
                 <div className="my-6 space-y-3 border-y border-sidebar-border py-5 text-sm">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span className="text-foreground">{formatPrice(subtotal)}</span>
+                    <span className="text-foreground">
+                      {formatPrice(subtotal)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
-                    <span className="text-foreground">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
+                    <span className="text-foreground">
+                      {shipping === 0 ? "Free" : formatPrice(shipping)}
+                    </span>
                   </div>
                   <div className="flex justify-between pt-2 text-lg font-bold text-foreground">
                     <span>Total</span>
@@ -335,11 +426,22 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <Button type="submit" size="lg" className="h-12 w-full rounded-md" disabled={!canCheckout || isPlacingOrder}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-12 w-full rounded-md"
+                  disabled={!canCheckout || isPlacingOrder}
+                >
                   Proceed to Checkout
                   <ArrowRight className="size-4" />
                 </Button>
-                <Button asChild type="button" variant="outline" size="lg" className="mt-3 h-12 w-full rounded-md">
+                <Button
+                  asChild
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="mt-3 h-12 w-full rounded-md"
+                >
                   <Link to="/products">Continue Shopping</Link>
                 </Button>
               </form>
