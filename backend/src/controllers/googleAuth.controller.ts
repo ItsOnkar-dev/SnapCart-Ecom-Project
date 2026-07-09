@@ -112,25 +112,9 @@ export const googleCallback = asyncHandler(
 
     const userName = encodeURIComponent(user.name);
 
-    res
+    return res
       .cookie("accessToken", accessToken, accessTokenCookieOptions)
       .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
       .redirect(`${frontendUrl}/login?googleAuth=success&name=${userName}`);
-    if (isProduction) {
-      res.redirect(process.env.FRONTEND_URL as string);
-    } else {
-      res.json({
-        success: true,
-        message: "Google authentication successful",
-        data: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          isEmailVerified: user.isEmailVerified,
-        },
-      });
-    }
   },
 );
