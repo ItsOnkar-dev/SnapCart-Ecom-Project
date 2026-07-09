@@ -97,7 +97,7 @@ export const googleCallback = asyncHandler(
     const accessTokenCookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
       path: "/",
       maxAge: 15 * 60 * 1000,
     };
@@ -105,7 +105,7 @@ export const googleCallback = asyncHandler(
     const refreshTokenCookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ("strict" as const) : ("lax" as const),
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
       path: "/api/auth",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     };

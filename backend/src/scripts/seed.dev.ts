@@ -33,6 +33,7 @@ const products: ProductInput[] = [
     stock: 40,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543129/aurora-headphones_clekm1.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543129/aurora-headphones_clekm1.jpg",
     ],
     isNew: true,
     description: "Immersive over-ear sound with active noise cancellation.",
@@ -45,6 +46,7 @@ const products: ProductInput[] = [
     stock: 35,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543163/pulse-watch_aqtp9o.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543163/pulse-watch_aqtp9o.jpg",
     ],
     description: "Track fitness, notifications and more.",
   },
@@ -56,6 +58,7 @@ const products: ProductInput[] = [
     stock: 60,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543146/bass-speaker_h3ghwl.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543146/bass-speaker_h3ghwl.jpg",
     ],
     description: "Room-filling sound in a compact body.",
   },
@@ -66,6 +69,7 @@ const products: ProductInput[] = [
     price: 549.0,
     stock: 15,
     images: [
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543161/nova-drone_nvl7n9.jpg",
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543161/nova-drone_nvl7n9.jpg",
     ],
     isNew: true,
@@ -79,6 +83,7 @@ const products: ProductInput[] = [
     stock: 80,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543115/apex-controller_iaofxs.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543115/apex-controller_iaofxs.jpg",
     ],
     description: "Precision controls for serious gamers.",
   },
@@ -89,6 +94,7 @@ const products: ProductInput[] = [
     price: 119.0,
     stock: 50,
     images: [
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543166/stride-sneakers_i3hpoi.jpg",
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543166/stride-sneakers_i3hpoi.jpg",
     ],
     description: "Lightweight cushioning for everyday runs.",
@@ -101,6 +107,7 @@ const products: ProductInput[] = [
     stock: 45,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543160/metro-backpack_mmcovy.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543160/metro-backpack_mmcovy.jpg",
     ],
     description: "Durable, water-resistant and laptop-ready.",
   },
@@ -111,6 +118,7 @@ const products: ProductInput[] = [
     price: 59.0,
     stock: 70,
     images: [
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543167/shade-sunglasses_e9m2ll.jpg",
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543167/shade-sunglasses_e9m2ll.jpg",
     ],
     description: "UV400 protection with a timeless look.",
@@ -123,6 +131,7 @@ const products: ProductInput[] = [
     stock: 65,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543158/lumen-lamp_h5w07i.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543158/lumen-lamp_h5w07i.jpg",
     ],
     description: "Adjustable warmth and app control.",
   },
@@ -133,6 +142,7 @@ const products: ProductInput[] = [
     price: 29.0,
     stock: 90,
     images: [
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543169/terra-planter_zm1c1a.jpg",
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543169/terra-planter_zm1c1a.jpg",
     ],
     description: "Minimalist planter for any space.",
@@ -145,6 +155,7 @@ const products: ProductInput[] = [
     stock: 55,
     images: [
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543151/glow-skincare_d52efg.jpg",
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543151/glow-skincare_d52efg.jpg",
     ],
     isNew: true,
     description: "A complete routine for radiant skin.",
@@ -156,6 +167,7 @@ const products: ProductInput[] = [
     price: 89.0,
     stock: 40,
     images: [
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543148/bloom-perfume_f1g1fc.jpg",
       "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543148/bloom-perfume_f1g1fc.jpg",
     ],
     description: "A fresh floral signature scent.",
