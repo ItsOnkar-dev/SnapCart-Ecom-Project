@@ -67,6 +67,8 @@ export interface ProductFormData {
   image: File;
 }
 
+export type ProductSort = "price_asc" | "price_desc" | "newest" | "rating";
+
 // ── query params for GET /api/products ───────────────────────────────────────
 export interface ProductQueryParams {
   page?: number;
@@ -75,5 +77,6 @@ export interface ProductQueryParams {
   category?: ProductCategory;
   minPrice?: number;
   maxPrice?: number;
-  sort?: "price_asc" | "price_desc" | "newest" | "rating";
+  sort?: ProductSort;
+  inStock?: boolean;
 }

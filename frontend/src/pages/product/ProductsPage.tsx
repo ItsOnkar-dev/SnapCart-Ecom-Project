@@ -1,11 +1,16 @@
 import { ChevronDown, ChevronRight, Filter, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 
 import ProductCard from "@/components/home/ProductCard";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
-import type { Product, ProductCategory } from "@/types/product.types";
+import type {
+  Product,
+  ProductCategory,
+  ProductQueryParams,
+  ProductSort,
+} from "@/types/product.types";
 
 const CATEGORIES: { label: string; value: ProductCategory }[] = [
   { label: "Electronics", value: "electronics" },
@@ -34,25 +39,38 @@ const SORT_OPTIONS = [
 export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") as ProductCategory | null;
-  const sortParam = searchParams.get("sort");
+  const sortParam = searchParams.get("sort") as ProductSort | null;
   const minPriceParam = searchParams.get("minPrice");
   const maxPriceParam = searchParams.get("maxPrice");
   const inStockParam = searchParams.get("inStock");
   const newArrivalsParam = searchParams.get("newArrivals");
 
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(
-    minPriceParam ? { min: Number(minPriceParam), max: maxPriceParam ? Number(maxPriceParam) : Infinity } : null,
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{
+    min: number;
+    max: number;
+  } | null>(
+    minPriceParam
+      ? {
+          min: Number(minPriceParam),
+          max: maxPriceParam ? Number(maxPriceParam) : Infinity,
+        }
+      : null,
   );
   const [inStockOnly, setInStockOnly] = useState(inStockParam === "true");
-  const [newArrivalsOnly, setNewArrivalsOnly] = useState(newArrivalsParam === "true");
+  const [newArrivalsOnly, setNewArrivalsOnly] = useState(
+    newArrivalsParam === "true",
+  );
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const queryParams: any = { limit: 50 };
+  const queryParams: ProductQueryParams = {
+    limit: 50,
+  };
 
   if (categoryParam) queryParams.category = categoryParam;
   if (selectedPriceRange) {
     queryParams.minPrice = selectedPriceRange.min;
-    if (selectedPriceRange.max !== Infinity) queryParams.maxPrice = selectedPriceRange.max;
+    if (selectedPriceRange.max !== Infinity)
+      queryParams.maxPrice = selectedPriceRange.max;
   }
   if (sortParam) queryParams.sort = sortParam;
   if (inStockOnly) queryParams.inStock = true;
@@ -78,7 +96,9 @@ export default function ProductsPage() {
     });
   };
 
-  const handlePriceRangeChange = (range: { min: number; max: number } | null) => {
+  const handlePriceRangeChange = (
+    range: { min: number; max: number } | null,
+  ) => {
     setSelectedPriceRange(range);
     setParam((params) => {
       if (range) {
@@ -131,7 +151,16 @@ export default function ProductsPage() {
     });
   };
 
-  const hasActiveFilters = !!categoryParam || !!selectedPriceRange || inStockOnly || newArrivalsOnly;
+  // ── Scroll to top on every product navigation ──────────────────────────────
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
+  }, [searchParams]);
+
+  const hasActiveFilters =
+    !!categoryParam || !!selectedPriceRange || inStockOnly || newArrivalsOnly;
 
   const handleSortChange = (value: string) => {
     setParam((params) => {
@@ -152,7 +181,7 @@ export default function ProductsPage() {
       )}
 
       <aside
-        className={`fixed right-0 top-0 z-[70] h-dvh w-full max-w-[400px] border-l border-sidebar-border bg-sidebar px-7 py-7 shadow-2xl transition-transform duration-300 sm:max-w-[440px] ${
+        className={`fixed right-0 top-0 z-[70] h-dvh w-full max-w-[350px] border-l border-sidebar-border bg-sidebar px-7 py-7 shadow-2xl transition-transform duration-300 ${
           isFiltersOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -171,16 +200,21 @@ export default function ProductsPage() {
           </div>
 
           <div className="border-b border-sidebar-border py-8">
-            <h3 className="mb-5 text-base font-semibold text-foreground">Category</h3>
+            <h3 className="mb-5 text-base font-semibold text-foreground">
+              Category
+            </h3>
             <div className="space-y-4">
               {CATEGORIES.map((category) => (
-                <label key={category.value} className="flex cursor-pointer items-center gap-4 text-base text-foreground">
+                <label
+                  key={category.value}
+                  className="flex cursor-pointer items-center gap-4 text-sm text-foreground"
+                >
                   <input
                     type="radio"
                     name="category"
                     checked={categoryParam === category.value}
                     onChange={() => handleCategoryChange(category.value)}
-                    className="size-5 accent-primary"
+                    className="size-3 accent-indigo-400"
                   />
                   {category.label}
                 </label>
@@ -189,16 +223,24 @@ export default function ProductsPage() {
           </div>
 
           <div className="border-b border-sidebar-border py-8">
-            <h3 className="mb-5 text-base font-semibold text-foreground">Price</h3>
+            <h3 className="mb-5 text-base font-semibold text-foreground">
+              Price
+            </h3>
             <div className="space-y-4">
               {PRICE_RANGES.map((range) => (
-                <label key={range.label} className="flex cursor-pointer items-center gap-4 text-base text-foreground">
+                <label
+                  key={range.label}
+                  className="flex cursor-pointer items-center gap-4 text-sm text-foreground"
+                >
                   <input
                     type="radio"
                     name="price"
-                    checked={selectedPriceRange?.min === range.min && selectedPriceRange?.max === range.max}
+                    checked={
+                      selectedPriceRange?.min === range.min &&
+                      selectedPriceRange?.max === range.max
+                    }
                     onChange={() => handlePriceRangeChange(range)}
-                    className="size-5 accent-primary"
+                    className="size-3 accent-indigo-400"
                   />
                   {range.label}
                 </label>
@@ -207,25 +249,27 @@ export default function ProductsPage() {
           </div>
 
           <div className="border-b border-sidebar-border py-8">
-            <h3 className="mb-5 text-base font-semibold text-foreground">Availability</h3>
+            <h3 className="mb-5 text-base font-semibold text-foreground">
+              Availability
+            </h3>
             <div className="space-y-4">
-              <label className="flex cursor-pointer items-center gap-4 text-base text-foreground">
+              <label className="flex cursor-pointer items-center gap-4 text-sm text-foreground">
                 <input
                   type="radio"
                   name="availability"
                   checked={inStockOnly}
                   onChange={() => handleInStockChange(true)}
-                  className="size-5 accent-primary"
+                  className="size-3 accent-indigo-400"
                 />
                 In stock
               </label>
-              <label className="flex cursor-pointer items-center gap-4 text-base text-foreground">
+              <label className="flex cursor-pointer items-center gap-4 text-sm text-foreground">
                 <input
                   type="radio"
                   name="availability"
                   checked={newArrivalsOnly}
                   onChange={() => handleNewArrivalsChange(true)}
-                  className="size-5 accent-primary"
+                  className="size-3 accent-indigo-400"
                 />
                 New arrivals
               </label>
@@ -234,11 +278,20 @@ export default function ProductsPage() {
 
           <div className="mt-auto grid gap-3 pt-6">
             {hasActiveFilters && (
-              <Button onClick={clearFilters} variant="outline" size="lg" className="h-12 rounded-md">
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                size="lg"
+                className="h-12 rounded-md"
+              >
                 Clear Filters
               </Button>
             )}
-            <Button onClick={() => setIsFiltersOpen(false)} size="lg" className="h-12 rounded-md">
+            <Button
+              onClick={() => setIsFiltersOpen(false)}
+              size="lg"
+              className="h-12 rounded-md"
+            >
               View {products.length} {products.length === 1 ? "item" : "items"}
             </Button>
           </div>
@@ -248,11 +301,16 @@ export default function ProductsPage() {
       <div className="border-b border-border/60 bg-background/50 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
           <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-muted-foreground transition-colors hover:text-foreground">
+            <Link
+              to="/"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
               Home
             </Link>
             <ChevronRight className="size-4 text-muted-foreground" />
-            <span className="font-medium text-foreground">{currentCategoryLabel}</span>
+            <span className="font-medium text-foreground">
+              {currentCategoryLabel}
+            </span>
           </div>
         </div>
       </div>
@@ -272,7 +330,7 @@ export default function ProductsPage() {
               <select
                 value={sortParam || ""}
                 onChange={(event) => handleSortChange(event.target.value)}
-                className="h-10 appearance-none rounded-lg border border-border bg-card px-4 pr-10 text-sm text-foreground transition-colors hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 appearance-none rounded-lg border border-border bg-card px-4 pr-10 text-sm text-foreground transition-colors hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -289,7 +347,9 @@ export default function ProductsPage() {
             >
               <Filter className="size-4" />
               Filters
-              {hasActiveFilters && <span className="ml-1 size-2 rounded-full bg-primary-glow" />}
+              {hasActiveFilters && (
+                <span className="ml-1 size-2 rounded-full bg-primary-glow" />
+              )}
             </Button>
           </div>
         </div>
@@ -297,12 +357,17 @@ export default function ProductsPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="aspect-square animate-pulse rounded-2xl border border-border bg-muted" />
+              <div
+                key={index}
+                className="aspect-square animate-pulse rounded-2xl border border-border bg-muted"
+              />
             ))}
           </div>
         ) : error ? (
           <div className="py-12 text-center">
-            <p className="text-muted-foreground">Failed to load products. Please try again.</p>
+            <p className="text-muted-foreground">
+              Failed to load products. Please try again.
+            </p>
           </div>
         ) : products.length === 0 ? (
           <div className="py-12 text-center">
@@ -316,7 +381,11 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product: Product) => (
-              <ProductCard key={product._id} product={product} showNewBadge={newArrivalsOnly} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                showNewBadge={newArrivalsOnly}
+              />
             ))}
           </div>
         )}

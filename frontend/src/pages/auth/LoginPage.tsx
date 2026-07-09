@@ -29,18 +29,31 @@ export default function LoginPage() {
     const authStatus = searchParams.get("googleAuth");
     const userName = searchParams.get("name");
 
+    if (authStatus !== "success") return;
+
     const initializeGoogleLogin = async () => {
-      if (authStatus === "success") {
+      try {
+        // initAuth sets user in store — wait for it to finish
         await useAuthStore.getState().initAuth();
 
-        toast.success(`Welcome back, ${userName || "User"}!`);
+        // Check if user was actually set — if not, cookie didn't come through
+        const user = useAuthStore.getState().user;
+        if (!user) {
+          toast.error("Google login failed. Please try again.");
+          return;
+        }
 
+        toast.success(
+          `Welcome back, ${decodeURIComponent(userName || "User")}!`,
+        );
         navigate("/", { replace: true });
+      } catch {
+        toast.error("Google login failed. Please try again.");
       }
     };
+
     initializeGoogleLogin();
   }, [searchParams, navigate]);
-
   const {
     register,
     handleSubmit,

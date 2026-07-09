@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
+import { useWishlist } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
 import type { CartItem } from "@/types/cart.types";
 import SearchAutocomplete from "./SearchAutocomplete";
@@ -24,12 +25,16 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const { data: cart } = useCart();
+  const { data: wishlist } = useWishlist();
 
   const cartCount =
     cart?.items?.reduce(
       (sum: number, item: CartItem) => sum + item.quantity,
       0,
     ) ?? 0;
+
+  const wishlistCount = wishlist?.items?.length ?? 0;
+
   const showBecomeSeller = user?.role === "customer";
 
   return (
@@ -60,9 +65,19 @@ export default function Navigation() {
           <Link
             to="/wishlist"
             className="relative hidden sm:grid place-items-center p-2 text-nav-foreground hover:text-nav-hover transition-colors"
-            aria-label="Favourites"
+            aria-label="Wishlist"
           >
             <Heart className="w-5 h-5" />
+
+            {wishlistCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 grid place-items-center
+                 min-w-4.5 h-4.5 px-1 rounded-full
+                 bg-red-500 text-white text-[10px] font-semibold"
+              >
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           <UserMenu />
@@ -75,8 +90,9 @@ export default function Navigation() {
             <ShoppingBagIcon />
             {cartCount > 0 && (
               <span
-                className="absolute -top-1 -right-1 grid place-items-center min-w-4.5 h-4.5 px-1
-                                rounded-full bg-white text-white-foreground text-[10px] font-semibold"
+                className="absolute -top-1 -right-1 grid place-items-center
+                 min-w-4.5 h-4.5 px-1 rounded-full
+                 bg-red-500 text-white text-[10px] font-semibold"
               >
                 {cartCount}
               </span>
@@ -120,7 +136,7 @@ export default function Navigation() {
 
           {showBecomeSeller && (
             <Link
-            to="/seller/apply"
+              to="/seller/apply"
               className="ml-auto text-sm font-semibold text-white hover:text-white/80 whitespace-nowrap"
             >
               Become a seller
@@ -161,7 +177,7 @@ export default function Navigation() {
             <div className="pt-3 mt-2 border-t border-border space-y-1">
               {showBecomeSeller && (
                 <Link
-                to="/seller/apply"
+                  to="/seller/apply"
                   onClick={() => setMobileOpen(false)}
                   className="block py-2.5 text-base font-semibold text-white"
                 >

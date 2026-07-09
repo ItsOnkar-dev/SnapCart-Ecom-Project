@@ -125,7 +125,6 @@ function ProductDetailSkeleton() {
   );
 }
 
-
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAuthStore((s) => s.user);
@@ -149,8 +148,6 @@ export default function ProductDetailPage() {
   });
 
   // ── Scroll to top on every product navigation ──────────────────────────────
-  // Without this, navigating from one product to another keeps the scroll
-  // position from the previous page — user lands mid-page every time.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [id]); // re-fires when product ID changes in the URL
@@ -179,7 +176,7 @@ export default function ProductDetailPage() {
   // ── Derived state ──────────────────────────────────────────────────────────
 
   const isInWishlist = wishlist?.items?.some(
-    (item: any) =>
+    (item:any) =>
       item.product === product._id || item.product?._id === product._id,
   );
 
