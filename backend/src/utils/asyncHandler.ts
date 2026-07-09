@@ -7,7 +7,7 @@ type AsyncFn = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => Promise<void>;
+) => Promise<void | Response>;
 
 export const asyncHandler = (fn: AsyncFn) => {
   return (req: Request, res: Response, next: NextFunction) => {
