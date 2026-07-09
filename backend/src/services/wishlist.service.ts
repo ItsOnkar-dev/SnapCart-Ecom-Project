@@ -1,9 +1,9 @@
-import { Types } from "mongoose";
-import { Wishlist } from "../models/wishlist.model";
-import { Product } from "../models/product.model";
-import { addToCartService } from "./cart.service";
-import { ApiError } from "../utils/ApiResponse";
 import crypto from "crypto";
+import { Types } from "mongoose";
+import { Product } from "../models/product.model";
+import { Wishlist } from "../models/wishlist.model";
+import { ApiError } from "../utils/ApiResponse";
+import { addToCartService } from "./cart.service";
 
 export const getOrCreateWishlist = async (userId: string | Types.ObjectId) => {
   let wishlist = await Wishlist.findOne({ user: userId });
@@ -12,7 +12,6 @@ export const getOrCreateWishlist = async (userId: string | Types.ObjectId) => {
       user: userId,
       items: [],
       shareEnabled: false,
-      shareId: null,
     });
   }
   return wishlist;
@@ -20,11 +19,17 @@ export const getOrCreateWishlist = async (userId: string | Types.ObjectId) => {
 
 export const getWishlistService = async (userId: string | Types.ObjectId) => {
   const wishlist = await getOrCreateWishlist(userId);
-  await wishlist.populate("items.product", "name images price discountPrice stock isActive");
+  await wishlist.populate(
+    "items.product",
+    "name images price discountPrice stock isActive",
+  );
   return wishlist;
 };
 
-export const addToWishlistService = async (userId: string | Types.ObjectId, productId: string) => {
+export const addToWishlistService = async (
+  userId: string | Types.ObjectId,
+  productId: string,
+) => {
   if (!productId) {
     throw new ApiError(400, "Product ID is required");
   }
@@ -41,7 +46,7 @@ export const addToWishlistService = async (userId: string | Types.ObjectId, prod
   const wishlist = await getOrCreateWishlist(userId);
 
   const isAlreadyInWishlist = wishlist.items.some(
-    (item) => item.product.toString() === productId
+    (item) => item.product.toString() === productId,
   );
 
   if (!isAlreadyInWishlist) {
@@ -52,26 +57,37 @@ export const addToWishlistService = async (userId: string | Types.ObjectId, prod
     await wishlist.save();
   }
 
-  await wishlist.populate("items.product", "name images price discountPrice stock isActive");
+  await wishlist.populate(
+    "items.product",
+    "name images price discountPrice stock isActive",
+  );
   return wishlist;
 };
 
-export const removeFromWishlistService = async (userId: string | Types.ObjectId, productId: string) => {
+export const removeFromWishlistService = async (
+  userId: string | Types.ObjectId,
+  productId: string,
+) => {
   const wishlist = await Wishlist.findOne({ user: userId });
   if (!wishlist) {
     throw new ApiError(404, "Wishlist not found");
   }
 
   wishlist.items = wishlist.items.filter(
-    (item) => item.product.toString() !== productId
+    (item) => item.product.toString() !== productId,
   ) as any;
 
   await wishlist.save();
-  await wishlist.populate("items.product", "name images price discountPrice stock isActive");
+  await wishlist.populate(
+    "items.product",
+    "name images price discountPrice stock isActive",
+  );
   return wishlist;
 };
 
-export const moveWishlistToCartService = async (userId: string | Types.ObjectId) => {
+export const moveWishlistToCartService = async (
+  userId: string | Types.ObjectId,
+) => {
   const wishlist = await Wishlist.findOne({ user: userId });
   if (!wishlist || wishlist.items.length === 0) {
     throw new ApiError(400, "Wishlist is empty");
@@ -85,7 +101,10 @@ export const moveWishlistToCartService = async (userId: string | Types.ObjectId)
       await addToCartService(userObj, item.product.toString(), 1);
     } catch (error) {
       // Ignore individually failing items (e.g., out of stock or inactive) so that other items still migrate
-      console.error(`Failed to move wishlist item ${item.product} to cart:`, error);
+      console.error(
+        `Failed to move wishlist item ${item.product} to cart:`,
+        error,
+      );
     }
   }
 
@@ -96,14 +115,17 @@ export const moveWishlistToCartService = async (userId: string | Types.ObjectId)
   return wishlist;
 };
 
-export const toggleWishlistShareService = async (userId: string | Types.ObjectId, shareEnabled: boolean) => {
+export const toggleWishlistShareService = async (
+  userId: string | Types.ObjectId,
+  shareEnabled: boolean,
+) => {
   const wishlist = await getOrCreateWishlist(userId);
 
   wishlist.shareEnabled = shareEnabled;
   if (shareEnabled && !wishlist.shareId) {
     wishlist.shareId = crypto.randomBytes(16).toString("hex");
   } else if (!shareEnabled) {
-    wishlist.shareId = null;
+    wishlist.set("shareId", undefined);
   }
 
   await wishlist.save();
@@ -116,7 +138,10 @@ export const getSharedWishlistService = async (shareId: string) => {
     throw new ApiError(404, "Public wishlist not found or sharing is disabled");
   }
 
-  await wishlist.populate("items.product", "name images price discountPrice stock isActive");
+  await wishlist.populate(
+    "items.product",
+    "name images price discountPrice stock isActive",
+  );
   await wishlist.populate("user", "name");
   return wishlist;
 };

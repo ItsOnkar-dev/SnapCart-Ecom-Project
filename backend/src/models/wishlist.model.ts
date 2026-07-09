@@ -20,18 +20,24 @@ const wishlistSchema = new Schema<WishlistDocument>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // one wishlist per user — enforced at DB level
+      unique: true,
     },
     items: [wishlistItemSchema],
     shareId: {
       type: String,
-      default: null,
-      unique: true,
-      sparse: true, // allows many docs with shareId: null without unique conflict
+      default: undefined,
     },
     shareEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
+);
+
+wishlistSchema.index(
+  { shareId: 1 },
+  {
+    unique: true,
+    sparse: true,
+  },
 );
 
 export const Wishlist = model<WishlistDocument>("Wishlist", wishlistSchema);
