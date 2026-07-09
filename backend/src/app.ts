@@ -99,7 +99,13 @@ app.use(generalLimiter);
 
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
-app.use("/api", csrfProtection);
+
+app.use("/api", (req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next(); // Safe methods — no CSRF token needed
+  }
+  return csrfProtection(req, res, next);
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
