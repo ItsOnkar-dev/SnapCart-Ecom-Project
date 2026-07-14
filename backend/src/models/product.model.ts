@@ -25,7 +25,14 @@ const productSchema = new Schema<IProduct>(
     discountPrice: {
       type: Number,
       min: [0, "Discount price cannot be negative"],
-      // we'll validate discountPrice < price in the controller
+      validate: {
+        validator: function (this: IProduct, value: number | undefined) {
+          // Only validate when set; must be strictly less than list price
+          if (value === undefined || value === null) return true;
+          return value < this.price;
+        },
+        message: "Discount price must be lower than the regular price",
+      },
     },
     category: {
       type: String,

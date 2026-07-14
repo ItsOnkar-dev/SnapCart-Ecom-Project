@@ -18,12 +18,6 @@ const razorpay = new Razorpay({
 //
 // Step 1 of payment flow.
 // Called when user clicks "Proceed to Checkout" after filling address.
-//
-// What it does:
-//  1. Calculates order total from user's cart (never trust frontend total)
-//  2. Creates a Razorpay order (just a payment request — nothing in our DB yet)
-//  3. Returns the Razorpay order ID + amount to frontend
-//  4. Frontend uses this to open the Razorpay payment popup
 // ─────────────────────────────────────────────────────────────────────────────
 export const createRazorpayOrder = asyncHandler(
   async (req: Request, res: Response) => {
@@ -63,9 +57,7 @@ export const createRazorpayOrder = asyncHandler(
     const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
     const total = subtotal + shipping;
 
-    // Razorpay amounts are in the smallest currency unit
-    // For INR: paise (1 INR = 100 paise), for INR: cents
-    // Since your store uses INR, multiply by 100
+    // Razorpay amounts are in the smallest currency unit (INR: paise)
     const amountInPaise = Math.round(total * 100);
 
     // Create Razorpay order — this is NOT our DB order, just a payment intent
@@ -93,18 +85,6 @@ export const createRazorpayOrder = asyncHandler(
 // POST /api/payments/verify
 //
 // Step 2 of payment flow — called after user completes payment in popup.
-//
-// What it does:
-//  1. INRives razorpayOrderId + razorpayPaymentId + razorpaySignature from frontend
-//  2. Verifies the signature using HMAC-SHA256
-//     (this proves the payment came from Razorpay, not a fake request)
-//  3. If valid → creates the actual DB order via placeOrderService
-//  4. Saves Razorpay IDs on the order for reference
-//  5. Returns the created order to frontend
-//
-// Why signature verification matters:
-//  Without this, anyone could send a fake "payment success" request to your
-//  backend and get an order created without actually paying.
 // ─────────────────────────────────────────────────────────────────────────────
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response) => {
@@ -131,9 +111,6 @@ export const verifyPayment = asyncHandler(
     }
 
     // ── Signature verification ─────────────────────────────────────────────
-    // Razorpay signs payments using: HMAC-SHA256(razorpayOrderId + "|" + razorpayPaymentId)
-    // using your KEY_SECRET as the HMAC key.
-    // We recompute it and compare — if they match, the payment is genuine.
     const body = razorpayOrderId + "|" + razorpayPaymentId;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
@@ -141,34 +118,54 @@ export const verifyPayment = asyncHandler(
       .digest("hex");
 
     if (expectedSignature !== razorpaySignature) {
-      // Signature mismatch — this is either a bug or someone trying to fake a payment
       throw new ApiError(
         400,
         "Payment verification failed. Invalid signature.",
       );
     }
 
-    // ── Payment is genuine — now create the actual DB order ───────────────
-    // placeOrderService handles: creating order, deducting stock, clearing cart
-    const order = await placeOrderService(req.user!._id, shippingAddress);
+    // ── Idempotency guard ──────────────────────────────────────────────────
+    // Prevents double-creating orders if the client retries /verify with the
+    // same (already-valid) razorpay payment id.
+    const existing = await Order.findOne({ razorpayPaymentId });
+    if (existing) {
+      if (existing.user.toString() !== req.user!._id.toString()) {
+        throw new ApiError(403, "This payment does not belong to your account");
+      }
+      res.status(200).json(
+        new ApiResponse(200, "Payment already verified", {
+          orderId: existing._id,
+          razorpayPaymentId,
+        }),
+      );
+      return;
+    }
 
-    // Save Razorpay IDs on the order for reference + admin tracking
-    await Order.findByIdAndUpdate(
-      order._id,
-      {
-        razorpayOrderId,
-        razorpayPaymentId,
+    // ── Payment is genuine — now create the actual DB order ───────────────
+    try {
+      const order = await placeOrderService(req.user!._id, shippingAddress, {
+        paymentMethod: "razorpay",
         paymentStatus: "paid",
         status: "confirmed",
-      },
-      { returnDocument: "after" },
-    );
-
-    res.status(201).json(
-      new ApiResponse(201, "Payment verified and order placed successfully", {
-        orderId: order._id,
+        razorpayOrderId,
         razorpayPaymentId,
-      }),
-    );
+      });
+
+      res.status(201).json(
+        new ApiResponse(201, "Payment verified and order placed successfully", {
+          orderId: order._id,
+          razorpayPaymentId,
+        }),
+      );
+    } catch (err) {
+      // Log for manual reconciliation if backend DB fails but user was charged
+      console.error("[PAYMENT/ORPHAN] Paid but order creation failed", {
+        userId: req.user!._id.toString(),
+        razorpayOrderId,
+        razorpayPaymentId,
+        error: err instanceof Error ? err.message : err,
+      });
+      throw err;
+    }
   },
 );

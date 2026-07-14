@@ -23,7 +23,11 @@ export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "Complete shipping address is required");
   }
 
-  const order = await placeOrderService(req.user!._id, shippingAddress);
+  const order = await placeOrderService(req.user!._id, shippingAddress, {
+    paymentMethod: "cod",
+    paymentStatus: "pending",
+    status: "pending",
+  });
   res
     .status(201)
     .json(new ApiResponse(201, "Order placed successfully", order));
@@ -102,6 +106,12 @@ export const updateOrderStatus = asyncHandler(
       try {
         await restoreStockService(order._id, session); // use the service you already wrote
         order.status = status;
+        // If the customer already paid, flag the payment for refund so
+        // admin can reconcile with Razorpay. Never silently keep
+        // "paid" state on a cancelled order.
+        if (order.paymentStatus === "paid") {
+          order.paymentStatus = "refund_pending";
+        }
         await order.save({ session });
         await session.commitTransaction();
       } catch (err) {

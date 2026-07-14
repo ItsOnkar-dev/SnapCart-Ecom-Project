@@ -94,25 +94,41 @@ export const moveWishlistToCartService = async (
   }
 
   const userObj = { _id: userId };
+  const movedProductIds: string[] = [];
+  const skipped: { productId: string; reason: string }[] = [];
 
-  // Try adding each item to cart. If one fails (e.g. out of stock), log and proceed with others
+  // Try adding each item to cart. If one fails (e.g. out of stock), we keep it
+  // in the wishlist so the user doesn't silently lose it.
   for (const item of wishlist.items) {
+    const pid = item.product.toString();
     try {
       await addToCartService(userObj, item.product.toString(), 1);
+      movedProductIds.push(pid);
     } catch (error) {
       // Ignore individually failing items (e.g., out of stock or inactive) so that other items still migrate
       console.error(
         `Failed to move wishlist item ${item.product} to cart:`,
         error,
       );
+      skipped.push({
+        productId: pid,
+        reason: error instanceof Error ? error.message : "Failed to add",
+      });
+      console.error(`Failed to move wishlist item ${pid} to cart:`, error);
     }
   }
 
-  // Clear wishlist
-  wishlist.items = [];
+  // Only remove items that actually made it into the cart
+  wishlist.items = wishlist.items.filter(
+    (item) => !movedProductIds.includes(item.product.toString()),
+  ) as typeof wishlist.items;
   await wishlist.save();
 
-  return wishlist;
+  await wishlist.populate(
+    "items.product",
+    "name images price discountPrice stock isActive",
+  );
+  return { wishlist, moved: movedProductIds, skipped };
 };
 
 export const toggleWishlistShareService = async (

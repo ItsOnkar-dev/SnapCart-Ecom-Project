@@ -7,9 +7,18 @@ import { IShippingAddress } from "../types/order.types";
 import { ApiError } from "../utils/ApiResponse";
 import { Logger } from "../utils/logger";
 
+export interface PlaceOrderPaymentInfo {
+  paymentMethod?: "razorpay" | "cod";
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  paymentStatus?: "pending" | "paid";
+  status?: "pending" | "confirmed";
+}
+
 export const placeOrderService = async (
   userId: Types.ObjectId,
   shippingAddress: IShippingAddress,
+  paymentInfo: PlaceOrderPaymentInfo = {},
 ) => {
   const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
@@ -18,6 +27,13 @@ export const placeOrderService = async (
   }
 
   const items = cart.items as unknown as PopulatedCartItem[];
+
+  // Shipping-total policy (single source of truth — mirrors payment.controller.ts)
+  const SHIPPING_THRESHOLD = 500;
+  const SHIPPING_COST = 49;
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const totalPrice = subtotal + shipping;
 
   // Start a MongoDB session + transaction
   // All writes (order create, stock decrement, cart clear) are wrapped automatically.
@@ -62,20 +78,26 @@ export const placeOrderService = async (
     const orderItems = items.map((item) => ({
       product: item.product._id,
       name: item.product.name,
-      price: item.price, 
+      price: item.price,
       quantity: item.quantity,
       image: item.product.images?.[0] ?? "",
     }));
 
-    // Step 5 — Create the order inside the transaction
+    // Step 5 — Create the order inside the transaction (with payment metadata baked in)
     const [order] = await Order.create(
       [
         {
           user: userId,
           items: orderItems,
           shippingAddress,
-          totalPrice: cart.totalPrice,
-          status: "pending",
+          subtotal,
+          shipping,
+          totalPrice,
+          status: paymentInfo.status ?? "pending",
+          paymentMethod: paymentInfo.paymentMethod ?? "razorpay",
+          paymentStatus: paymentInfo.paymentStatus ?? "pending",
+          razorpayOrderId: paymentInfo.razorpayOrderId ?? null,
+          razorpayPaymentId: paymentInfo.razorpayPaymentId ?? null,
         },
       ],
       { session },

@@ -441,7 +441,6 @@ export const changePassword = asyncHandler(
     user.password = await bcrypt.hash(newPassword, 12);
 
     user.passwordChangedAt = new Date();
-    auditLog("auth.password_reset", user._id.toString(), { email: user.email });
     // Wipe all refresh tokens — forces re-login on every other device
     user.refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
@@ -549,9 +548,11 @@ export const resetPassword = asyncHandler(
     // don't leave old refresh tokens (possibly attacker-held) still valid
     user.refreshToken = undefined;
 
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     await sendPasswordChangedEmail(user);
+
+     auditLog("auth.password_reset", user._id.toString(), { email: user.email });
 
     res
       .status(200)

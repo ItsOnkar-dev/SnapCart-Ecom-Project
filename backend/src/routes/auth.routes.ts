@@ -65,6 +65,19 @@ const registerLimiter = rateLimit({
   },
 });
 
+// Refresh runs on every tab focus / token expiry; needs its own generous limiter
+// so a user with multiple tabs isn't forced to re-login every 10 minutes.
+const refreshLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many refresh attempts, please try again later",
+  },
+});
+
 router.get("/csrf-token", (req, res) => {
   // 1. Generate a secure random token
   const token = crypto.randomBytes(32).toString("hex");
@@ -86,7 +99,7 @@ router.post("/register", registerLimiter, validate(registerSchema), register);
 router.get("/verify-email", verifyEmail);
 router.post("/resend-verification", passwordResetLimiter, resendVerification);
 router.post("/login", loginLimiter, validate(loginSchema), login);
-router.post("/refresh", loginLimiter, refreshAccessToken);
+router.post("/refresh", refreshLimiter, refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, csrfProtection, logout);
 router.patch(

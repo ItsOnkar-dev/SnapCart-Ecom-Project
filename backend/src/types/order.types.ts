@@ -7,7 +7,14 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
-export type paymentStatus = "pending" | "paid" | "failed";
+export type paymentStatus =
+  | "pending"
+  | "paid"
+  | "failed"
+  | "refund_pending"
+  | "refunded";
+
+export type PaymentMethod = "razorpay" | "cod";
 export interface IOrderItem {
   product: Types.ObjectId;
   name: string;
@@ -27,11 +34,14 @@ export interface IOrder extends Document {
   user: Types.ObjectId;
   items: IOrderItem[];
   shippingAddress: IShippingAddress;
+  subtotal: number;
+  shipping: number;
   totalPrice: number;
   status: OrderStatus;
   razorpayOrderId?: string | null;
   razorpayPaymentId?: string | null;
   paymentStatus: paymentStatus;
+  paymentMethod: PaymentMethod;
   createdAt: Date;
   updatedAt: Date;
 }

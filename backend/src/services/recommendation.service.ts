@@ -191,7 +191,7 @@ export const getCartRecommendations = async (
   if (!cartProducts.length) return getTopRated(limit);
 
   const cartCategories = new Set(cartProducts.map((p) => p.category));
-  const cartCategoryList = Array.from(cartCategories);
+  const cartCategoryList: string[] = Array.from(cartCategories);
 
   // Find orders that contained at least one of these products
   // to discover what people buy together with cart contents
@@ -236,7 +236,7 @@ export const getCartRecommendations = async (
   // NOT in the same category as cart (avoids redundancy, promotes discovery)
   const crossCategoryProducts = await Product.find({
     _id: { $nin: pIds },
-    category: { $nin: cartCategoryList as any },
+    category: { $nin: cartCategoryList as any[] },
     isActive: true,
   })
     .sort({ averageRating: -1, totalReviews: -1 })
@@ -331,7 +331,7 @@ export const getPersonalizedRecommendations = async (
     if (!favoriteCategories.length) return getTopRated(limit);
 
     const candidates = await Product.find({
-      category: { $in: favoriteCategories as any },
+      category: { $in: favoriteCategories as any[] },
       _id: {
         $nin: Array.from(excludedIds).map((id) => new Types.ObjectId(id)),
       },
