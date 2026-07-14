@@ -6,6 +6,8 @@ export type OrderStatus =
   | "shipped"
   | "delivered"
   | "cancelled";
+
+export type paymentStatus = "pending" | "paid" | "failed";
 export interface IOrderItem {
   product: Types.ObjectId;
   name: string;
@@ -27,6 +29,9 @@ export interface IOrder extends Document {
   shippingAddress: IShippingAddress;
   totalPrice: number;
   status: OrderStatus;
+  razorpayOrderId?: string | null;
+  razorpayPaymentId?: string | null;
+  paymentStatus: paymentStatus;
   createdAt: Date;
   updatedAt: Date;
 }

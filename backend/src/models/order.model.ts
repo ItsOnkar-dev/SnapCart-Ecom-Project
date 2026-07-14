@@ -8,25 +8,16 @@ const orderItemSchema = new Schema(
       ref: "Product",
       required: true,
     },
-    name: {
-      type: String,
-      required: true, 
-    },
-    price: {
-      type: Number,
-      required: true, 
-    },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
     quantity: {
       type: Number,
       required: true,
       min: [1, "Quantity must be at least 1"],
     },
-    image: {
-      type: String,
-      default: "", // first image of product at order time
-    },
+    image: { type: String, default: "" },
   },
-  { _id: false }, // order items don't need their own _id
+  { _id: false },
 );
 
 const shippingAddressSchema = new Schema(
@@ -43,27 +34,32 @@ const shippingAddressSchema = new Schema(
 
 const orderSchema = new Schema<IOrder>(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    items: {
-      type: [orderItemSchema],
-      required: true,
-    },
-    shippingAddress: {
-      type: shippingAddressSchema,
-      required: true,
-    },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    items: { type: [orderItemSchema], required: true },
+    shippingAddress: { type: shippingAddressSchema, required: true },
     totalPrice: {
       type: Number,
       required: true,
       min: [0, "Total price cannot be negative"],
     },
+
     status: {
       type: String,
       enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      default: "pending",
+    },
+
+    razorpayOrderId: {
+      type: String,
+      default: null,
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
       default: "pending",
     },
   },
@@ -72,5 +68,7 @@ const orderSchema = new Schema<IOrder>(
 
 orderSchema.index({ user: 1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ razorpayOrderId: 1 });
 
 export const Order = mongoose.model<IOrder>("Order", orderSchema);
