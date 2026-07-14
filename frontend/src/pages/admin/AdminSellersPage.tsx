@@ -183,7 +183,7 @@ export default function AdminSellersPage() {
                             setSelectedStatus("approved");
                             setDialogOpen(true);
                           }}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5 shadow-md shadow-emerald-950/20 rounded-lg transition-all"
+                          className="bg-emerald-600 hover:bg-emerald-500 cursor-pointer text-white gap-1.5 shadow-md shadow-emerald-950/20 rounded-lg transition-all"
                         >
                           <Check className="h-4 w-4" /> Approve
                         </Button>
@@ -196,7 +196,7 @@ export default function AdminSellersPage() {
                             setSelectedStatus("rejected");
                             setDialogOpen(true);
                           }}
-                          className="border-zinc-800 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/20 hover:border-rose-900/50 gap-1.5 rounded-lg transition-all"
+                          className="border-zinc-800 cursor-pointer text-zinc-400 hover:text-rose-400 hover:bg-rose-950/20 hover:border-rose-900/50 gap-1.5 rounded-lg transition-all"
                         >
                           <X className="h-4 w-4" /> Reject
                         </Button>
