@@ -11,15 +11,20 @@ import { auditLog } from "../utils/auditLogger";
 // Admin sees all users who have applied to become sellers
 export const getPendingSellers = asyncHandler(
   async (req: Request, res: Response) => {
-    const pendingSellers = await User.find({ sellerStatus: "pending" }).select(
-      "name email sellerStatus sellerApplication createdAt",
-      // only return what admin needs — no passwords, no tokens
-    );
+    const sellers = await User.find({
+      sellerStatus: {
+        $in: ["pending", "approved", "rejected"],
+      },
+    }).select("name email role sellerStatus sellerApplication createdAt");
 
     res
       .status(200)
       .json(
-        new ApiResponse(200, "Pending seller applications", pendingSellers),
+        new ApiResponse(
+          200,
+          "Seller applications fetched successfully",
+          sellers,
+        ),
       );
   },
 );

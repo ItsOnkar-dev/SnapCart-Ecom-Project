@@ -45,7 +45,7 @@ export const sendSellerApplicationEmail = async (applicant: IUser) => {
               : ""
           }
         </table>
-        <a href="${process.env.FRONTEND_URL}/admin/sellers"
+        <a href="${process.env.FRONTEND_URL}/admin/review-seller"
            style="display:inline-block; padding:12px 24px; background:#000; color:#fff;
                   text-decoration:none; border-radius:6px; margin-top:24px;">
           Review Application
