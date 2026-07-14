@@ -1,5 +1,5 @@
-import Header from "@/components/header/Header";
 import AuthLayout from "@/components/layout/AuthLayout";
+import Header from "@/components/layout/header/Header";
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import Footer from "./components/layout/Footer";

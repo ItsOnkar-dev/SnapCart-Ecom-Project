@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import {toast} from "sonner"; 
 import { Link, useParams } from "react-router";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

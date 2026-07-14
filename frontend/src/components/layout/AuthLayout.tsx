@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import AuthHeader from "@/components/header/AuthHeader";
+import AuthHeader from "@/components/layout/header/AuthHeader";
 
 const AuthLayout = () => {
   return (

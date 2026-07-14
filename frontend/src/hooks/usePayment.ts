@@ -2,7 +2,7 @@
 import { createRazorpayOrderApi, verifyPaymentApi } from "@/api/payment.api";
 import type { ShippingAddress } from "@/types/order.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
 // Razorpay's checkout script adds `window.Razorpay` — this type covers it

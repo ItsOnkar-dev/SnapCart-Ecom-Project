@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, Mail, User as UserIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast"; // <-- Added toast
+import {toast} from "sonner"; 
 import { Link, useNavigate, useSearchParams } from "react-router"; // <-- Added useSearchParams
 
 import { Button } from "@/components/ui/button";

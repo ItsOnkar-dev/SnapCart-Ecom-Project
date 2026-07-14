@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 // Explicit API mapping declarations
 export const getSellerProductsApi = () => api.get("/seller/products");

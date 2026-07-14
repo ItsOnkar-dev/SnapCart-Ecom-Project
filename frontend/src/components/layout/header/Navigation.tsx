@@ -84,7 +84,8 @@ export default function Navigation() {
 
           <Link
             to="/cart"
-            className="relative p-2 text-foreground hover:text-white transition-colors"
+            // Changed hover:text-white to hover:text-nav-hover
+            className="relative p-2 text-foreground hover:text-nav-hover transition-colors"
             aria-label="Cart"
           >
             <ShoppingBagIcon />
@@ -114,7 +115,8 @@ export default function Navigation() {
         <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
           <Link
             to="/products"
-            className="text-sm font-medium text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
+            // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
+            className="text-sm font-medium text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
           >
             All Products
           </Link>
@@ -122,14 +124,16 @@ export default function Navigation() {
             <Link
               key={c.slug}
               to={`/products?category=${c.slug}`}
-              className="text-sm text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
+              // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
+              className="text-sm text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
             >
               {c.label}
             </Link>
           ))}
           <Link
             to="/products?sort=newest"
-            className="text-sm text-muted-foreground hover:text-white transition-colors whitespace-nowrap"
+            // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
+            className="text-sm text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
           >
             New In
           </Link>
@@ -137,7 +141,8 @@ export default function Navigation() {
           {showBecomeSeller && (
             <Link
               to="/seller/apply"
-              className="ml-auto text-sm font-semibold text-white hover:text-white/80 whitespace-nowrap"
+              // Changed text-white hover:text-white/80 to text-primary hover:text-primary-hover
+              className="ml-auto text-sm font-semibold text-primary hover:text-primary-hover whitespace-nowrap"
             >
               Become a seller
             </Link>
@@ -152,7 +157,8 @@ export default function Navigation() {
             <Link
               to="/products"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base font-medium text-foreground hover:text-white"
+              // Changed hover:text-white to hover:text-nav-hover
+              className="block py-2.5 text-base font-medium text-foreground hover:text-nav-hover"
             >
               All Products
             </Link>
@@ -161,7 +167,8 @@ export default function Navigation() {
                 key={c.slug}
                 to={`/products?category=${c.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="block py-2.5 text-base text-muted-foreground hover:text-white"
+                // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
+                className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
               >
                 {c.label}
               </Link>
@@ -169,7 +176,8 @@ export default function Navigation() {
             <Link
               to="/products?sort=newest"
               onClick={() => setMobileOpen(false)}
-              className="block py-2.5 text-base text-muted-foreground hover:text-white"
+              // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
+              className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
             >
               New In
             </Link>
@@ -179,7 +187,8 @@ export default function Navigation() {
                 <Link
                   to="/seller/apply"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base font-semibold text-white"
+                  // Changed text-white to text-primary and hover:text-white/80 to hover:text-primary-hover
+                  className="block py-2.5 text-base font-semibold text-primary hover:text-primary-hover"
                 >
                   Become a seller
                 </Link>
@@ -188,14 +197,16 @@ export default function Navigation() {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-base text-muted-foreground hover:text-white"
+                  // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
+                  className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
                 >
                   Sign in
                 </Link>
               )}
               <button
                 onClick={() => setMobileOpen(false)}
-                className="block w-full text-left py-2.5 text-base text-muted-foreground hover:text-white"
+                // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
+                className="block w-full text-left py-2.5 text-base text-nav-foreground hover:text-nav-hover"
               >
                 Favourites
               </button>

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product.types";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 // backend prices are plain numbers — screenshot shows the € symbol
 const formatPrice = (value: number) =>
