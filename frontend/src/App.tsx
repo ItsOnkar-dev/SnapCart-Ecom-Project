@@ -31,6 +31,7 @@ const OrdersPage = lazy(() => import("@/pages/order/OrdersPage"));
 const OrderDetailPage = lazy(() => import("@/pages/order/OrderDetailPage"));
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const WishlistPage = lazy(() => import("@/pages/wishlist/WishlistPage"));
+const PaymentSuccess = lazy(() => import("@/pages/payment/PaymentSuccess"));
 const Unauthorized = lazy(() => import("@/pages/error/Unauthorized"));
 const NotFound = lazy(() => import("@/pages/error/NotFound"));
 
@@ -59,7 +60,6 @@ function MainLayout() {
 }
 
 const router = createBrowserRouter([
-  // ── auth routes — no Header, full-screen centered forms ──────────────────
   {
     element: <AuthLayout />,
     children: [
@@ -108,6 +108,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "/cart", element: <CartPage /> },
+          { path: "/payment-success", element: <PaymentSuccess /> },
           { path: "/orders", element: <OrdersPage /> },
           { path: "/orders/:id", element: <OrderDetailPage /> },
           { path: "/profile", element: <ProfilePage /> },

@@ -8,7 +8,7 @@ export type OrderStatus =
   | "cancelled";
 
 export interface OrderItem {
-  product: string | Pick<Product, "_id" | "name" | "images">;
+  product: string | Product;
   name: string;
   quantity: number;
   price: number;

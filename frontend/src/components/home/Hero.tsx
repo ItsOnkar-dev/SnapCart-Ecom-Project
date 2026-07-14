@@ -58,9 +58,9 @@ export default function Hero() {
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
         {/* promo card */}
         <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-hero p-8 md:p-10">
-          <div className="absolute inset-0 bg-[var(--gradient-glow)]" />
+          <div className="absolute inset-0 bg-gradient-glow" />
           <div className="relative flex h-full flex-col justify-center">
-            <span className="inline-flex w-fit items-center rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-glow">
+            <span className="inline-flex w-fit items-center rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
               Welcome to Snapcart
             </span>
             <h1 className="mt-5 text-pretty text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-5xl">
@@ -78,7 +78,12 @@ export default function Hero() {
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="px-5">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="px-5 border border-[#282358]"
+              >
                 <Link to="/seller/apply">Become a seller</Link>
               </Button>
             </div>

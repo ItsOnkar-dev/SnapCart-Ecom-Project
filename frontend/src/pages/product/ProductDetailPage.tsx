@@ -36,7 +36,7 @@ import { Link, useParams } from "react-router";
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -176,7 +176,7 @@ export default function ProductDetailPage() {
   // ── Derived state ──────────────────────────────────────────────────────────
 
   const isInWishlist = wishlist?.items?.some(
-    (item:any) =>
+    (item: any) =>
       item.product === product._id || item.product?._id === product._id,
   );
 

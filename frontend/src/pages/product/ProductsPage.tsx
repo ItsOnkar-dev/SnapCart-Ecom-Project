@@ -1,8 +1,9 @@
 import { ChevronDown, ChevronRight, Filter, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 
 import ProductCard from "@/components/home/ProductCard";
+import Pagination from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import type {
@@ -11,6 +12,8 @@ import type {
   ProductQueryParams,
   ProductSort,
 } from "@/types/product.types";
+
+const PRODUCTS_PER_PAGE = 8;
 
 const CATEGORIES: { label: string; value: ProductCategory }[] = [
   { label: "Electronics", value: "electronics" },
@@ -22,10 +25,10 @@ const CATEGORIES: { label: string; value: ProductCategory }[] = [
 ];
 
 const PRICE_RANGES = [
-  { label: "Under EUR 50", min: 0, max: 50 },
-  { label: "EUR 50 - EUR 150", min: 50, max: 150 },
-  { label: "EUR 150 - EUR 500", min: 150, max: 500 },
-  { label: "Over EUR 500", min: 500, max: Infinity },
+  { label: "Under INR 50", min: 0, max: 50 },
+  { label: "INR 50 – INR 150", min: 50, max: 150 },
+  { label: "INR 150 – INR 500", min: 150, max: 500 },
+  { label: "Over INR 500", min: 500, max: Infinity },
 ];
 
 const SORT_OPTIONS = [
@@ -36,34 +39,53 @@ const SORT_OPTIONS = [
   { label: "Top Rated", value: "rating" },
 ];
 
+// ─── Page skeleton ─────────────────────────────────────────────────────────────
+
+function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, i) => (
+        <div
+          key={i}
+          className="aspect-square animate-pulse rounded-2xl border border-border bg-muted/20"
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // ── Read all params from URL — single source of truth ─────────────────────
   const categoryParam = searchParams.get("category") as ProductCategory | null;
   const sortParam = searchParams.get("sort") as ProductSort | null;
   const minPriceParam = searchParams.get("minPrice");
   const maxPriceParam = searchParams.get("maxPrice");
   const inStockParam = searchParams.get("inStock");
   const newArrivalsParam = searchParams.get("newArrivals");
+  const isFiltersOpen = searchParams.get("filters") === "open";
 
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{
-    min: number;
-    max: number;
-  } | null>(
-    minPriceParam
-      ? {
-          min: Number(minPriceParam),
-          max: maxPriceParam ? Number(maxPriceParam) : Infinity,
-        }
-      : null,
-  );
-  const [inStockOnly, setInStockOnly] = useState(inStockParam === "true");
-  const [newArrivalsOnly, setNewArrivalsOnly] = useState(
-    newArrivalsParam === "true",
-  );
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  // Page comes from URL — zero client state for pagination
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
+  // Derived filter state directly from URL — no useState for filters
+  const selectedPriceRange = minPriceParam
+    ? {
+        min: Number(minPriceParam),
+        max: maxPriceParam ? Number(maxPriceParam) : Infinity,
+      }
+    : null;
+
+  const inStockOnly = inStockParam === "true";
+  const newArrivalsOnly = newArrivalsParam === "true";
+
+  // ── Build query params for the API call ───────────────────────────────────
   const queryParams: ProductQueryParams = {
-    limit: 50,
+    page: currentPage,
+    limit: PRODUCTS_PER_PAGE,
   };
 
   if (categoryParam) queryParams.category = categoryParam;
@@ -76,110 +98,119 @@ export default function ProductsPage() {
   if (inStockOnly) queryParams.inStock = true;
   if (newArrivalsOnly) queryParams.sort = "newest";
 
-  const { data: productsData, isLoading, error } = useProducts(queryParams);
-  const products = productsData?.products || [];
+  const { data, isLoading, error } = useProducts(queryParams);
 
-  const currentCategoryLabel = categoryParam
-    ? categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1)
-    : "All Products";
+  // Backend returns: { products, pagination: { total, page, totalPages, hasNextPage, hasPrevPage, limit } }
+  const products = data?.products ?? [];
+  const pagination = data?.pagination;
+
+  // ── Scroll to top on page or filter change ────────────────────────────────
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [searchParams]);
+
+  // ── URL param helpers ──────────────────────────────────────────────────────
 
   const setParam = (callback: (params: URLSearchParams) => void) => {
-    const newParams = new URLSearchParams(searchParams);
-    callback(newParams);
-    setSearchParams(newParams);
+    const next = new URLSearchParams(searchParams);
+    callback(next);
+    setSearchParams(next);
   };
 
+  // Reset page to 1 whenever a filter changes — critical UX rule
+  // If you're on page 3 and change category, page 3 may not exist anymore
+  const setFilterParam = (callback: (params: URLSearchParams) => void) => {
+    const next = new URLSearchParams(searchParams);
+    callback(next);
+    next.set("page", "1"); // always reset page on filter change
+    setSearchParams(next);
+  };
+
+  // ── Filter handlers — all reset page to 1 ─────────────────────────────────
+
   const handleCategoryChange = (category: ProductCategory | null) => {
-    setParam((params) => {
-      if (category) params.set("category", category);
-      else params.delete("category");
+    setFilterParam((p) => {
+      if (category) p.set("category", category);
+      else p.delete("category");
     });
   };
 
   const handlePriceRangeChange = (
     range: { min: number; max: number } | null,
   ) => {
-    setSelectedPriceRange(range);
-    setParam((params) => {
+    setFilterParam((p) => {
       if (range) {
-        params.set("minPrice", range.min.toString());
-        if (range.max === Infinity) params.delete("maxPrice");
-        else params.set("maxPrice", range.max.toString());
+        p.set("minPrice", range.min.toString());
+        if (range.max === Infinity) p.delete("maxPrice");
+        else p.set("maxPrice", range.max.toString());
       } else {
-        params.delete("minPrice");
-        params.delete("maxPrice");
+        p.delete("minPrice");
+        p.delete("maxPrice");
       }
     });
   };
 
   const handleInStockChange = (value: boolean) => {
-    setInStockOnly(value);
-    if (value) setNewArrivalsOnly(false);
-    setParam((params) => {
+    setFilterParam((p) => {
       if (value) {
-        params.set("inStock", "true");
-        params.delete("newArrivals");
-      } else {
-        params.delete("inStock");
-      }
+        p.set("inStock", "true");
+        p.delete("newArrivals");
+      } else p.delete("inStock");
     });
   };
 
   const handleNewArrivalsChange = (value: boolean) => {
-    setNewArrivalsOnly(value);
-    if (value) setInStockOnly(false);
-    setParam((params) => {
+    setFilterParam((p) => {
       if (value) {
-        params.set("newArrivals", "true");
-        params.delete("inStock");
-      } else {
-        params.delete("newArrivals");
-      }
+        p.set("newArrivals", "true");
+        p.delete("inStock");
+      } else p.delete("newArrivals");
+    });
+  };
+
+  const handleSortChange = (value: string) => {
+    setFilterParam((p) => {
+      if (value) p.set("sort", value);
+      else p.delete("sort");
     });
   };
 
   const clearFilters = () => {
-    setSelectedPriceRange(null);
-    setInStockOnly(false);
-    setNewArrivalsOnly(false);
-    setParam((params) => {
-      params.delete("category");
-      params.delete("minPrice");
-      params.delete("maxPrice");
-      params.delete("inStock");
-      params.delete("newArrivals");
-    });
+    const next = new URLSearchParams();
+    // Keep page at 1 (just delete it — defaults to 1)
+    setSearchParams(next);
   };
 
-  // ── Scroll to top on every product navigation ──────────────────────────────
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "instant",
-    });
-  }, [searchParams]);
+  // ── Page change — only updates page param, keeps all filters ──────────────
+  const handlePageChange = (page: number) => {
+    setParam((p) => p.set("page", page.toString()));
+    // scrollTo handled by the useEffect above
+  };
+
+  // ── Derived display values ─────────────────────────────────────────────────
 
   const hasActiveFilters =
     !!categoryParam || !!selectedPriceRange || inStockOnly || newArrivalsOnly;
 
-  const handleSortChange = (value: string) => {
-    setParam((params) => {
-      if (value) params.set("sort", value);
-      else params.delete("sort");
-    });
-  };
+  const currentCategoryLabel = categoryParam
+    ? categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1)
+    : "All Products";
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-background">
+      {/* ── Filter drawer backdrop ── */}
       {isFiltersOpen && (
         <button
           type="button"
           aria-label="Close filters"
           className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-[2px]"
-          onClick={() => setIsFiltersOpen(false)}
+          onClick={() => setFilterParam((p) => p.delete("filters"))}
         />
       )}
 
+      {/* ── Filter drawer ── */}
       <aside
         className={`fixed right-0 top-0 z-[70] h-dvh w-full max-w-[350px] border-l border-sidebar-border bg-sidebar px-7 py-7 shadow-2xl transition-transform duration-300 ${
           isFiltersOpen ? "translate-x-0" : "translate-x-full"
@@ -189,7 +220,7 @@ export default function ProductsPage() {
           <div className="flex items-center justify-between border-b border-sidebar-border pb-6">
             <h2 className="text-2xl font-bold text-foreground">Filters</h2>
             <Button
-              onClick={() => setIsFiltersOpen(false)}
+              onClick={() => setParam((p) => p.delete("filters"))}
               variant="ghost"
               size="icon"
               className="text-foreground"
@@ -199,29 +230,31 @@ export default function ProductsPage() {
             </Button>
           </div>
 
+          {/* Category */}
           <div className="border-b border-sidebar-border py-8">
             <h3 className="mb-5 text-base font-semibold text-foreground">
               Category
             </h3>
             <div className="space-y-4">
-              {CATEGORIES.map((category) => (
+              {CATEGORIES.map((cat) => (
                 <label
-                  key={category.value}
+                  key={cat.value}
                   className="flex cursor-pointer items-center gap-4 text-sm text-foreground"
                 >
                   <input
                     type="radio"
                     name="category"
-                    checked={categoryParam === category.value}
-                    onChange={() => handleCategoryChange(category.value)}
+                    checked={categoryParam === cat.value}
+                    onChange={() => handleCategoryChange(cat.value)}
                     className="size-3 accent-indigo-400"
                   />
-                  {category.label}
+                  {cat.label}
                 </label>
               ))}
             </div>
           </div>
 
+          {/* Price */}
           <div className="border-b border-sidebar-border py-8">
             <h3 className="mb-5 text-base font-semibold text-foreground">
               Price
@@ -248,6 +281,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {/* Availability */}
           <div className="border-b border-sidebar-border py-8">
             <h3 className="mb-5 text-base font-semibold text-foreground">
               Availability
@@ -276,6 +310,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {/* Filter actions */}
           <div className="mt-auto grid gap-3 pt-6">
             {hasActiveFilters && (
               <Button
@@ -288,16 +323,19 @@ export default function ProductsPage() {
               </Button>
             )}
             <Button
-              onClick={() => setIsFiltersOpen(false)}
+              onClick={() => setParam((p) => p.delete("filters"))}
               size="lg"
               className="h-12 rounded-md"
             >
-              View {products.length} {products.length === 1 ? "item" : "items"}
+              {pagination
+                ? `View ${pagination.total} ${pagination.total === 1 ? "item" : "items"}`
+                : "View results"}
             </Button>
           </div>
         </div>
       </aside>
 
+      {/* ── Breadcrumb ── */}
       <div className="border-b border-border/60 bg-background/50 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
           <div className="flex items-center gap-2 text-sm">
@@ -315,33 +353,43 @@ export default function ProductsPage() {
         </div>
       </div>
 
+      {/* ── Main content ── */}
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+        {/* ── Page header + controls ── */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="mb-2 text-3xl font-bold text-foreground">
+            <h1 className="mb-1 text-3xl font-bold text-foreground">
               {categoryParam ? currentCategoryLabel : "Shop all products"}
             </h1>
-            <p className="text-muted-foreground">
-              {products.length} {products.length === 1 ? "item" : "items"}
-            </p>
+            {/* Shows total count — updates reactively as filters change */}
+            {pagination && (
+              <p className="text-sm text-muted-foreground">
+                {pagination.total}{" "}
+                {pagination.total === 1 ? "product" : "products"}
+              </p>
+            )}
           </div>
+
           <div className="flex items-center gap-3">
+            {/* Sort dropdown */}
             <div className="relative">
               <select
                 value={sortParam || ""}
-                onChange={(event) => handleSortChange(event.target.value)}
+                onChange={(e) => handleSortChange(e.target.value)}
                 className="h-9 appearance-none rounded-lg border border-border bg-card px-4 pr-10 text-sm text-foreground transition-colors hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             </div>
+
+            {/* Filters button */}
             <Button
-              onClick={() => setIsFiltersOpen(true)}
+              onClick={() => setParam((p) => p.set("filters", "open"))}
               variant={hasActiveFilters ? "default" : "outline"}
               className="flex items-center gap-2"
             >
@@ -354,15 +402,9 @@ export default function ProductsPage() {
           </div>
         </div>
 
+        {/* ── Product grid ── */}
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="aspect-square animate-pulse rounded-2xl border border-border bg-muted"
-              />
-            ))}
-          </div>
+          <ProductGridSkeleton />
         ) : error ? (
           <div className="py-12 text-center">
             <p className="text-muted-foreground">
@@ -379,15 +421,30 @@ export default function ProductsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product: Product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                showNewBadge={newArrivalsOnly}
+          <>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product: Product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  showNewBadge={newArrivalsOnly}
+                />
+              ))}
+            </div>
+
+            {/* ── Pagination ── */}
+            {pagination && (
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={pagination.limit}
+                hasPrevPage={pagination.hasPrevPage}
+                hasNextPage={pagination.hasNextPage}
+                onPageChange={handlePageChange}
               />
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

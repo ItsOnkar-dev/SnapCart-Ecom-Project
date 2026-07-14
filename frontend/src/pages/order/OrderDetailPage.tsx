@@ -5,12 +5,17 @@ import { Button } from "@/components/ui/button";
 import { useOrder } from "@/hooks/useOrders";
 import type { OrderStatus } from "@/types/order.types";
 
-const STATUS_STEPS: OrderStatus[] = ["pending", "confirmed", "shipped", "delivered"];
+const STATUS_STEPS: OrderStatus[] = [
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+];
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-IE", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -34,7 +39,9 @@ export default function OrderDetailPage() {
       <main className="grid min-h-screen place-items-center bg-background px-4">
         <div className="text-center">
           <PackageCheck className="mx-auto mb-5 size-12 text-primary" />
-          <h1 className="text-2xl font-semibold text-foreground">Order not found</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Order not found
+          </h1>
           <Button asChild className="mt-6">
             <Link to="/orders">Back to orders</Link>
           </Button>
@@ -43,7 +50,8 @@ export default function OrderDetailPage() {
     );
   }
 
-  const currentIndex = order.status === "cancelled" ? -1 : STATUS_STEPS.indexOf(order.status);
+  const currentIndex =
+    order.status === "cancelled" ? -1 : STATUS_STEPS.indexOf(order.status);
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10">
@@ -59,8 +67,12 @@ export default function OrderDetailPage() {
           <section className="rounded-2xl border border-border bg-card p-6">
             <div className="mb-6 flex flex-col gap-3 border-b border-border pb-6 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Order #{order._id.slice(-8).toUpperCase()}</p>
-                <h1 className="mt-1 text-3xl font-bold text-foreground">Order details</h1>
+                <p className="text-sm text-muted-foreground">
+                  Order #{order._id.slice(-8).toUpperCase()}
+                </p>
+                <h1 className="mt-1 text-3xl font-bold text-foreground">
+                  Order details
+                </h1>
               </div>
               <span className="w-fit rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold capitalize text-primary-glow">
                 {order.status}
@@ -72,10 +84,14 @@ export default function OrderDetailPage() {
                 const isDone = currentIndex >= index;
                 return (
                   <div key={status} className="flex items-center gap-3">
-                    <span className={`grid size-9 place-items-center rounded-full border ${isDone ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}>
+                    <span
+                      className={`grid size-9 place-items-center rounded-full border ${isDone ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
+                    >
                       <Check className="size-4" />
                     </span>
-                    <span className="text-sm font-medium capitalize text-foreground">{status}</span>
+                    <span className="text-sm font-medium capitalize text-foreground">
+                      {status}
+                    </span>
                   </div>
                 );
               })}
@@ -83,19 +99,34 @@ export default function OrderDetailPage() {
 
             <div className="space-y-4">
               {order.items.map((item: any) => (
-                <article key={`${item.product}-${item.name}`} className="grid gap-4 rounded-xl border border-border bg-background p-4 sm:grid-cols-[88px_1fr_auto]">
+                <article
+                  key={`${item.product}-${item.name}`}
+                  className="grid gap-4 rounded-xl border border-border bg-background p-4 sm:grid-cols-[88px_1fr_auto]"
+                >
                   <div className="aspect-square overflow-hidden rounded-lg bg-muted">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
-                      <div className="grid h-full place-items-center text-xs text-muted-foreground">No image</div>
+                      <div className="grid h-full place-items-center text-xs text-muted-foreground">
+                        No image
+                      </div>
                     )}
                   </div>
                   <div>
-                    <h2 className="font-semibold text-foreground">{item.name}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Qty {item.quantity}</p>
+                    <h2 className="font-semibold text-foreground">
+                      {item.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Qty {item.quantity}
+                    </p>
                   </div>
-                  <p className="font-bold text-foreground">{formatPrice(item.price * item.quantity)}</p>
+                  <p className="font-bold text-foreground">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
                 </article>
               ))}
             </div>
@@ -103,18 +134,25 @@ export default function OrderDetailPage() {
 
           <aside className="space-y-6">
             <section className="rounded-2xl border border-border bg-sidebar p-6">
-              <h2 className="mb-4 text-lg font-semibold text-foreground">Shipping</h2>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">
+                Shipping
+              </h2>
               <div className="space-y-1 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">{order.shippingAddress.fullName}</p>
+                <p className="font-medium text-foreground">
+                  {order.shippingAddress.fullName}
+                </p>
                 <p>{order.shippingAddress.phone}</p>
                 <p>{order.shippingAddress.street}</p>
                 <p>
-                  {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}
+                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+                  {order.shippingAddress.pincode}
                 </p>
               </div>
             </section>
             <section className="rounded-2xl border border-border bg-sidebar p-6">
-              <h2 className="mb-4 text-lg font-semibold text-foreground">Summary</h2>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">
+                Summary
+              </h2>
               <div className="flex justify-between text-lg font-bold text-foreground">
                 <span>Total</span>
                 <span>{formatPrice(order.totalPrice)}</span>

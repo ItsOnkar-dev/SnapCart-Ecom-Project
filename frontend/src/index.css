@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/* Snapcart — Midnight Indigo marketplace design system
-   :root = dark theme (default, no class needed)
-   .light = override for future light/dark toggle */
-
 @layer base {
   :root {
     --radius: 0.85rem;
@@ -54,7 +50,7 @@
     );
     --gradient-hero: linear-gradient(
       155deg,
-      hsl(243 52% 11%),
+      hsl(244, 56%, 23%),
       hsl(248 58% 16%) 55%,
       hsl(258 50% 14%)
     );
@@ -139,19 +135,8 @@
     --sidebar-border: 240 20% 88%;
     --sidebar-ring: 244 76% 56%;
   }
-
-  /* NOTE: removed the old generic-purple .dark block that was here —
-     it was a leftover from before this design system existed, had a
-     different purple hex, and was missing --nav-*, --gradient-*,
-     --shadow-*, --sidebar-* entirely. :root now IS the dark theme,
-     so no .dark class is needed for dark mode to work. */
 }
 
-/* ── Tailwind v4 theme mapping ──────────────────────────────────────────────
-   THIS BLOCK IS WHY YOUR COLORS DISAPPEARED — Tailwind v4 does not turn
-   CSS custom properties into utility classes automatically. Every variable
-   above must be explicitly mapped here, or classes like bg-background,
-   text-foreground, bg-nav, border-border etc. don't exist at all. */
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

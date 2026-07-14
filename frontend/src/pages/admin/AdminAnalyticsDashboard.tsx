@@ -1,25 +1,30 @@
+import { Spinner } from "@/components/ui/spinner";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import {
-  AreaChart,
+  AlertTriangle,
+  DollarSign,
+  ShoppingBag,
+  TrendingUp,
+} from "lucide-react";
+import {
   Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { DollarSign, ShoppingBag, TrendingUp, AlertTriangle } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-IE", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -64,7 +69,8 @@ export default function AdminAnalyticsDashboard() {
     );
   }
 
-  const { kpis, dailyRevenue, topProducts, orderStatuses, revenueByCategory } = data;
+  const { kpis, dailyRevenue, topProducts, orderStatuses, revenueByCategory } =
+    data;
 
   const kpiCards = [
     {
@@ -89,16 +95,19 @@ export default function AdminAnalyticsDashboard() {
       title: "Low Stock Items",
       value: kpis.lowStockCount,
       icon: AlertTriangle,
-      color: kpis.lowStockCount > 0
-        ? "text-rose-400 bg-rose-500/10 border-rose-500/25 animate-pulse"
-        : "text-neutral-400 bg-neutral-500/10 border-neutral-500/25",
+      color:
+        kpis.lowStockCount > 0
+          ? "text-rose-400 bg-rose-500/10 border-rose-500/25 animate-pulse"
+          : "text-neutral-400 bg-neutral-500/10 border-neutral-500/25",
     },
   ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 text-foreground space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">
+          Admin Analytics Dashboard
+        </h1>
         <p className="text-muted-foreground mt-1">
           Overview of platform KPIs, sales charts, and catalog alerts.
         </p>
@@ -117,7 +126,9 @@ export default function AdminAnalyticsDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {card.title}
                 </span>
-                <p className="text-2xl font-bold tracking-tight text-white">{card.value}</p>
+                <p className="text-2xl font-bold tracking-tight text-white">
+                  {card.value}
+                </p>
               </div>
               <div className="p-3 rounded-xl bg-card border border-border">
                 <Icon className="w-5 h-5" />
@@ -133,11 +144,16 @@ export default function AdminAnalyticsDashboard() {
         <div className="lg:col-span-2 border border-border bg-card/60 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div className="mb-4">
             <h3 className="text-lg font-bold">14-Day Revenue & Orders</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Daily sales trends for the last two weeks.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Daily sales trends for the last two weeks.
+            </p>
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={dailyRevenue}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
@@ -145,10 +161,19 @@ export default function AdminAnalyticsDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-                <XAxis dataKey="date" stroke="#888" fontSize={11} tickLine={false} />
+                <XAxis
+                  dataKey="date"
+                  stroke="#888"
+                  fontSize={11}
+                  tickLine={false}
+                />
                 <YAxis stroke="#888" fontSize={11} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#171717", borderColor: "#262626", borderRadius: "12px" }}
+                  contentStyle={{
+                    backgroundColor: "#171717",
+                    borderColor: "#262626",
+                    borderRadius: "12px",
+                  }}
                   labelStyle={{ fontWeight: "bold", color: "#fff" }}
                 />
                 <Area
@@ -169,7 +194,9 @@ export default function AdminAnalyticsDashboard() {
         <div className="border border-border bg-card/60 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-lg font-bold">Order Statuses</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Distribution of all order states.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Distribution of all order states.
+            </p>
           </div>
           <div className="h-64 w-full flex items-center justify-center relative">
             {orderStatuses.length === 0 ? (
@@ -195,7 +222,11 @@ export default function AdminAnalyticsDashboard() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#171717", borderColor: "#262626", borderRadius: "12px" }}
+                    contentStyle={{
+                      backgroundColor: "#171717",
+                      borderColor: "#262626",
+                      borderRadius: "12px",
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -207,7 +238,9 @@ export default function AdminAnalyticsDashboard() {
               <div key={i} className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: STATUS_COLORS[item.status] || "#737373" }}
+                  style={{
+                    backgroundColor: STATUS_COLORS[item.status] || "#737373",
+                  }}
                 />
                 <span className="capitalize text-muted-foreground">
                   {item.status} ({item.count})
@@ -221,7 +254,9 @@ export default function AdminAnalyticsDashboard() {
         <div className="border border-border bg-card/60 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-lg font-bold">Top Products</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Best selling products by units sold.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Best selling products by units sold.
+            </p>
           </div>
           <div className="h-72 w-full mt-4">
             {topProducts.length === 0 ? (
@@ -230,14 +265,43 @@ export default function AdminAnalyticsDashboard() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
-                  <XAxis type="number" stroke="#888" fontSize={10} tickLine={false} />
-                  <YAxis dataKey="name" type="category" stroke="#888" fontSize={10} tickLine={false} width={80} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#171717", borderColor: "#262626", borderRadius: "12px" }}
+                <BarChart
+                  data={topProducts}
+                  layout="vertical"
+                  margin={{ top: 0, right: 10, left: -10, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#262626"
+                    horizontal={false}
                   />
-                  <Bar dataKey="quantity" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Units Sold" />
+                  <XAxis
+                    type="number"
+                    stroke="#888"
+                    fontSize={10}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    stroke="#888"
+                    fontSize={10}
+                    tickLine={false}
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#171717",
+                      borderColor: "#262626",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <Bar
+                    dataKey="quantity"
+                    fill="#3b82f6"
+                    radius={[0, 4, 4, 0]}
+                    name="Units Sold"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -248,7 +312,9 @@ export default function AdminAnalyticsDashboard() {
         <div className="lg:col-span-2 border border-border bg-card/60 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-lg font-bold">Revenue by Category</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Sales contribution segmented by department.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Sales contribution segmented by department.
+            </p>
           </div>
           <div className="h-72 w-full mt-4 flex flex-col md:flex-row items-center gap-6">
             {revenueByCategory.length === 0 ? (
@@ -271,15 +337,23 @@ export default function AdminAnalyticsDashboard() {
                         {revenueByCategory.map((_: any, index: number) => (
                           <Cell
                             key={`cell-${index}`}
-                            fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+                            fill={
+                              CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+                            }
                           />
                         ))}
                       </Pie>
                       <Tooltip
                         formatter={(val) =>
-                          typeof val === "number" ? formatPrice(val) : String(val ?? "")
+                          typeof val === "number"
+                            ? formatPrice(val)
+                            : String(val ?? "")
                         }
-                        contentStyle={{ backgroundColor: "#171717", borderColor: "#262626", borderRadius: "12px" }}
+                        contentStyle={{
+                          backgroundColor: "#171717",
+                          borderColor: "#262626",
+                          borderRadius: "12px",
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -287,11 +361,17 @@ export default function AdminAnalyticsDashboard() {
                 {/* Category legend grid */}
                 <div className="w-full md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {revenueByCategory.map((item: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40"
+                    >
                       <div className="flex items-center gap-2">
                         <span
                           className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}
+                          style={{
+                            backgroundColor:
+                              CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                          }}
                         />
                         <span className="capitalize text-muted-foreground truncate max-w-[80px]">
                           {item.category}

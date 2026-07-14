@@ -14,16 +14,16 @@ import RecommendedProducts from "@/components/home/RecommendedProducts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/useCart";
-import { usePlaceOrder } from "@/hooks/useOrders";
+import { usePayment } from "@/hooks/usePayment";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-IE", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -48,7 +48,7 @@ export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { mutate: updateCartItem, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
-  const { mutate: placeOrder, isPending: isPlacingOrder } = usePlaceOrder();
+  const { initiatePayment, isPending: isPlacingOrder } = usePayment();
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
 
   // ── Derived values — after hooks, before render ───────────────────────────
@@ -74,7 +74,7 @@ export default function CartPage() {
     0,
   );
 
-  const shipping = subtotal >= 75 || subtotal === 0 ? 0 : 8;
+  const shipping = subtotal >= 500 || subtotal === 0 ? 0 : 49;
   const total = subtotal + shipping;
 
   const hasInvalidStock = items.some(
@@ -99,7 +99,7 @@ export default function CartPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canCheckout) return;
-    placeOrder(address);
+    initiatePayment(address);
   };
 
   // ── Loading skeleton ───────────────────────────────────────────────────────
@@ -287,7 +287,7 @@ export default function CartPage() {
               <aside className="lg:sticky lg:top-32 lg:self-start">
                 <form
                   onSubmit={handleSubmit}
-                  className="rounded-2xl border border-border bg-sidebar p-6 shadow-[var(--shadow-card)]"
+                  className="rounded-2xl border border-border bg-sidebar p-6 shadow-shadow-card"
                 >
                   {/* Sidebar header */}
                   <div className="mb-6 flex items-center justify-between border-b border-sidebar-border pb-5">
@@ -391,7 +391,7 @@ export default function CartPage() {
                     className="h-12 w-full rounded-md"
                     disabled={!canCheckout || isPlacingOrder}
                   >
-                    Proceed to Checkout
+                    {isPlacingOrder ? "Processing..." : "Pay & Place Order"}
                     <ArrowRight className="size-4" />
                   </Button>
                   <Button

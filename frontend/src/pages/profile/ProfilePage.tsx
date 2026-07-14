@@ -19,7 +19,7 @@ import type { Order } from "@/types/order.types";
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
