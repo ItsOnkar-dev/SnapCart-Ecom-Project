@@ -1,8 +1,19 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminSellers, useUpdateSellerStatus } from "@/hooks/useAdmin";
 import { Check, ShieldAlert, X } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminSellersPage() {
@@ -10,6 +21,12 @@ export default function AdminSellersPage() {
   const { data: applicants, isLoading, isError } = useAdminSellers();
   const { mutate: updateStatus, isPending: isUpdating } =
     useUpdateSellerStatus();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<
+    "approved" | "rejected" | null
+  >(null);
 
   // Navigation tab configurations to mirror Lovable preview
   const tabs = [
@@ -25,16 +42,6 @@ export default function AdminSellersPage() {
     { name: "Coupons", path: "#", count: null },
     { name: "Returns", path: "#", count: null },
   ];
-
-  const handleDecision = (id: string, status: "approved" | "rejected") => {
-    if (
-      window.confirm(
-        `Are you sure you want to change this applicant's status to ${status}?`,
-      )
-    ) {
-      updateStatus({ id, status });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans antialiased selection:bg-zinc-800 selection:text-zinc-100">
@@ -171,9 +178,11 @@ export default function AdminSellersPage() {
                         <Button
                           size="sm"
                           disabled={isUpdating}
-                          onClick={() =>
-                            handleDecision(applicant._id, "approved")
-                          }
+                          onClick={() => {
+                            setSelectedSeller(applicant);
+                            setSelectedStatus("approved");
+                            setDialogOpen(true);
+                          }}
                           className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5 shadow-md shadow-emerald-950/20 rounded-lg transition-all"
                         >
                           <Check className="h-4 w-4" /> Approve
@@ -182,9 +191,11 @@ export default function AdminSellersPage() {
                           size="sm"
                           variant="outline"
                           disabled={isUpdating}
-                          onClick={() =>
-                            handleDecision(applicant._id, "rejected")
-                          }
+                          onClick={() => {
+                            setSelectedSeller(applicant);
+                            setSelectedStatus("rejected");
+                            setDialogOpen(true);
+                          }}
                           className="border-zinc-800 text-zinc-400 hover:text-rose-400 hover:bg-rose-950/20 hover:border-rose-900/50 gap-1.5 rounded-lg transition-all"
                         >
                           <X className="h-4 w-4" /> Reject
@@ -198,6 +209,53 @@ export default function AdminSellersPage() {
           )}
         </div>
       </div>
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedStatus === "approved"
+                ? "Approve seller application?"
+                : "Reject seller application?"}
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to <strong>{selectedStatus}</strong>{" "}
+              <strong>{selectedSeller?.name}</strong>'s seller application?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdating}>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              variant={
+                selectedStatus === "approved" ? "default" : "destructive"
+              }
+              disabled={isUpdating}
+              onClick={() => {
+                if (!selectedSeller || !selectedStatus) return;
+
+                updateStatus({
+                  id: selectedSeller._id,
+                  status: selectedStatus,
+                });
+
+                setDialogOpen(false);
+                setSelectedSeller(null);
+                setSelectedStatus(null);
+              }}
+            >
+              {isUpdating
+                ? selectedStatus === "approved"
+                  ? "Approving..."
+                  : "Rejecting..."
+                : selectedStatus === "approved"
+                  ? "Approve"
+                  : "Reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

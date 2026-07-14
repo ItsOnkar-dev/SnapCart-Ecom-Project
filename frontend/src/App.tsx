@@ -47,6 +47,9 @@ const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
 const AdminAnalyticsDashboard = lazy(
   () => import("@/pages/admin/AdminAnalyticsDashboard"),
 );
+const ReviewSellerRedirect = lazy(
+  () => import("@/pages/admin/ReviewSellerRedirect"),
+);
 
 // ── layout wrapper — Header + page content via Outlet ────────────────────────
 function MainLayout() {
@@ -97,6 +100,10 @@ const router = createBrowserRouter([
       {
         path: "/wishlist/share/:shareId",
         element: <WishlistSharePage />,
+      },
+      {
+        path: "/admin/review-seller",
+        element: <ReviewSellerRedirect />,
       },
       { path: "/products", element: <ProductsPage /> },
       { path: "/products/:id", element: <ProductDetailPage /> },

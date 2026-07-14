@@ -1,12 +1,11 @@
-import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "@/store/auth.store";
 import type { UserRole } from "@/types/user.types";
+import { Navigate, Outlet } from "react-router";
 
 interface RoleRouteProps {
   allowedRoles: UserRole[];
 }
 
-// sits inside a ProtectedRoute — user is guaranteed to exist here
 // redirects to /unauthorized if the user's role isn't in allowedRoles
 const RoleRoute = ({ allowedRoles }: RoleRouteProps) => {
   const { user } = useAuthStore();

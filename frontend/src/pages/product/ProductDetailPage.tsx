@@ -28,8 +28,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import {toast} from "sonner"; 
 import { Link, useParams } from "react-router";
+import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -291,6 +291,9 @@ export default function ProductDetailPage() {
             <p className="text-sm text-emerald-400 mt-2 font-medium">
               {product.stock > 0 ? "In stock" : "Out of stock"}
             </p>
+            <span className="text-xs font-medium text-muted-foreground">
+              Sold by: {product.seller.name}
+            </span>
           </div>
 
           <hr className="border-border" />

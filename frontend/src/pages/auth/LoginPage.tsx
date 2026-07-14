@@ -1,21 +1,21 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Lock, Mail } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/hooks/useAuth";
 import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Lock, Mail } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams(); // Initialize search parameters
   const { user } = useAuthStore();
   const { mutate: login, isPending } = useLogin();
+  const location = useLocation();
 
   // Handle standard redirect if already logged in via state
   useEffect(() => {
@@ -23,6 +23,12 @@ export default function LoginPage() {
       navigate("/", { replace: true });
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (location.state?.message) {
+      toast.info(location.state.message);
+    }
+  }, [location]);
 
   // Handle Google Auth Redirect
   useEffect(() => {

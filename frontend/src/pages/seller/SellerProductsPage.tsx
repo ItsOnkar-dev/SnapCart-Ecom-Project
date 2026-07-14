@@ -211,7 +211,7 @@ export default function SellerProductsPage() {
                       )}
                     </h3>
                     <p className="text-xs text-zinc-500 capitalize">
-                      {product.category} · €{product.price}
+                      {product.category} · RS{product.price}
                     </p>
                   </div>
                 </div>
@@ -343,7 +343,7 @@ export default function SellerProductsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-zinc-400 block mb-1.5">
-                    Price (€)
+                    Price (RS)
                   </label>
                   <Input
                     type="number"
@@ -359,7 +359,7 @@ export default function SellerProductsPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-zinc-400 block mb-1.5">
-                    Discount Price (€) - Optional
+                    Discount Price (RS) - Optional
                   </label>
                   <Input
                     type="number"

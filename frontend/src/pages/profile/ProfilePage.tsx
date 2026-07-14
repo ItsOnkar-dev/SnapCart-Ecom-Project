@@ -1,4 +1,20 @@
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useLogout } from "@/hooks/useAuth";
+import { useOrders } from "@/hooks/useOrders";
+import { useAuthStore } from "@/store/auth.store";
+import type { Order } from "@/types/order.types";
+import {
   BadgeCheck,
   Heart,
   LogOut,
@@ -7,14 +23,8 @@ import {
   ShoppingBag,
   Store,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
-
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { useLogout } from "@/hooks/useAuth";
-import { useOrders } from "@/hooks/useOrders";
-import { useAuthStore } from "@/store/auth.store";
-import type { Order } from "@/types/order.types";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
@@ -34,6 +44,7 @@ export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { data: orders = [], isLoading: isOrdersLoading } = useOrders();
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   if (!user) {
     return null;
@@ -104,9 +115,10 @@ export default function ProfilePage() {
             ) : null}
             <Button
               variant="outline"
-              className="h-12 rounded-none px-6"
-              onClick={() => logout()}
-              disabled={isLoggingOut}
+              className="h-12 rounded-none px-6 cursor-pointer"
+              onClick={() => {
+                setLogoutOpen(true);
+              }}
             >
               {isLoggingOut ? (
                 <Spinner className="mr-2 size-4" />
@@ -116,6 +128,45 @@ export default function ProfilePage() {
               Sign out
             </Button>
           </div>
+          <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-destructive/10 p-2">
+                    <LogOut className="h-5 w-5 text-destructive" />
+                  </div>
+
+                  <div>
+                    <AlertDialogTitle>
+                      Sign out of your account?
+                    </AlertDialogTitle>
+
+                    <AlertDialogDescription className="mt-1">
+                      Are you sure you want to sign out? You'll need to sign in
+                      again to access your account.
+                    </AlertDialogDescription>
+                  </div>
+                </div>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isLoggingOut}>
+                  Cancel
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={isLoggingOut}
+                  onClick={() => {
+                    setLogoutOpen(false);
+                    logout();
+                  }}
+                >
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </section>
 
         <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

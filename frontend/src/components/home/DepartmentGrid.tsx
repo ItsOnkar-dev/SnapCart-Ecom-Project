@@ -7,17 +7,39 @@ const DEPARTMENTS = [
   {
     slug: "electronics",
     label: "Electronics",
-    image: "/assets/categories/electronics.png",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543129/aurora-headphones_clekm1.jpg",
   },
   {
     slug: "fashion",
     label: "Fashion",
-    image: "/assets/categories/fashion.jpg",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543166/stride-sneakers_i3hpoi.jpg",
   },
-  { slug: "home", label: "Home", image: "/assets/categories/home.jpg" },
-  { slug: "beauty", label: "Beauty", image: "/assets/categories/beauty.jpg" },
-  { slug: "sports", label: "Sports", image: "/assets/categories/sports.jpg" },
-  { slug: "gaming", label: "Gaming", image: "/assets/categories/gaming.jpg" },
+  {
+    slug: "home",
+    label: "Home",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543158/lumen-lamp_h5w07i.jpg",
+  },
+  {
+    slug: "beauty",
+    label: "Beauty",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543151/glow-skincare_d52efg.jpg",
+  },
+  {
+    slug: "sports",
+    label: "Sports",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543161/nova-drone_nvl7n9.jpg",
+  },
+  {
+    slug: "gaming",
+    label: "Gaming",
+    image:
+      "https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543115/apex-controller_iaofxs.jpg",
+  },
 ];
 
 export default function DepartmentGrid() {

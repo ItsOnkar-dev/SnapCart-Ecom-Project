@@ -94,25 +94,25 @@ export default function Hero() {
         <div className="grid gap-4 lg:gap-5">
           <BentoCard
             href="/products?category=electronics"
-            image="/assets/categories/electronics.jpg"
+            image="https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543129/aurora-headphones_clekm1.jpg"
             title="Electronics"
             subtitle="Audio, wearables & gadgets"
-            className="min-h-52 lg:min-h-0"
+            className="min-h-48"
           />
-          <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+          <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 min-h-48">
             <BentoCard
               href="/products?category=fashion"
-              image="/assets/categories/fashion.jpg"
+              image="https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543166/stride-sneakers_i3hpoi.jpg"
               title="Fashion"
               subtitle="Footwear, bags & eyewear"
-              className="min-h-48"
+              className=""
             />
             <BentoCard
               href="/products?category=gaming"
-              image="/assets/categories/gaming.jpg"
+              image="https://res.cloudinary.com/snapcart-env-cloudinary/image/upload/v1783543115/apex-controller_iaofxs.jpg"
               title="Gaming"
               subtitle="Consoles & controllers"
-              className="min-h-48"
+              className=""
             />
           </div>
         </div>
