@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { Product } from "../models/product.model";
 import {
-    createProductService,
-    deleteProductService,
-    updateProductService,
+  createProductService,
+  deleteProductService,
+  updateProductService,
 } from "../services/product.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -52,7 +52,8 @@ export const getAllProducts = asyncHandler(
   async (req: Request, res: Response) => {
     // Basic filters from query params
     // Example: /api/products?category=electronics&minPrice=100&maxPrice=5000&page=1&limit=10&sort=price_asc
-    const { category, minPrice, maxPrice, search, page, limit, sort, inStock } = req.query;
+    const { category, minPrice, maxPrice, search, page, limit, sort, inStock } =
+      req.query;
 
     // Pagination — default to page 1, 10 products per page
     const currentPage = Math.max(1, Number(page) || 1); // never go below page 1
@@ -74,8 +75,7 @@ export const getAllProducts = asyncHandler(
     }
 
     if (search) {
-      // Search by product name — case insensitive
-      filter.name = { $regex: search, $options: "i" };
+      filter.$text = { $search: search as string };
     }
 
     if (inStock === "true") {
@@ -130,7 +130,9 @@ export const getSellerProducts = asyncHandler(
 
     res
       .status(200)
-      .json(new ApiResponse(200, "Seller products fetched successfully", products));
+      .json(
+        new ApiResponse(200, "Seller products fetched successfully", products),
+      );
   },
 );
 
@@ -144,7 +146,9 @@ export const getAdminProducts = asyncHandler(
 
     res
       .status(200)
-      .json(new ApiResponse(200, "Admin products fetched successfully", products));
+      .json(
+        new ApiResponse(200, "Admin products fetched successfully", products),
+      );
   },
 );
 
@@ -220,12 +224,16 @@ export const updateAdminProductStatus = asyncHandler(
       throw new ApiError(404, "Product not found");
     }
 
-    res.status(200).json(
-      new ApiResponse(
-        200,
-        isActive ? "Product restored successfully" : "Product hidden successfully",
-        product,
-      ),
-    );
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          isActive
+            ? "Product restored successfully"
+            : "Product hidden successfully",
+          product,
+        ),
+      );
   },
 );

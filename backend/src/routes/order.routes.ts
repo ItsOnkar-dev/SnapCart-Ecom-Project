@@ -20,15 +20,9 @@ import {
 const router = Router();
 
 // POST /api/orders — DIRECT order placement (NO payment gateway involved).
-//
-// Historically customers hit this endpoint after filling their shipping
-// address. Once Razorpay was introduced, all real checkouts flow through
-// /api/payments/create-order → /api/payments/verify instead, which is the
+// All real checkouts flow through /api/payments/create-order → /api/payments/verify instead, which is the
 // only path that actually collects money.
-//
-// Leaving this route open would let any authenticated + email-verified user
-// create fulfilled orders and drain stock WITHOUT PAYING. It's now locked to
-// admins for manual/COD entries.
+
 router.post(
   "/",
   verifyToken,

@@ -29,6 +29,8 @@ import {
   resetPasswordSchema,
 } from "../validators/auth.validator";
 
+const router = Router();
+
 // dedicated limiter for forgot-password — tighter than authLimiter
 const passwordResetLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -41,30 +43,6 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const router = Router();
-
-const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many login attempts, please try again later",
-  },
-});
-
-const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many registration attempts, please try again later",
-  },
-});
-
 // Refresh runs on every tab focus / token expiry; needs its own generous limiter
 // so a user with multiple tabs isn't forced to re-login every 10 minutes.
 const refreshLimiter = rateLimit({
@@ -74,7 +52,7 @@ const refreshLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many refresh attempts, please try again later",
+    message: "Too many token refresh attempts, please try again later",
   },
 });
 
@@ -95,10 +73,10 @@ router.get("/csrf-token", (req, res) => {
     .json(new ApiResponse(200, "CSRF token generated", { csrfToken: token }));
 });
 
-router.post("/register", registerLimiter, validate(registerSchema), register);
+router.post("/register", validate(registerSchema), register);
 router.get("/verify-email", verifyEmail);
 router.post("/resend-verification", passwordResetLimiter, resendVerification);
-router.post("/login", loginLimiter, validate(loginSchema), login);
+router.post("/login", validate(loginSchema), login);
 router.post("/refresh", refreshLimiter, refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, csrfProtection, logout);

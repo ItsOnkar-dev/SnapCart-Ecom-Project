@@ -6,6 +6,7 @@ import { Order } from "../models/order.model";
 import { placeOrderService } from "../services/order.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { Logger } from "../utils/logger";
 
 // ── Razorpay instance — created once, reused across requests ─────────────────
 const razorpay = new Razorpay({
@@ -76,6 +77,9 @@ export const createRazorpayOrder = asyncHandler(
         amount: razorpayOrder.amount, // in paise — Razorpay popup uses this
         currency: razorpayOrder.currency,
         keyId: process.env.RAZORPAY_KEY_ID, // frontend needs this to init Razorpay
+        subtotal,
+        shipping,
+        total,
       }),
     );
   },
@@ -93,6 +97,9 @@ export const verifyPayment = asyncHandler(
       razorpayPaymentId,
       razorpaySignature,
       shippingAddress,
+      subtotal,
+      shipping,
+      total,
     } = req.body;
 
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
@@ -149,6 +156,9 @@ export const verifyPayment = asyncHandler(
         status: "confirmed",
         razorpayOrderId,
         razorpayPaymentId,
+        subtotal,
+        shipping,
+        total,
       });
 
       res.status(201).json(
@@ -159,7 +169,7 @@ export const verifyPayment = asyncHandler(
       );
     } catch (err) {
       // Log for manual reconciliation if backend DB fails but user was charged
-      console.error("[PAYMENT/ORPHAN] Paid but order creation failed", {
+      Logger.error("[PAYMENT/ORPHAN] Paid but order creation failed", {
         userId: req.user!._id.toString(),
         razorpayOrderId,
         razorpayPaymentId,

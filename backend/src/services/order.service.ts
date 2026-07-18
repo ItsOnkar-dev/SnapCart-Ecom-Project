@@ -13,6 +13,9 @@ export interface PlaceOrderPaymentInfo {
   razorpayPaymentId?: string;
   paymentStatus?: "pending" | "paid";
   status?: "pending" | "confirmed";
+  subtotal?: number;
+  shipping?: number;
+  total?: number;
 }
 
 export const placeOrderService = async (
@@ -31,9 +34,15 @@ export const placeOrderService = async (
   // Shipping-total policy (single source of truth — mirrors payment.controller.ts)
   const SHIPPING_THRESHOLD = 500;
   const SHIPPING_COST = 49;
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const totalPrice = subtotal + shipping;
+  const calculatedSubtotal = items.reduce(
+    (sum, i) => sum + i.price * i.quantity,
+    0,
+  );
+  const calculatedShipping =
+    calculatedSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const subtotal = paymentInfo.subtotal ?? calculatedSubtotal;
+  const shipping = paymentInfo.shipping ?? calculatedShipping;
+  const totalPrice = paymentInfo.total ?? subtotal + shipping;
 
   // Start a MongoDB session + transaction
   // All writes (order create, stock decrement, cart clear) are wrapped automatically.

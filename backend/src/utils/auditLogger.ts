@@ -5,7 +5,7 @@ export type AuditAction =
   | "auth.logout"
   | "auth.refresh"
   | "auth.password_change"
-  | "auth.password_reset"
+  | "auth.password_reset_completed"
   | "auth.email_verify"
   | "seller.apply"
   | "seller.approve"

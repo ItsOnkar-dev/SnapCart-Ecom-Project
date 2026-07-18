@@ -86,8 +86,6 @@ const generalLimiter = rateLimit({
 
 // Strict limiter — auth routes only
 // NOTE: Route-level limiters in auth.routes.ts are the authoritative source.
-// This limiter is intentionally left here as a coarse safety net; keep the
-// windows/max in sync if you tune them.
 const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 20, // max 20 login attempts per IP per 10 min

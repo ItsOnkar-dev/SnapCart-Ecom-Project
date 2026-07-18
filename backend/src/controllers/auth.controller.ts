@@ -552,7 +552,9 @@ export const resetPassword = asyncHandler(
 
     await sendPasswordChangedEmail(user);
 
-     auditLog("auth.password_reset", user._id.toString(), { email: user.email });
+    auditLog("auth.password_reset_completed", user._id.toString(), {
+      email: user.email,
+    });
 
     res
       .status(200)

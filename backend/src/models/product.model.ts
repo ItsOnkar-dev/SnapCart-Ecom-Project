@@ -24,14 +24,13 @@ const productSchema = new Schema<IProduct>(
     },
     discountPrice: {
       type: Number,
-      min: [0, "Discount price cannot be negative"],
+      default: null,
       validate: {
-        validator: function (this: IProduct, value: number | undefined) {
-          // Only validate when set; must be strictly less than list price
-          if (value === undefined || value === null) return true;
+        validator: function (this: any, value: number | null) {
+          if (value === null || value === undefined) return true;
           return value < this.price;
         },
-        message: "Discount price must be lower than the regular price",
+        message: "Discount price must be less than the regular price",
       },
     },
     category: {
@@ -65,7 +64,7 @@ const productSchema = new Schema<IProduct>(
     },
     stock: {
       type: Number,
-      required: [true, "Stock is required"],
+      required: true,
       min: [0, "Stock cannot be negative"],
       default: 0,
     },
@@ -84,7 +83,7 @@ const productSchema = new Schema<IProduct>(
 
 productSchema.index({ category: 1 });
 productSchema.index({ seller: 1 });
-productSchema.index({ name: "text" });
+productSchema.index({ name: "text", description: "text" });
 productSchema.index({ isActive: 1, category: 1 });
 productSchema.index({ isActive: 1, seller: 1 });
 
