@@ -11,4 +11,7 @@ export const verifyPaymentApi = (data: {
   razorpayPaymentId: string;
   razorpaySignature: string;
   shippingAddress: ShippingAddress;
+  subtotal: number; 
+  shipping: number; 
+  total: number; 
 }) => api.post("/payments/verify", data);

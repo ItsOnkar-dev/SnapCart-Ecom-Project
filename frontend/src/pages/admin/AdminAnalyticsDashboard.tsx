@@ -21,6 +21,41 @@ import {
   YAxis,
 } from "recharts";
 
+interface OrderStatus {
+  status: string;
+  count: number;
+}
+
+interface RevenueByCategory {
+  category: string;
+  revenue: number;
+}
+
+interface TopProduct {
+  name: string;
+  quantity: number;
+}
+
+interface DailyRevenue {
+  date: string;
+  revenue: number;
+}
+
+interface KPIs {
+  totalRevenue: number;
+  totalOrders: number;
+  avgOrderValue: number;
+  lowStockCount: number;
+}
+
+interface AnalyticsData {
+  kpis: KPIs;
+  dailyRevenue: DailyRevenue[];
+  topProducts: TopProduct[];
+  orderStatuses: OrderStatus[];
+  revenueByCategory: RevenueByCategory[];
+}
+
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -47,7 +82,12 @@ const CATEGORY_COLORS = [
 ];
 
 export default function AdminAnalyticsDashboard() {
-  const { data, isLoading, error } = useAnalytics();
+  // Destructuring and asserting the Hook data structure (if not already typed in the hook)
+  const { data, isLoading, error } = useAnalytics() as {
+    data: AnalyticsData | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
 
   if (isLoading) {
     return (
@@ -115,11 +155,11 @@ export default function AdminAnalyticsDashboard() {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpiCards.map((card, i) => {
+        {kpiCards.map((card) => {
           const Icon = card.icon;
           return (
             <div
-              key={i}
+              key={card.title}
               className={`flex items-center justify-between p-6 rounded-2xl border bg-card/40 backdrop-blur-md transition-all duration-300 hover:shadow-lg ${card.color}`}
             >
               <div className="space-y-1">
@@ -183,7 +223,7 @@ export default function AdminAnalyticsDashboard() {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorRevenue)"
-                  name="Revenue (€)"
+                  name="Revenue"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -214,9 +254,9 @@ export default function AdminAnalyticsDashboard() {
                     outerRadius={80}
                     paddingAngle={4}
                   >
-                    {orderStatuses.map((entry: any, index: number) => (
+                    {orderStatuses.map((entry: OrderStatus) => (
                       <Cell
-                        key={`cell-${index}`}
+                        key={`cell-${entry.status}`}
                         fill={STATUS_COLORS[entry.status] || "#737373"}
                       />
                     ))}
@@ -234,8 +274,8 @@ export default function AdminAnalyticsDashboard() {
           </div>
           {/* Custom Legend */}
           <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-            {orderStatuses.map((item: any, i: number) => (
-              <div key={i} className="flex items-center gap-2">
+            {orderStatuses.map((item: OrderStatus) => (
+              <div key={item.status} className="flex items-center gap-2">
                 <span
                   className="w-2.5 h-2.5 rounded-full shrink-0"
                   style={{
@@ -334,14 +374,16 @@ export default function AdminAnalyticsDashboard() {
                         cy="50%"
                         outerRadius={80}
                       >
-                        {revenueByCategory.map((_: any, index: number) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              CATEGORY_COLORS[index % CATEGORY_COLORS.length]
-                            }
-                          />
-                        ))}
+                        {revenueByCategory.map(
+                          (item: RevenueByCategory, index: number) => (
+                            <Cell
+                              key={`cell-${item.category}`}
+                              fill={
+                                CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+                              }
+                            />
+                          ),
+                        )}
                       </Pie>
                       <Tooltip
                         formatter={(val) =>
@@ -360,28 +402,30 @@ export default function AdminAnalyticsDashboard() {
                 </div>
                 {/* Category legend grid */}
                 <div className="w-full md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {revenueByCategory.map((item: any, i: number) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{
-                            backgroundColor:
-                              CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-                          }}
-                        />
-                        <span className="capitalize text-muted-foreground truncate max-w-[80px]">
-                          {item.category}
+                  {revenueByCategory.map(
+                    (item: RevenueByCategory, i: number) => (
+                      <div
+                        key={item.category}
+                        className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{
+                              backgroundColor:
+                                CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                            }}
+                          />
+                          <span className="capitalize text-muted-foreground truncate max-w-[80px]">
+                            {item.category}
+                          </span>
+                        </div>
+                        <span className="font-semibold text-white ml-2">
+                          {formatPrice(item.revenue)}
                         </span>
                       </div>
-                      <span className="font-semibold text-white ml-2">
-                        {formatPrice(item.revenue)}
-                      </span>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </>
             )}

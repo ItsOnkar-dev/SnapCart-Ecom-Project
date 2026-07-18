@@ -2,8 +2,8 @@
 import { createRazorpayOrderApi, verifyPaymentApi } from "@/api/payment.api";
 import type { ShippingAddress } from "@/types/order.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 // Razorpay's checkout script adds `window.Razorpay` — this type covers it
 declare global {
@@ -51,7 +51,8 @@ export function usePayment() {
 
       // Step 2 — create Razorpay order from backend
       const res = await createRazorpayOrderApi();
-      const { orderId, amount, currency, keyId } = res.data.data;
+      const { orderId, amount, currency, keyId, subtotal, shipping, total } =
+        res.data.data;
 
       // Step 3 — open Razorpay popup
       // This is where the user sees the payment UI and enters card/UPI details
@@ -78,6 +79,9 @@ export function usePayment() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
                 shippingAddress,
+                subtotal, // ← from createRazorpayOrder response
+                shipping, // ← locked at payment creation time
+                total, 
               })
                 .then((verifyRes) => {
                   resolve({
