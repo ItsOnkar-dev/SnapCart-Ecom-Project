@@ -16,8 +16,7 @@ interface RecommendedProductsProps {
   title?: string;
   limit?: number;
   className?: string;
-  compact?: boolean; // compact=true → 2-col grid (for cart drawer).
-  // compact=false (default) → scrollable carousel (for product detail page).
+  compact?: boolean; 
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
