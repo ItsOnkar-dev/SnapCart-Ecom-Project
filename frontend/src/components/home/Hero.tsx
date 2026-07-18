@@ -1,7 +1,3 @@
-// Homepage hero — two-column bento matching the shared screenshot.
-// Left: purple-gradient promo card. Right: category bento
-// (large Electronics + Fashion + Gaming) linking into /products.
-
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 
@@ -35,9 +31,9 @@ function BentoCard({
       <img
         src={image || "/placeholder.svg"}
         alt={title}
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-card via-card/70 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
       <div className="relative">
         <h3 className="text-lg font-bold text-foreground md:text-xl">
           {title}
@@ -60,14 +56,16 @@ export default function Hero() {
         <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-hero p-8 md:p-10">
           <div className="absolute inset-0 bg-gradient-glow" />
           <div className="relative flex h-full flex-col justify-center">
-            <span className="inline-flex w-fit items-center rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+            {/* Improved badge color contrast across themes */}
+            <span className="inline-block w-fit text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full text-primary bg-primary/10 dark:text-primary-foreground dark:bg-primary/40">
               Welcome to Snapcart
             </span>
             <h1 className="mt-5 text-pretty text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-5xl">
               Everything you love,{" "}
               <span className="text-gradient">delivered fast.</span>
             </h1>
-            <p className="mt-4 max-w-md text-pretty leading-relaxed text-muted-foreground">
+            {/* Slightly darker text for improved readability on light gradient */}
+            <p className="mt-4 max-w-md text-pretty leading-relaxed text-muted-foreground/90 dark:text-muted-foreground">
               Shop thousands of products across electronics, fashion, home,
               beauty and more — from trusted sellers.
             </p>
@@ -78,11 +76,12 @@ export default function Hero() {
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
+              {/* Dynamic border styling replacing the hardcoded hex value */}
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="px-5 border border-[#282358]"
+                className="px-5 border-border hover:bg-secondary/50 dark:border-primary/30"
               >
                 <Link to="/seller/apply">Become a seller</Link>
               </Button>
