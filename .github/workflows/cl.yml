@@ -36,7 +36,7 @@ jobs:
         # If this fails, the commit introduced a type error.
 
       - name: ESLint
-        run: npx eslint src --ext .ts --max-warnings 100
+        run: npm run lint
         # Runs your existing ESLint config. Fails on any error.
         # Warnings are allowed — only errors block the pipeline.
 
@@ -69,7 +69,7 @@ jobs:
         # tsc --noEmit catches type errors that Vite would silently ignore.
 
       - name: ESLint
-        run: npx eslint src --ext .ts,.tsx --max-warnings 100
+        run: npm run lint
         # Checks all TypeScript and React files.
 
       - name: Build
