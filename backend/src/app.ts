@@ -1,11 +1,11 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
-import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
 import { csrfProtection } from "./middleware/csrf.middleware";
+import { mongoSanitize } from "./middleware/sanitize";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
@@ -36,11 +36,8 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
 
-// NoSQL Injection Sanitization ────────────────────────────────────────────
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path === "/api/payments/webhook") return next();
-  return mongoSanitize({ allowDots: false })(req, res, next);
-});
+// Then sanitize — now req.body is populated and CORS headers are already sent
+app.use(mongoSanitize);
 
 const allowedOrigins = [
   "http://localhost:5173",

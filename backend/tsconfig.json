@@ -9,7 +9,6 @@
     "strict": true,
     "esModuleInterop": true,
 
-    "noEmit": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
