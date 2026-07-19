@@ -3,8 +3,8 @@ import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 import { Wishlist } from "../models/wishlist.model";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import type { ProductCategory } from "../types/product.types";
+import { Logger } from "../utils/logger";
 
 export interface RecommendedProduct {
   _id: Types.ObjectId;
@@ -22,7 +22,7 @@ export interface RecommendedProduct {
 }
 
 type ScoredProduct = {
-  product: any; // Mongoose doc
+  product: any;
   score: number;
   reason: string;
 };
@@ -48,8 +48,6 @@ const jaccardSimilarity = (a: string[], b: string[]): number => {
 
 // ─── Reason Generators ────────────────────────────────────────────────────────
 // These produce the short human-readable label shown under each AI pick card.
-// Keep them concise — they're displayed in 1 line (line-clamp-1 in the UI).
-
 const relatedReason = (
   candidate: any,
   current: any,
@@ -77,9 +75,6 @@ const personalizedReason = (product: any, categoryWeight: number): string => {
 };
 
 // ─── Strategy 1: Related Products ─────────────────────────────────────────────
-// Same-category + text similarity (Jaccard on name+description tokens).
-// Score = 70% text similarity + 30% normalized rating.
-
 export const getRelatedProducts = async (
   productId: string,
   limit: number = 5,
@@ -115,9 +110,6 @@ export const getRelatedProducts = async (
     .slice(0, limit)
     .map((s) => ({ ...s.product, reason: s.reason }));
 };
-
-// ─── Strategy 2: Frequently Bought Together ────────────────────────────────────
-// Mines order co-occurrence. Falls back to related if no order data exists.
 
 export const getFrequentlyBoughtTogether = async (
   productId: string,
@@ -236,7 +228,7 @@ export const getCartRecommendations = async (
   // NOT in the same category as cart (avoids redundancy, promotes discovery)
   const crossCategoryProducts = await Product.find({
     _id: { $nin: pIds },
-    category: { $nin: cartCategoryList as any[] },
+    category: { $nin: cartCategoryList as ProductCategory[] },
     isActive: true,
   })
     .sort({ averageRating: -1, totalReviews: -1 })
@@ -331,7 +323,7 @@ export const getPersonalizedRecommendations = async (
     if (!favoriteCategories.length) return getTopRated(limit);
 
     const candidates = await Product.find({
-      category: { $in: favoriteCategories as any[] },
+      category: { $in: favoriteCategories as ProductCategory[] },
       _id: {
         $nin: Array.from(excludedIds).map((id) => new Types.ObjectId(id)),
       },
@@ -384,7 +376,7 @@ export const getPersonalizedRecommendations = async (
       reason: s.reason,
     })) as RecommendedProduct[];
   } catch (error) {
-    console.error("[Recommendation] Personalized strategy failed:", error);
+    Logger.error("[Recommendation] Personalized strategy failed:", error);
     return getTopRated(limit);
   }
 };

@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
+import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -9,11 +10,11 @@ import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
 import orderRoutes from "./routes/order.routes";
+import paymentRoutes from "./routes/payment.routes";
 import productRoutes from "./routes/product.routes";
 import reviewRoutes from "./routes/review.routes";
 import sellerRoutes from "./routes/seller.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
-import paymentRoutes from "./routes/payment.routes";
 import { ApiError } from "./utils/ApiResponse";
 import { Logger } from "./utils/logger";
 
@@ -25,28 +26,20 @@ app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
+//  Raw body parser for Razorpay webhook. This middleware ONLY applies to /api/payments/webhook. Razorpay computes its webhook signature on the raw request body. If express.json() runs first, req.body becomes a parsed JS object and
+// JSON.stringify() on it may produce a different string (key order, whitespace),
+// breaking signature verification. Raw Buffer is the only safe option.
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+
 // Body Parsing
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
 
 // NoSQL Injection Sanitization ────────────────────────────────────────────
-// Strips MongoDB operators ($ and .) from req.body, req.query AND req.params to prevent NoSQL injection via any part of the request
-const sanitize = (obj: Record<string, unknown>): void => {
-  for (const key of Object.keys(obj)) {
-    if (key.startsWith("$") || key.startsWith(".")) {
-      delete obj[key];
-    } else if (typeof obj[key] === "object" && obj[key] !== null) {
-      sanitize(obj[key] as Record<string, unknown>);
-    }
-  }
-};
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  if (req.body && typeof req.body === "object") sanitize(req.body);
-  if (req.query && typeof req.query === "object")
-    sanitize(req.query as Record<string, unknown>);
-  if (req.params && typeof req.params === "object") sanitize(req.params);
-  next();
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path === "/api/payments/webhook") return next();
+  return mongoSanitize({ allowDots: false })(req, res, next);
 });
 
 const allowedOrigins = [
@@ -102,10 +95,12 @@ app.use(generalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
+// ── CSRF — skip webhook ───────────────────────────────────────────────────────
+// Webhook is server-to-server from Razorpay — no CSRF token possible.
+// Security is handled by HMAC-SHA256 signature inside handleWebhook.
 app.use("/api", (req, res, next) => {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-    return next(); // Safe methods — no CSRF token needed
-  }
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  if (req.path === "/payments/webhook") return next(); // skip CSRF for webhook
   return csrfProtection(req, res, next);
 });
 

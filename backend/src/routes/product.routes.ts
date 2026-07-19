@@ -8,10 +8,10 @@ import {
 } from "../controllers/product.controller";
 import { getRecommendations } from "../controllers/recommendation.controller";
 import {
+  optionalVerifyToken,
   requireRole,
   requireVerifiedEmail,
   verifyToken,
-  optionalVerifyToken,
 } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
 import { validate } from "../middleware/validate.middleware";
@@ -47,6 +47,12 @@ router.patch(
   validate(updateProductSchema),
   updateProduct,
 );
-router.delete("/:id", verifyToken, requireRole("seller"), deleteProduct);
+router.delete(
+  "/:id",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  deleteProduct,
+);
 
 export default router;
