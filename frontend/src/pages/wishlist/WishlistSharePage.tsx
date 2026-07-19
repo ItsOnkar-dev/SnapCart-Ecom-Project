@@ -1,17 +1,17 @@
-import { useParams, Link } from "react-router";
-import { Heart, ShoppingBag, ExternalLink, LogIn } from "lucide-react";
-import { useSharedWishlist } from "@/hooks/useWishlist";
-import { useAddToCart } from "@/hooks/useCart";
-import { useAuthStore } from "@/store/auth.store";
-import { Button } from "@/components/ui/button";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { WishlistItem } from "@/types/wishlist.types";
+import { useAddToCart } from "@/hooks/useCart";
+import { useSharedWishlist } from "@/hooks/useWishlist";
+import { useAuthStore } from "@/store/auth.store";
+import { ExternalLink, Heart, LogIn, ShoppingBag } from "lucide-react";
+import { Link, useParams } from "react-router";
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-IE", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -35,7 +35,8 @@ export default function WishlistSharePage() {
         <Heart className="w-12 h-12 text-muted-foreground/30 mb-4" />
         <h2 className="text-xl font-bold">Wishlist Not Found</h2>
         <p className="text-sm text-muted-foreground mt-1 mb-6">
-          This wishlist might not exist, or the owner has disabled public sharing.
+          This wishlist might not exist, or the owner has disabled public
+          sharing.
         </p>
         <Link to="/">
           <Button variant="outline">Back to Home</Button>
@@ -57,7 +58,8 @@ export default function WishlistSharePage() {
           {ownerName}'s Wishlist
         </h1>
         <p className="text-muted-foreground mt-2">
-          Take a look at what products {ownerName} has saved. You can buy them or view details below.
+          Take a look at what products {ownerName} has saved. You can buy them
+          or view details below.
         </p>
       </div>
 
@@ -71,10 +73,12 @@ export default function WishlistSharePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map((item: WishlistItem) => {
-            const prod = typeof item.product === "object" ? item.product : null;
+          {items.map((item: any) => {
+            const prod = item.product;
             if (!prod) return null;
-            const hasDiscount = typeof prod.discountPrice === "number" && prod.discountPrice < prod.price;
+            const hasDiscount =
+              typeof prod.discountPrice === "number" &&
+              prod.discountPrice < prod.price;
             const finalPrice = hasDiscount ? prod.discountPrice : prod.price;
 
             return (
@@ -96,12 +100,18 @@ export default function WishlistSharePage() {
                     </div>
                   )}
                   {!prod.isActive && (
-                    <Badge variant="destructive" className="absolute top-2 right-2">
+                    <Badge
+                      variant="destructive"
+                      className="absolute top-2 right-2"
+                    >
                       Unavailable
                     </Badge>
                   )}
                   {prod.stock === 0 && (
-                    <Badge variant="secondary" className="absolute top-2 right-2">
+                    <Badge
+                      variant="secondary"
+                      className="absolute top-2 right-2"
+                    >
                       Out of stock
                     </Badge>
                   )}
@@ -112,7 +122,10 @@ export default function WishlistSharePage() {
                   <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">
                     {prod.category}
                   </span>
-                  <Link to={`/products/${prod._id}`} className="hover:underline">
+                  <Link
+                    to={`/products/${prod._id}`}
+                    className="hover:underline"
+                  >
                     <h3 className="line-clamp-1 text-sm font-semibold text-foreground mt-1">
                       {prod.name}
                     </h3>
@@ -134,8 +147,12 @@ export default function WishlistSharePage() {
                       <Button
                         size="sm"
                         className="w-full text-xs font-semibold bg-white text-black hover:bg-neutral-200"
-                        disabled={!prod.isActive || prod.stock === 0 || isAdding}
-                        onClick={() => addToCart({ productId: prod._id, quantity: 1 })}
+                        disabled={
+                          !prod.isActive || prod.stock === 0 || isAdding
+                        }
+                        onClick={() =>
+                          addToCart({ productId: prod._id, quantity: 1 })
+                        }
                       >
                         <ShoppingBag className="w-3.5 h-3.5 mr-1" />
                         Add to Cart

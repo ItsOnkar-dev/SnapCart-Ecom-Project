@@ -85,7 +85,7 @@ export default function SellerProductsPage() {
     setIsOpen(true);
   };
 
-  const openEditModal = (product: any) => {
+  const openEditModal = (product: Product) => {
     setEditingId(product._id);
     setFormData({
       name: product.name || "",
