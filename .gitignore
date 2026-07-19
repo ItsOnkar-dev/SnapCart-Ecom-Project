@@ -1,12 +1,29 @@
+# Backend
 backend/node_modules/
 backend/dist/
 backend/.env
+backend/.env.local
+backend/.env.production
 backend/coverage/
+backend/logs/
 
+# Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/.env.local
+frontend/.env.production
 
+# GitHub Actions — never ignore .github/ (CI needs it on GitHub)
+
+# Editor
 .vscode/
+.idea/
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Root level (just in case)
+node_modules/
+.env

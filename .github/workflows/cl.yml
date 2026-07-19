@@ -1,0 +1,83 @@
+name: SnapCart CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend ────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend — Type Check & Lint
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+        # Catches type errors without producing output files.
+        # If this fails, the commit introduced a type error.
+
+      - name: ESLint
+        run: npx eslint src --ext .ts
+        # Runs your existing ESLint config. Fails on any error.
+        # Warnings are allowed — only errors block the pipeline.
+
+  # ── Frontend ───────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend — Type Check, Lint & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+        # Vite handles the actual build but doesn't do type checking.
+        # tsc --noEmit catches type errors that Vite would silently ignore.
+
+      - name: ESLint
+        run: npx eslint src --ext .ts,.tsx
+        # Checks all TypeScript and React files.
+
+      - name: Build
+        run: npm run build
+        env:
+          # Vite needs these at build time — use placeholder values for CI.
+          # The real values are only needed for the deployed environment.
+          VITE_API_URL: https://placeholder.example.com/api
+          VITE_RAZORPAY_KEY_ID: rzp_test_placeholder
+        # If the build fails, something is broken beyond type errors.
+        # This catches import errors, missing modules, and Vite config issues.
