@@ -134,8 +134,7 @@ export const optionalVerifyToken = async (
       req.user = user;
     }
     next();
-  } catch (error) {
+  } catch (_error) {
     next();
   }
 };
-

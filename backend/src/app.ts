@@ -117,7 +117,7 @@ app.use("/api/payments", paymentRoutes);
 
 // Global error handler —
 // Express knows this is an error handler because it has 4 parameters (err, req, res, next)
-app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   // If it's our own ApiError, we have statusCode + message ready
   if (err instanceof ApiError) {
     res.status(err.statusCode).json({
