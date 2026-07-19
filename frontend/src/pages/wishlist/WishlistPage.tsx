@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { Heart, Trash2, ShoppingBag, Share2, Copy, Mail } from "lucide-react";
-import {
-  useWishlist,
-  useRemoveFromWishlist,
-  useMoveWishlistToCart,
-  useToggleWishlistShare,
-  useEmailWishlist,
-} from "@/hooks/useWishlist";
-import { useAddToCart } from "@/hooks/useCart";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { useAddToCart } from "@/hooks/useCart";
+import {
+  useEmailWishlist,
+  useMoveWishlistToCart,
+  useRemoveFromWishlist,
+  useToggleWishlistShare,
+  useWishlist,
+} from "@/hooks/useWishlist";
 import type { WishlistItem } from "@/types/wishlist.types";
+import { Copy, Heart, Mail, Share2, ShoppingBag, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 const formatPrice = (value: number) =>
@@ -25,9 +25,12 @@ const formatPrice = (value: number) =>
 
 export default function WishlistPage() {
   const { data: wishlist, isLoading } = useWishlist();
-  const { mutate: removeFromWishlist, isPending: isRemoving } = useRemoveFromWishlist();
-  const { mutate: moveAllToCart, isPending: isMoving } = useMoveWishlistToCart();
-  const { mutate: toggleShare, isPending: isTogglingShare } = useToggleWishlistShare();
+  const { mutate: removeFromWishlist, isPending: isRemoving } =
+    useRemoveFromWishlist();
+  const { mutate: moveAllToCart, isPending: isMoving } =
+    useMoveWishlistToCart();
+  const { mutate: toggleShare, isPending: isTogglingShare } =
+    useToggleWishlistShare();
   const { mutate: emailWishlist, isPending: isEmailing } = useEmailWishlist();
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
@@ -85,7 +88,11 @@ export default function WishlistPage() {
             disabled={isMoving}
             className="shrink-0 bg-white hover:bg-neutral-200 text-black font-semibold flex items-center gap-2"
           >
-            {isMoving ? <Spinner className="w-4 h-4 text-black" /> : <ShoppingBag className="w-4 h-4" />}
+            {isMoving ? (
+              <Spinner className="w-4 h-4 text-black" />
+            ) : (
+              <ShoppingBag className="w-4 h-4" />
+            )}
             Move All to Cart
           </Button>
         )}
@@ -99,7 +106,8 @@ export default function WishlistPage() {
               <Heart className="w-12 h-12 text-muted-foreground/40 mb-4" />
               <h3 className="text-lg font-semibold">Your wishlist is empty</h3>
               <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-sm">
-                Explore our catalog and click the heart icon on your favorite products to save them here.
+                Explore our catalog and click the heart icon on your favorite
+                products to save them here.
               </p>
               <Link to="/products">
                 <Button variant="outline">Browse Products</Button>
@@ -108,10 +116,15 @@ export default function WishlistPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {items.map((item: WishlistItem) => {
-                const prod = typeof item.product === "object" ? item.product : null;
+                const prod =
+                  typeof item.product === "object" ? item.product : null;
                 if (!prod) return null;
-                const hasDiscount = typeof prod.discountPrice === "number" && prod.discountPrice < prod.price;
-                const finalPrice = hasDiscount ? prod.discountPrice : prod.price;
+                const hasDiscount =
+                  typeof prod.discountPrice === "number" &&
+                  prod.discountPrice < prod.price;
+                const finalPrice = hasDiscount
+                  ? prod.discountPrice
+                  : prod.price;
 
                 return (
                   <div
@@ -132,12 +145,18 @@ export default function WishlistPage() {
                         </div>
                       )}
                       {!prod.isActive && (
-                        <Badge variant="destructive" className="absolute top-2 right-2">
+                        <Badge
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                        >
                           Unavailable
                         </Badge>
                       )}
                       {prod.stock === 0 && (
-                        <Badge variant="secondary" className="absolute top-2 right-2">
+                        <Badge
+                          variant="secondary"
+                          className="absolute top-2 right-2"
+                        >
                           Out of stock
                         </Badge>
                       )}
@@ -148,7 +167,10 @@ export default function WishlistPage() {
                       <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                         {prod.category}
                       </span>
-                      <Link to={`/products/${prod._id}`} className="hover:underline">
+                      <Link
+                        to={`/products/${prod._id}`}
+                        className="hover:underline"
+                      >
                         <h3 className="line-clamp-1 text-sm font-semibold text-foreground mt-1">
                           {prod.name}
                         </h3>
@@ -156,7 +178,11 @@ export default function WishlistPage() {
 
                       <div className="mt-2 flex items-baseline gap-2">
                         <span className="text-sm font-bold text-foreground">
-                          {formatPrice(finalPrice)}
+                          {finalPrice !== undefined ? (
+                            <span>{formatPrice(finalPrice)}</span>
+                          ) : (
+                            <span>Price unavailable</span>
+                          )}
                         </span>
                         {hasDiscount && (
                           <span className="text-xs text-muted-foreground line-through">
@@ -169,8 +195,12 @@ export default function WishlistPage() {
                         <Button
                           size="sm"
                           className="flex-1 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-white"
-                          disabled={!prod.isActive || prod.stock === 0 || isAddingToCart}
-                          onClick={() => addToCart({ productId: prod._id, quantity: 1 })}
+                          disabled={
+                            !prod.isActive || prod.stock === 0 || isAddingToCart
+                          }
+                          onClick={() =>
+                            addToCart({ productId: prod._id, quantity: 1 })
+                          }
                         >
                           <ShoppingBag className="w-3.5 h-3.5 mr-1" />
                           Add to Cart
@@ -202,7 +232,8 @@ export default function WishlistPage() {
             </h2>
 
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-              Enable wishlist sharing to let family and friends view your saved products or purchase items directly.
+              Enable wishlist sharing to let family and friends view your saved
+              products or purchase items directly.
             </p>
 
             <div className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl mb-6">
@@ -214,7 +245,13 @@ export default function WishlistPage() {
                 onClick={() => toggleShare(!shareEnabled)}
                 className="font-semibold transition-all duration-200"
               >
-                {isTogglingShare ? <Spinner className="w-4 h-4" /> : shareEnabled ? "Enabled" : "Disabled"}
+                {isTogglingShare ? (
+                  <Spinner className="w-4 h-4" />
+                ) : shareEnabled ? (
+                  "Enabled"
+                ) : (
+                  "Disabled"
+                )}
               </Button>
             </div>
 
@@ -237,7 +274,9 @@ export default function WishlistPage() {
                       className="shrink-0"
                       aria-label="Copy link"
                     >
-                      <Copy className={`w-4 h-4 ${copied ? "text-green-400" : ""}`} />
+                      <Copy
+                        className={`w-4 h-4 ${copied ? "text-green-400" : ""}`}
+                      />
                     </Button>
                   </div>
                 </div>
@@ -262,7 +301,11 @@ export default function WishlistPage() {
                         disabled={isEmailing}
                         className="shrink-0 text-xs font-bold bg-white text-black hover:bg-neutral-200"
                       >
-                        {isEmailing ? <Spinner className="w-4 h-4 text-black" /> : "Send"}
+                        {isEmailing ? (
+                          <Spinner className="w-4 h-4 text-black" />
+                        ) : (
+                          "Send"
+                        )}
                       </Button>
                     </div>
                   </form>
