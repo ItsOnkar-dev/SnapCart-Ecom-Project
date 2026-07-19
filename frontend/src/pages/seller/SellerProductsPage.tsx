@@ -25,6 +25,7 @@ import {
   useSellerProducts,
   useUpdateProduct,
 } from "@/hooks/useSellerProducts";
+import type { Product } from "@/types/product.types";
 import { Box, Pencil, Plus, RotateCcw, Trash2, Upload } from "lucide-react";
 import React, { useState } from "react";
 
@@ -59,13 +60,13 @@ export default function SellerProductsPage() {
     "all" | "active" | "archived"
   >("all");
 
-  const filteredProducts = products?.filter((p: any) => {
+  const filteredProducts = products?.filter((p: Product) => {
     if (filterStatus === "active") return p.isActive === true;
     if (filterStatus === "archived") return p.isActive === false;
     return true;
   });
 
-  const handleRestore = (product: any) => {
+  const handleRestore = (product: Product) => {
     const formDataToSend = new FormData();
     formDataToSend.append("name", product.name);
     formDataToSend.append("description", product.description);
@@ -181,7 +182,7 @@ export default function SellerProductsPage() {
               <p className="text-sm">No {filterStatus} products found.</p>
             </div>
           ) : (
-            filteredProducts.map((product: any) => (
+            filteredProducts.map((product: Product) => (
               <div
                 key={product._id}
                 className={cn(

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminSellers, useUpdateSellerStatus } from "@/hooks/useAdmin";
+import type { SellerApplicant } from "@/types/seller.types";
 import { Check, ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -23,7 +24,7 @@ export default function AdminSellersPage() {
     useUpdateSellerStatus();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<SellerApplicant | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<
     "approved" | "rejected" | null
   >(null);
@@ -118,7 +119,7 @@ export default function AdminSellersPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {applicants.map((applicant: any) => (
+              {applicants.map((applicant: SellerApplicant) => (
                 <div
                   key={applicant._id}
                   className="group relative p-6 bg-[#121214] rounded-xl border border-zinc-800/80 hover:border-zinc-700/80 transition-all duration-300 shadow-xl"

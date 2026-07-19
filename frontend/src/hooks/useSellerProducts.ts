@@ -2,10 +2,19 @@ import { api } from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Explicit API mapping declarations
+// ── Typed error shape from Axios + our API ─────────────────────────────────────
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
+// ── API functions ──────────────────────────────────────────────────────────────
 export const getSellerProductsApi = () => api.get("/seller/products");
-export const createProductApi = (body: any) => api.post("/products", body);
-export const updateProductApi = (id: string, body: any) =>
+export const createProductApi = (body: FormData) => api.post("/products", body);
+export const updateProductApi = (id: string, body: FormData) =>
   api.patch(`/products/${id}`, body);
 export const deleteProductApi = (id: string) => api.delete(`/products/${id}`);
 
@@ -34,7 +43,7 @@ export function useCreateProduct() {
       queryClient.invalidateQueries({ queryKey: sellerKeys.products });
       toast.success("Product registered inside marketplace database.");
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       toast.error(
         err.response?.data?.message || "Failed to create product listing.",
       );
@@ -46,13 +55,13 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: any }) =>
+    mutationFn: ({ id, body }: { id: string; body: FormData }) =>
       updateProductApi(id, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sellerKeys.products });
       toast.success("Product listing configurations optimized.");
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       toast.error(
         err.response?.data?.message || "Failed to update product variations.",
       );
@@ -69,7 +78,7 @@ export function useDeleteProduct() {
       queryClient.invalidateQueries({ queryKey: sellerKeys.products });
       toast.success("Listing removed from store indexes.");
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       toast.error(
         err.response?.data?.message || "Purge request denied by core system.",
       );

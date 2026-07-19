@@ -1,6 +1,4 @@
-// WHY THIS FILE EXISTS:
-// getPendingSellers returns a specific shape — not the full User object.
-// We type it exactly as the backend selects it: name, email, sellerStatus, createdAt
+
 
 export type SellerStatus = "none" | "pending" | "approved" | "rejected";
 export type SellerDecisionStatus = Extract<
@@ -13,6 +11,10 @@ export interface SellerApplicant {
   _id: string;
   name: string;
   email: string;
+  /** Optional fields that may be present on the user document */
+  phone?: string;
+  businessId?: string;
+  address?: string;
   sellerStatus: SellerStatus;
   sellerApplication?: SellerApplicationInput & {
     appliedAt?: string;

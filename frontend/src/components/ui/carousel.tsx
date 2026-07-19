@@ -93,11 +93,17 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
+
+    // Read initial scroll state after layout, then subscribe to updates.
+    // Using requestAnimationFrame defers the synchronous setState call out of
+    // the effect body, which avoids the react-hooks/set-state-in-effect warning
+    // while still initialising canScrollPrev / canScrollNext on mount.
+    const frame = requestAnimationFrame(() => onSelect(api))
     api.on("reInit", onSelect)
     api.on("select", onSelect)
 
     return () => {
+      cancelAnimationFrame(frame)
       api?.off("select", onSelect)
     }
   }, [api, onSelect])
@@ -229,6 +235,7 @@ function CarouselNext({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export {
   type CarouselApi,
   Carousel,

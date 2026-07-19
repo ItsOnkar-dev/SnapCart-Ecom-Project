@@ -19,6 +19,7 @@ import {
 } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
 import type { Review } from "@/types/review.types";
+import type { WishlistItem } from "@/types/wishlist.types";
 import {
   ChevronDown,
   ChevronRight,
@@ -176,8 +177,9 @@ export default function ProductDetailPage() {
   // ── Derived state ──────────────────────────────────────────────────────────
 
   const isInWishlist = wishlist?.items?.some(
-    (item: any) =>
-      item.product === product._id || item.product?._id === product._id,
+    (item: WishlistItem) =>
+      item.product === product._id ||
+      (typeof item.product === "object" && item.product._id === product._id),
   );
 
   const hasDiscount =

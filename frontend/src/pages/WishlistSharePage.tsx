@@ -6,12 +6,11 @@ import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import type { WishlistItem } from "@/types/wishlist.types";
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-IE", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "EUR",
+    currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -71,8 +70,8 @@ export default function WishlistSharePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map((item: WishlistItem) => {
-            const prod = typeof item.product === "object" ? item.product : null;
+          {items.map((item: any) => {
+            const prod = item.product;
             if (!prod) return null;
             const hasDiscount = typeof prod.discountPrice === "number" && prod.discountPrice < prod.price;
             const finalPrice = hasDiscount ? prod.discountPrice : prod.price;

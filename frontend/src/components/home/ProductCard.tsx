@@ -1,7 +1,3 @@
-// Single product tile used by both "New arrivals" and "Trending now" rails.
-// Image comes from product.images[0] (backend stores URLs directly).
-// Category + name + price mirror the shared homepage screenshot.
-
 import { Link } from "react-router";
 import { Star, Heart } from "lucide-react";
 
@@ -9,11 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product.types";
+import type { WishlistItem } from "@/types/wishlist.types";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner";
 
-// backend prices are plain numbers — screenshot shows the € symbol
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
     style: "currency",
@@ -41,9 +37,9 @@ export default function ProductCard({
     product.discountPrice < product.price;
 
   const isInWishlist = wishlist?.items?.some(
-    (item: any) =>
+    (item: WishlistItem) =>
       item.product === product._id ||
-      item.product?._id === product._id
+      (typeof item.product === "object" && item.product._id === product._id)
   );
 
   const handleWishlistToggle = (e: React.MouseEvent) => {

@@ -6,9 +6,40 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 // Razorpay's checkout script adds `window.Razorpay` — this type covers it
+// We declare a minimal interface matching the constructor + methods we actually use.
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image?: string;
+  order_id: string;
+  handler: (response: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) => void;
+  prefill?: { name?: string; contact?: string };
+  theme?: { color?: string };
+  modal?: { ondismiss?: () => void };
+}
+
+interface RazorpayInstance {
+  on(
+    event: "payment.failed",
+    handler: (response: { error: { description?: string } }) => void
+  ): void;
+  open(): void;
+}
+
+interface RazorpayConstructor {
+  new (options: RazorpayOptions): RazorpayInstance;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: RazorpayConstructor;
   }
 }
 
@@ -115,7 +146,7 @@ export function usePayment() {
           const rzp = new window.Razorpay(options);
 
           // Called when payment fails (wrong card, insufficient funds, etc.)
-          rzp.on("payment.failed", (response: any) => {
+          rzp.on("payment.failed", (response: { error: { description?: string } }) => {
             reject(
               new Error(
                 response.error?.description ??

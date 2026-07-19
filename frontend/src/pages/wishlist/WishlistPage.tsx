@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import type { WishlistItem } from "@/types/wishlist.types";
 import { toast } from "sonner";
 
 const formatPrice = (value: number) =>
@@ -106,8 +107,8 @@ export default function WishlistPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {items.map((item: any) => {
-                const prod = item.product;
+              {items.map((item: WishlistItem) => {
+                const prod = typeof item.product === "object" ? item.product : null;
                 if (!prod) return null;
                 const hasDiscount = typeof prod.discountPrice === "number" && prod.discountPrice < prod.price;
                 const finalPrice = hasDiscount ? prod.discountPrice : prod.price;

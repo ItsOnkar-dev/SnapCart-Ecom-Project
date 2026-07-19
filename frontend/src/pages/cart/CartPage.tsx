@@ -52,7 +52,10 @@ export default function CartPage() {
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
 
   // ── Derived values — after hooks, before render ───────────────────────────
-  const items = cart?.items ?? [];
+  // Memoize `items` to keep a stable array reference — otherwise the `?? []`
+  // fallback creates a new array every render, which would cause subtotal's
+  // useMemo to recompute on every tick (react-hooks/exhaustive-deps).
+  const items = useMemo(() => cart?.items ?? [], [cart?.items]);
 
   // Must be derived AFTER useCart, used BELOW in RecommendedProducts
   const cartProductIds: string[] = items.map(

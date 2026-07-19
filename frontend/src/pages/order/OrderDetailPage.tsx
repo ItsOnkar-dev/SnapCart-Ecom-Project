@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { useOrder } from "@/hooks/useOrders";
-import type { OrderStatus } from "@/types/order.types";
+import type { OrderItem, OrderStatus } from "@/types/order.types";
 
 const STATUS_STEPS: OrderStatus[] = [
   "pending",
@@ -98,7 +98,7 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="space-y-4">
-              {order.items.map((item: any) => (
+              {order.items.map((item: OrderItem) => (
                 <article
                   key={`${item.product}-${item.name}`}
                   className="grid gap-4 rounded-xl border border-border bg-background p-4 sm:grid-cols-[88px_1fr_auto]"
