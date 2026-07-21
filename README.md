@@ -272,13 +272,14 @@ Log In → Review Seller Applications → Approve / Reject
 ### 🔒 Security Features
 
 | Feature                       | Details                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------- |
+| ----------------------------- | ----------------------------------------------------------------------- | --- |
 | JWT Auth                      | Short-lived access tokens + rotated refresh tokens in httpOnly cookies  |
 | Refresh-Token Reuse Detection | Replay of a used token clears all sessions and forces re-login          |
-| Email Verification            | SHA-256 hash stored; raw token delivered; 10-minute expiry              |
+| Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry          |     |
 | Google OAuth                  | Account linking by email prevents duplicate users                       |
 | CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality |
-| Rate Limiting                 | 100 req / 10 min general; 20 req / 10 min on auth routes                |
+| Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register);          |
+|                               | 5 req/10 min (password reset); 60 req/10 min (token refresh)            |     |
 | RBAC                          | `requireRole` middleware for customer / seller / admin-gated routes     |
 | Audit Logging                 | Login, logout, refresh, verification, password, and seller events       |
 
@@ -390,7 +391,7 @@ MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/snapcart
 # JWT — use any long random strings locally
 ACCESS_TOKEN_SECRET=your-super-secret-access-key-min-32-chars
 REFRESH_TOKEN_SECRET=your-super-secret-refresh-key-min-32-chars
-REFRESH_TOKEN_HASH_SECRET=your-super-secret-hash-key-min-32-chars
+REFRESH_TOKEN_HASH_SECRET=your-super-secret-hash-key-min-32-chars  # optional, falls back to REFRESH_TOKEN_SECRET
 
 # Frontend origin for CORS
 FRONTEND_URL=http://localhost:5173
@@ -491,10 +492,10 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ httpOnly cookies          — tokens never exposed to JavaScript
 ✅ Refresh-token rotation    — new token on every /refresh call
 ✅ Reuse detection           — replayed token clears all sessions
-✅ SHA-256 token hashing     — raw verification tokens never stored in DB
+✅ HMAC-SHA256 token hashing  — raw verification/reset tokens never stored in DB; hashed with secret key
 ✅ Double-submit CSRF        — timing-safe comparison on every mutation
 ✅ Helmet                    — secure HTTP headers out of the box
-✅ Rate limiting             — auth routes throttled to 20 req / 10 min
+✅ Rate limiting             — 4 tiers: general (100), auth (20), password reset (5), refresh (60) per 10 min
 ✅ Zod validation            — schema-enforced at the route boundary
 ✅ RBAC                      — role middleware on every protected route
 ✅ Verified email guard      — checkout and seller writes require verification
