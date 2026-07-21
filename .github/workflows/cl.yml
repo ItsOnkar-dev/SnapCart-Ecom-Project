@@ -31,12 +31,12 @@ jobs:
         run: npm ci
 
       - name: TypeScript type check
-        run: npm run type-check
+        run: npx tsc --noEmit
         # Catches type errors without producing output files.
         # If this fails, the commit introduced a type error.
 
       - name: ESLint
-        run: npm run lint
+        run: npx eslint src --ext .ts --max-warnings 100
         # Runs your existing ESLint config. Fails on any error.
         # Warnings are allowed — only errors block the pipeline.
 
@@ -64,12 +64,12 @@ jobs:
         run: npm ci
 
       - name: TypeScript type check
-        run: npm run type-check
+        run: npx tsc --noEmit
         # Vite handles the actual build but doesn't do type checking.
         # tsc --noEmit catches type errors that Vite would silently ignore.
 
       - name: ESLint
-        run: npm run lint
+        run: npx eslint src --ext .ts,.tsx --max-warnings 100
         # Checks all TypeScript and React files.
 
       - name: Build
