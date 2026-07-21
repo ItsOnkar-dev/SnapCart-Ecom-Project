@@ -171,25 +171,25 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           Monorepo Root                             │
 │                                                                     │
-│   ┌──────────────────────────┐      ┌───────────────────────────┐  │
-│   │       frontend/          │      │         backend/          │  │
-│   │                          │      │                           │  │
-│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │  │
-│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │  │
-│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │  │
-│   │  Port 5173 (dev)         │      │  Port 5000                │  │
-│   └──────────────────────────┘      └──────────┬────────────────┘  │
-│                                                │                   │
-│                              ┌─────────────────▼──────────────┐   │
-│                              │         MongoDB Atlas           │   │
-│                              │   Users · Products · Orders     │   │
-│                              │   Cart · Reviews · Wishlists    │   │
-│                              └────────────────────────────────┘   │
+│   ┌──────────────────────────┐      ┌───────────────────────────┐   │
+│   │       frontend/          │      │         backend/          │   │
+│   │                          │      │                           │   │
+│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │   │
+│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │   │
+│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │    │
+│   │  Port 5173 (dev)         │      │  Port 5000                │   │
+│   └──────────────────────────┘      └──────────┬────────────────┘   │
+│                                                │                    │
+│                              ┌─────────────────▼──────────────┐     │
+│                              │         MongoDB Atlas           │    │
+│                              │   Users · Products · Orders     │    │
+│                              │   Cart · Reviews · Wishlists    │    │
+│                              └────────────────────────────────┘     │
 │                                                                     │
-│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐  │
-│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │  │
-│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│  │
-│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘  │
+│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐    │
+│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │    │
+│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│    │
+│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
