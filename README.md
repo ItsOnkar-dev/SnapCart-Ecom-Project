@@ -30,7 +30,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
   - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [🧩 About the Project](#-about-the-project)
-  - [💡 Why SnapCart?](#-why-snapcart)
+  - [💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further](#-most-e-commerce-portfolio-projects-stop-at-add-to-cart-snapcart-goes-further)
   - [🛠 Tech Stack](#-tech-stack)
   - [🏗 Architecture](#-architecture)
   - [🗺 User Journeys](#-user-journeys)
@@ -78,9 +78,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 
 ---
 
-## 💡 Why SnapCart?
-
-Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further:
+## 💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further
 
 - **Refresh-token reuse detection** — if a stolen refresh token is replayed, the backend detects it, clears all tokens, and forces re-login. Most tutorials skip this entirely.
 - **Atomic checkout** — placing an order is a single MongoDB transaction. Stock decrement, order creation, and cart clearing either all succeed or all roll back together.
@@ -173,25 +171,25 @@ Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           Monorepo Root                             │
 │                                                                     │
-│   ┌──────────────────────────┐      ┌───────────────────────────┐   │
-│   │       frontend/          │      │         backend/          │   │
-│   │                          │      │                           │   │
-│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │   │
-│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │   │
-│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │    │
-│   │  Port 5173 (dev)         │      │  Port 5000                │   │
-│   └──────────────────────────┘      └──────────┬────────────────┘   │
-│                                                │                    │
-│                              ┌─────────────────▼──────────────┐     │
-│                              │         MongoDB Atlas           │    │
-│                              │   Users · Products · Orders     │    │
-│                              │   Cart · Reviews · Wishlists    │    │
-│                              └────────────────────────────────┘     │
+│   ┌──────────────────────────┐      ┌───────────────────────────┐  │
+│   │       frontend/          │      │         backend/          │  │
+│   │                          │      │                           │  │
+│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │  │
+│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │  │
+│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │  │
+│   │  Port 5173 (dev)         │      │  Port 5000                │  │
+│   └──────────────────────────┘      └──────────┬────────────────┘  │
+│                                                │                   │
+│                              ┌─────────────────▼──────────────┐   │
+│                              │         MongoDB Atlas           │   │
+│                              │   Users · Products · Orders     │   │
+│                              │   Cart · Reviews · Wishlists    │   │
+│                              └────────────────────────────────┘   │
 │                                                                     │
-│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐    │
-│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │    │
-│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│    │
-│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘    │
+│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐  │
+│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │  │
+│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│  │
+│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -271,17 +269,16 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🔒 Security Features
 
-| Feature                       | Details                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------- | --- |
-| JWT Auth                      | Short-lived access tokens + rotated refresh tokens in httpOnly cookies  |
-| Refresh-Token Reuse Detection | Replay of a used token clears all sessions and forces re-login          |
-| Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry          |     |
-| Google OAuth                  | Account linking by email prevents duplicate users                       |
-| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality |
-| Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register);          |
-|                               | 5 req/10 min (password reset); 60 req/10 min (token refresh)            |     |
-| RBAC                          | `requireRole` middleware for customer / seller / admin-gated routes     |
-| Audit Logging                 | Login, logout, refresh, verification, password, and seller events       |
+| Feature                       | Details                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| JWT Auth                      | Short-lived access tokens + rotated refresh tokens in httpOnly cookies                                                      |
+| Refresh-Token Reuse Detection | Replay of a used token clears all sessions and forces re-login                                                              |
+| Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry                                                              |
+| Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
+| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality                                                     |
+| Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
+| RBAC                          | `requireRole` middleware for customer / seller / admin-gated routes                                                         |
+| Audit Logging                 | Login, logout, refresh, verification, password, and seller events                                                           |
 
 ---
 
@@ -519,17 +516,21 @@ These features are **partially built or actively being developed** — they exis
 
 > This is a portfolio project under active development. Some pages or flows may be incomplete or show placeholder UI.
 
+---
+
 ## 🗓 Roadmap
 
-- [ ] **Automated test suite** — unit tests for services, integration tests for auth and checkout flows
-- [ ] **Real-time notifications** — WebSocket or SSE for order status updates
-- [ ] **Advanced search** — full-text search with Atlas Search or Elasticsearch
-- [ ] **CI/CD pipeline** — GitHub Actions for lint, type-check, and test on every PR
-- [ ] **Coupon / discount system** — promo codes with expiry and usage limits
-- [ ] **Multi-image upload** — gallery support per product
-- [ ] **Dark mode** — Tailwind dark-class toggle persisted via `next-themes`
+These are **planned upcoming features** — not yet started, but on the list:
 
-Have an idea? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
+- [ ] **Automated test suite** — unit tests for services, integration tests for auth and checkout flows
+- [ ] **Real-time order notifications** — WebSocket or SSE so buyers see status changes instantly without refreshing
+- [ ] **Advanced search** — full-text search powered by MongoDB Atlas Search or Elasticsearch
+- [ ] **CI/CD pipeline** — GitHub Actions to run lint, type-check, and tests automatically on every pull request
+- [ ] **Coupon / discount system** — promo codes with expiry dates, usage limits, and per-category rules
+- [ ] **Multi-image upload** — product gallery with multiple images per listing
+- [ ] **Dark mode** — light/dark theme toggle that persists the user's preference across sessions
+
+Have an idea or want to help build one of these? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
 
 ---
 
