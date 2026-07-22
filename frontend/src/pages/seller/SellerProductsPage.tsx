@@ -73,7 +73,7 @@ export default function SellerProductsPage() {
     formDataToSend.append("category", product.category);
     formDataToSend.append("price", String(product.price));
     formDataToSend.append("stock", String(product.stock));
-    formDataToSend.append("isActive", "true"); // Ensures the backend sets this to true
+    formDataToSend.append("isActive", "true");
 
     updateMutation.mutate({ id: product._id, body: formDataToSend });
   };
@@ -131,7 +131,7 @@ export default function SellerProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 py-10">
+    <div className="min-h-screen bg-background text-foreground py-10 transition-colors duration-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -141,16 +141,16 @@ export default function SellerProductsPage() {
             </h1>
 
             {/* Filter Tabs */}
-            <div className="flex gap-6 mt-6 border-b border-zinc-800">
+            <div className="flex gap-6 mt-6 border-b border-border">
               {(["all", "active", "archived"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilterStatus(tab)}
                   className={cn(
-                    "pb-2 text-sm font-medium capitalize transition-colors",
+                    "pb-2 text-sm font-medium capitalize transition-colors cursor-pointer",
                     filterStatus === tab
-                      ? "text-zinc-100 border-b-2 border-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-300",
+                      ? "text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {tab}
@@ -161,7 +161,7 @@ export default function SellerProductsPage() {
 
           <Button
             onClick={openCreateModal}
-            className="bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-medium rounded-lg flex items-center gap-1.5 self-start sm:self-center"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover font-medium rounded-lg flex items-center gap-1.5 self-start sm:self-center cursor-pointer"
           >
             <Plus className="h-4 w-4" /> New product
           </Button>
@@ -173,12 +173,12 @@ export default function SellerProductsPage() {
             [1, 2].map((i) => (
               <Skeleton
                 key={i}
-                className="h-20 w-full bg-zinc-900/60 rounded-xl"
+                className="h-20 w-full bg-muted/60 rounded-xl"
               />
             ))
           ) : !filteredProducts || filteredProducts.length === 0 ? (
-            <div className="text-center py-16 text-zinc-500">
-              <Box className="h-8 w-8 mx-auto mb-2 text-zinc-600" />
+            <div className="text-center py-16 text-muted-foreground">
+              <Box className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
               <p className="text-sm">No {filterStatus} products found.</p>
             </div>
           ) : (
@@ -186,12 +186,12 @@ export default function SellerProductsPage() {
               <div
                 key={product._id}
                 className={cn(
-                  "flex items-center justify-between p-4 bg-[#121214] rounded-xl border border-zinc-800/80 transition-all duration-200",
-                  !product.isActive && "opacity-60 bg-zinc-900/30 grayscale", // Grey out + Desaturate
+                  "flex items-center justify-between p-4 bg-card rounded-xl border border-border/80 transition-all duration-200",
+                  !product.isActive && "opacity-60 bg-muted/30 grayscale",
                 )}
               >
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-zinc-800/80 flex items-center justify-center border border-zinc-700/30 overflow-hidden relative">
+                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border border-border/40 overflow-hidden relative">
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0]}
@@ -199,26 +199,26 @@ export default function SellerProductsPage() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <Box className="h-5 w-5 text-zinc-400" />
+                      <Box className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium text-zinc-200 flex items-center gap-2">
+                    <h3 className="font-medium text-foreground flex items-center gap-2">
                       {product.name}
                       {!product.isActive && (
-                        <span className="text-[10px] px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
                           Archived
                         </span>
                       )}
                     </h3>
-                    <p className="text-xs text-zinc-500 capitalize">
+                    <p className="text-xs text-muted-foreground capitalize">
                       {product.category} · RS{product.price}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <span className="text-sm text-zinc-400 font-mono">
+                  <span className="text-sm text-muted-foreground font-mono">
                     Stock: {product.stock}
                   </span>
 
@@ -226,13 +226,13 @@ export default function SellerProductsPage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditModal(product)}
-                        className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setDeleteId(product._id)}
-                        className="p-2 text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -240,7 +240,7 @@ export default function SellerProductsPage() {
                   ) : (
                     <button
                       onClick={() => handleRestore(product)}
-                      className="flex items-center gap-2 text-xs text-zinc-400 hover:text-emerald-400 transition-colors"
+                      className="flex items-center gap-2 text-xs text-muted-foreground hover:text-emerald-500 transition-colors cursor-pointer"
                     >
                       <RotateCcw className="h-3.5 w-3.5" /> Restore
                     </button>
@@ -253,20 +253,20 @@ export default function SellerProductsPage() {
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          <AlertDialogContent className="bg-[#121215] border border-zinc-800 text-zinc-100">
+          <AlertDialogContent className="bg-card border border-border text-foreground">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription className="text-zinc-500">
+              <AlertDialogDescription className="text-muted-foreground">
                 This will move the product to your archived list.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800">
+              <AlertDialogCancel className="bg-muted border-border hover:bg-muted/80">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDelete}
-                className="bg-rose-600 hover:bg-rose-700 text-white"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 Continue
               </AlertDialogAction>
@@ -276,12 +276,12 @@ export default function SellerProductsPage() {
 
         {/* Create/Edit Form Dialog */}
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="bg-[#121215] border border-zinc-800 text-zinc-100 max-w-lg w-full rounded-xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold tracking-tight">
                 {editingId ? "Edit product" : "New product"}
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-muted-foreground">
                 Configure listing details. Assets upload securely via
                 Cloudinary.
               </DialogDescription>
@@ -289,7 +289,7 @@ export default function SellerProductsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
               <div>
-                <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                   Name
                 </label>
                 <Input
@@ -297,14 +297,14 @@ export default function SellerProductsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="bg-zinc-950 border-zinc-800 text-zinc-100 h-10"
+                  className="bg-background border-border text-foreground h-10"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                     Category
                   </label>
                   <select
@@ -312,7 +312,7 @@ export default function SellerProductsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full h-10 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 text-sm px-3 focus:outline-none"
+                    className="w-full h-10 bg-background border border-border rounded-lg text-foreground text-sm px-3 focus:outline-none"
                   >
                     <option value="electronics">Electronics</option>
                     <option value="fashion">Fashion</option>
@@ -325,7 +325,7 @@ export default function SellerProductsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                     Stock Quantity
                   </label>
                   <Input
@@ -334,7 +334,7 @@ export default function SellerProductsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, stock: e.target.value })
                     }
-                    className="bg-zinc-950 border-zinc-800 h-10"
+                    className="bg-background border-border h-10"
                     min="0"
                     required
                   />
@@ -343,7 +343,7 @@ export default function SellerProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                     Price (RS)
                   </label>
                   <Input
@@ -353,13 +353,13 @@ export default function SellerProductsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, price: e.target.value })
                     }
-                    className="bg-zinc-950 border-zinc-800 h-10"
+                    className="bg-background border-border h-10"
                     min="0"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                     Discount Price (RS) - Optional
                   </label>
                   <Input
@@ -372,17 +372,17 @@ export default function SellerProductsPage() {
                         discountPrice: e.target.value,
                       })
                     }
-                    className="bg-zinc-950 border-zinc-800 h-10"
+                    className="bg-background border-border h-10"
                     min="0"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                   Product Cover Image Asset
                 </label>
-                <div className="relative flex items-center justify-center w-full border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950 rounded-lg p-5 transition-colors">
+                <div className="relative flex items-center justify-center w-full border border-dashed border-border hover:border-muted-foreground/40 bg-background rounded-lg p-5 transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -391,8 +391,8 @@ export default function SellerProductsPage() {
                     required={!editingId}
                   />
                   <div className="text-center pointer-events-none flex flex-col items-center gap-1">
-                    <Upload className="h-4 w-4 text-zinc-500 mb-1" />
-                    <span className="text-xs font-medium text-zinc-300">
+                    <Upload className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-xs font-medium text-muted-foreground">
                       {imageFile ? imageFile.name : "Select cover image file"}
                     </span>
                   </div>
@@ -400,7 +400,7 @@ export default function SellerProductsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">
                   Description (Min 10 characters)
                 </label>
                 <textarea
@@ -408,7 +408,7 @@ export default function SellerProductsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 text-sm rounded-lg focus:outline-none h-24 resize-none"
+                  className="w-full p-3 bg-background border border-border text-foreground text-sm rounded-lg focus:outline-none h-24 resize-none"
                   required
                 />
               </div>
@@ -419,7 +419,7 @@ export default function SellerProductsPage() {
                   disabled={
                     createMutation.isPending || updateMutation.isPending
                   }
-                  className="w-full bg-zinc-100 text-zinc-950 hover:bg-zinc-200 h-10 rounded-lg"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary-hover h-10 rounded-lg cursor-pointer"
                 >
                   {createMutation.isPending || updateMutation.isPending
                     ? "Processing..."

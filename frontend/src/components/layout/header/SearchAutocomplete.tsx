@@ -1,8 +1,3 @@
-// components/layout/SearchAutocomplete.tsx
-// Debounced live search dropdown — wired to GET /products?search=...
-// Matches the visual pattern of the old Lovable template's SearchAutocomplete,
-// but pulls real data through useProducts() instead of Supabase.
-
 import { Loader2, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";

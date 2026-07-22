@@ -29,13 +29,12 @@ export const Logo = ({ className, showText = true }: LogoProps) => {
       <img
         src="/assets/SnapCartLogoLight.png"
         alt="Snapcart Icon"
-        className="h-8 w-auto hidden [.light_&]:block"
+        className="h-8 w-8 hidden [.light_&]:block"
       />
-      {/* Dark Mode Icon: Shown by default, hidden when '.light' class is present on a parent */}
       <img
         src="/assets/SnapCartLogoDark.png"
         alt="Snapcart Icon"
-        className="h-9 w-auto block [.light_&]:hidden"
+        className="h-8 w-8 block [.light_&]:hidden"
       />
 
       {showText && (
@@ -50,13 +49,13 @@ export const Logo = ({ className, showText = true }: LogoProps) => {
           {/* --- "SNAPCART" Text Logo --- */}
           <img
             src="/assets/SnapCartLogo1.png"
-            alt="Snapcart Logo"
-            className="h-4.5 w-auto scale-[1.05] translate-y-[-0.5px] origin-left hidden [.light_&]:block"
+            alt="Snapcart"
+            className="h-5 w-auto hidden [.light_&]:block"
           />
           <img
             src="/assets/SnapCartLogo.png"
-            alt="Snapcart Logo"
-            className="h-4.5 w-auto scale-[1.15] translate-y-[-0.5px] origin-left block [.light_&]:hidden"
+            alt="Snapcart"
+            className="h-5 w-auto block [.light_&]:hidden"
           />
         </>
       )}

@@ -154,6 +154,7 @@ export default function AdminAnalyticsDashboard() {
       </div>
 
       {/* KPI Grid */}
+      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card) => {
           const Icon = card.icon;
@@ -166,7 +167,7 @@ export default function AdminAnalyticsDashboard() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {card.title}
                 </span>
-                <p className="text-2xl font-bold tracking-tight text-white">
+                <p className="text-2xl font-bold tracking-tight text-foreground">
                   {card.value}
                 </p>
               </div>

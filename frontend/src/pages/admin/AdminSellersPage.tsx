@@ -24,12 +24,14 @@ export default function AdminSellersPage() {
     useUpdateSellerStatus();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [selectedSeller, setSelectedSeller] = useState<SellerApplicant | null>(null);
+  const [selectedSeller, setSelectedSeller] = useState<SellerApplicant | null>(
+    null,
+  );
   const [selectedStatus, setSelectedStatus] = useState<
     "approved" | "rejected" | null
   >(null);
 
-  // Navigation tab configurations to mirror Lovable preview
+  // Navigation tab configurations
   const tabs = [
     { name: "Analytics", path: "/admin/analytics", count: null },
     { name: "Products", path: "/products", count: 39 }, // Dummy counts matching screenshots
@@ -60,16 +62,16 @@ export default function AdminSellersPage() {
           </Link>
         </div>
 
-        {/* Custom Nav Tabs (Mirrors Lovable Screenshots 137/138 layout) */}
-        <div className="flex flex-wrap items-center gap-2 bg-zinc-900/50 p-1.5 rounded-xl border border-zinc-800/60 backdrop-blur-md mb-8 w-fit">
+        {/* Custom Nav Tabs */}
+        <div className="flex flex-wrap items-center gap-2 bg-muted/50 p-1.5 rounded-xl border border-border backdrop-blur-md mb-8 w-fit">
           {tabs.map((tab) => (
             <button
               key={tab.name}
               onClick={() => tab.path !== "#" && navigate(tab.path)}
               className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 ${
                 tab.active
-                  ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/50"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                  ? "bg-card text-foreground shadow-sm border border-border"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
               {tab.name}
@@ -77,8 +79,8 @@ export default function AdminSellersPage() {
                 <span
                   className={`text-xs px-1.5 py-0.5 rounded-md ${
                     tab.active
-                      ? "bg-zinc-700 text-zinc-200"
-                      : "bg-zinc-800 text-zinc-500"
+                      ? "bg-muted text-foreground"
+                      : "bg-muted/60 text-muted-foreground"
                   }`}
                 >
                   ({tab.count})
@@ -95,11 +97,11 @@ export default function AdminSellersPage() {
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="p-6 bg-zinc-900/40 rounded-xl border border-zinc-800/80 space-y-3"
+                  className="p-6 bg-card rounded-xl border border-border space-y-3"
                 >
-                  <Skeleton className="h-6 w-1/4 bg-zinc-800" />
-                  <Skeleton className="h-4 w-1/2 bg-zinc-800" />
-                  <Skeleton className="h-4 w-2/3 bg-zinc-800" />
+                  <Skeleton className="h-6 w-1/4 bg-muted" />
+                  <Skeleton className="h-4 w-1/2 bg-muted" />
+                  <Skeleton className="h-4 w-2/3 bg-muted" />
                 </div>
               ))}
             </div>
@@ -112,8 +114,8 @@ export default function AdminSellersPage() {
               </p>
             </div>
           ) : !applicants || applicants.length === 0 ? (
-            <div className="text-center py-16 bg-zinc-900/20 border border-dashed border-zinc-800 rounded-xl">
-              <p className="text-zinc-500 text-sm">
+            <div className="text-center py-16 bg-muted/20 border border-dashed border-border rounded-xl">
+              <p className="text-muted-foreground text-sm">
                 No seller applications require review right now.
               </p>
             </div>
@@ -122,13 +124,13 @@ export default function AdminSellersPage() {
               {applicants.map((applicant: SellerApplicant) => (
                 <div
                   key={applicant._id}
-                  className="group relative p-6 bg-[#121214] rounded-xl border border-zinc-800/80 hover:border-zinc-700/80 transition-all duration-300 shadow-xl"
+                  className="group relative p-6 bg-card rounded-xl border border-border hover:border-border/80 transition-all duration-300 shadow-sm"
                 >
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                     {/* Applicant Information Layout */}
                     <div className="space-y-2 max-w-2xl">
                       <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-medium text-zinc-100 tracking-tight group-hover:text-white transition-colors">
+                        <h3 className="text-lg font-medium text-foreground tracking-tight transition-colors">
                           {applicant.name}
                         </h3>
                         <Badge
@@ -149,23 +151,23 @@ export default function AdminSellersPage() {
                         </Badge>
                       </div>
 
-                      <p className="text-sm text-zinc-400 font-mono">
+                      <p className="text-sm text-muted-foreground font-mono">
                         {applicant.email}{" "}
-                        <span className="text-zinc-600 font-sans mx-1.5">
+                        <span className="text-muted-foreground/50 font-sans mx-1.5">
                           ·
                         </span>{" "}
                         {applicant.phone || "No phone provided"}
                       </p>
 
-                      <div className="pt-2 grid gap-1 text-xs text-zinc-400">
+                      <div className="pt-2 grid gap-1 text-xs text-muted-foreground">
                         <p>
-                          <span className="text-zinc-500 font-medium">
+                          <span className="text-muted-foreground font-medium">
                             Business ID:
                           </span>{" "}
                           {applicant.businessId || "N/A"}
                         </p>
                         <p className="leading-relaxed">
-                          <span className="text-zinc-500 font-medium">
+                          <span className="text-muted-foreground font-medium">
                             Address:
                           </span>{" "}
                           {applicant.address || "N/A"}
@@ -197,7 +199,7 @@ export default function AdminSellersPage() {
                             setSelectedStatus("rejected");
                             setDialogOpen(true);
                           }}
-                          className="border-zinc-800 cursor-pointer text-zinc-400 hover:text-rose-400 hover:bg-rose-950/20 hover:border-rose-900/50 gap-1.5 rounded-lg transition-all"
+                          className="border-border cursor-pointer text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 gap-1.5 rounded-lg transition-all"
                         >
                           <X className="h-4 w-4" /> Reject
                         </Button>
