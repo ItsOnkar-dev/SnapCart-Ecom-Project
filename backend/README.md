@@ -316,7 +316,7 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | Method | Path                 | Auth         | Description                           |
 | ------ | -------------------- | ------------ | ------------------------------------- |
 | POST   | `/orders`            | Auth         | Checkout — atomic MongoDB transaction |
-| GET    | `/orders`            | Auth         | List the current user's orders        |
+| GET    | `/orders`            | Auth         | Paginated list of the current user's orders (default 10, supports `?page=`) |
 | GET    | `/orders/:id`        | Auth         | Order detail                          |
 | PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                   |
 

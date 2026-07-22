@@ -319,7 +319,7 @@ All routes are defined in `src/App.tsx`. The app uses two primary layouts:
 | `/verify-email`            | Guest only     | VerifyEmailPage         |
 | `/reset-password`          | Guest only     | ResetPasswordPage       |
 | `/cart`                    | Auth required  | CartPage                |
-| `/orders`                  | Auth required  | OrdersPage              |
+| `/orders`                  | Auth required  | OrdersPage (paginated, 10 per page) |
 | `/orders/:id`              | Auth required  | OrderDetailPage         |
 | `/profile`                 | Auth required  | ProfilePage             |
 | `/wishlist`                | Auth required  | WishlistPage            |

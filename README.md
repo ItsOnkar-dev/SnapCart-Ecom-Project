@@ -528,6 +528,8 @@ These features were planned and are now fully implemented:
 - [] **Pagination** — URL-based pagination with filters preserved across pages
 - [x] **Review pagination** — public product reviews now paginated (20 per page) with frontend navigation
 - [x] **Analytics caching** — admin analytics cached in-memory with 5-minute TTL, auto-invalidated on order changes
+- [x] **Orders pagination** — order history paginated (10 per page) with frontend navigation
+- [ ] **Seller dashboard pagination** — seller products list paginated via API (20 per page)
 
 > 💡 **Note on Payments:** The payment gateway is currently running in **Razorpay Test Mode**. You can safely test the entire checkout flow using dummy card details(4242) or simulated payment methods without spending real money.
 
