@@ -506,17 +506,13 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 ## 🚧 Work in Progress
 
-These features are **partially built or actively being developed** — they exist in the codebase but are not fully complete yet:
+Some features are **partially built or actively being developed** — they exist in the codebase but are not fully complete yet:
 
-| Area                  | Status         | Notes                                                                                   |
-| --------------------- | -------------- | --------------------------------------------------------------------------------------- |
-| Payment flow          | ✅ Complete    | Razorpay integration with order creation, webhook verification, and idempotency         |
-| Seller dashboard UI   | 🔨 In progress | Product management works; seller analytics view still being designed                    |
-| Profile page          | 🔨 In progress | Page exists; edit-profile and avatar upload not yet complete                            |
-| Admin moderation      | 🔨 In progress | Seller approve/reject works; bulk actions and filters still to come                     |
-| Mobile responsiveness | 🔨 In progress | Core pages are responsive; some complex layouts (filter drawer, cart panel) need polish |
+- **Admin Panel:** The dashboard UI is visible, but the update/delete actions are currently mock functions.
+- **User Profiles:** Users can sign up, but the ability to edit profile details is still under construction.
 
 > This is a portfolio project under active development. Some pages or flows may be incomplete or show placeholder UI.
+> If you encounter any unexpected bugs or have feedback while exploring the application, feel free to open an issue.
 
 ---
 
@@ -530,6 +526,8 @@ These features were planned and are now fully implemented:
 - [] **Dark mode** — system-aware theme toggle persisted across sessions
 - [] **AI recommendations** — related, frequently-bought-together, and personalized rails
 - [] **Pagination** — URL-based pagination with filters preserved across pages
+
+> 💡 **Note on Payments:** The payment gateway is currently running in **Razorpay Test Mode**. You can safely test the entire checkout flow using dummy card details(4242) or simulated payment methods without spending real money.
 
 ---
 
