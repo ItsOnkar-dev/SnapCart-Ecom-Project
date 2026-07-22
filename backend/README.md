@@ -190,9 +190,11 @@ backend/
 │       ├── ApiResponse.ts            Unified ApiSuccess / ApiError response classes
 │       ├── asyncHandler.ts           Async controller wrapper (eliminates try/catch)
 │       ├── auditLogger.ts            Security and audit event logging
+│       ├── analyticsCache.ts         In-memory cache for admin analytics (5-min TTL)
 │       ├── generateResetToken.ts     Raw/hash token pair generator
 │       ├── generateTokens.ts         JWT creation helpers
-│       └── hashToken.ts              SHA-256 hashing helper
+│       ├── hashToken.ts              SHA-256 hashing helper
+│       └── pagination.ts             Shared pagination params and response builder
 │
 ├── .env.example                       ← copy to .env and fill in values
 ├── package.json
@@ -322,7 +324,7 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 | Method | Path                  | Auth | Description                              |
 | ------ | --------------------- | ---- | ---------------------------------------- |
-| GET    | `/reviews/:productId` | None | List reviews for a product               |
+| GET    | `/reviews/:productId` | None | Paginated reviews (default 20, supports `?page=`) |
 | POST   | `/reviews/:productId` | Auth | Submit review (verified purchasers only) |
 | DELETE | `/reviews/:id`        | Auth | Delete own review                        |
 
@@ -461,7 +463,7 @@ Used on: homepage rail · product detail page · cart "Complete your order" pick
 
 ### Admin Analytics
 
-Metrics powered by MongoDB aggregation pipelines:
+Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5-minute TTL. The cache is automatically invalidated when an order is placed or its status changes.
 
 | Metric       | Details                                        |
 | ------------ | ---------------------------------------------- |

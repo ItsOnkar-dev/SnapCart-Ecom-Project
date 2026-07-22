@@ -526,6 +526,8 @@ These features were planned and are now fully implemented:
 - [] **Dark mode** — system-aware theme toggle persisted across sessions
 - [] **AI recommendations** — related, frequently-bought-together, and personalized rails
 - [] **Pagination** — URL-based pagination with filters preserved across pages
+- [x] **Review pagination** — public product reviews now paginated (20 per page) with frontend navigation
+- [x] **Analytics caching** — admin analytics cached in-memory with 5-minute TTL, auto-invalidated on order changes
 
 > 💡 **Note on Payments:** The payment gateway is currently running in **Razorpay Test Mode**. You can safely test the entire checkout flow using dummy card details(4242) or simulated payment methods without spending real money.
 

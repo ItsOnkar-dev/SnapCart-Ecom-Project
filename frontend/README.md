@@ -212,8 +212,7 @@ frontend/
 │   │   ├── payment.api.ts   # Razorpay integration
 │   │   ├── review.api.ts    # List + submit + delete
 │   │   ├── seller.api.ts    # Apply + list pending + update status
-│   │   ├── admin.api.ts     # Seller moderation
-│   │   ├── analytics.api.ts # Admin dashboard metrics
+│   │   ├── admin.api.ts     # Seller moderation + analytics
 │   │   └── recommendation.api.ts
 │   │
 │   ├── components/
@@ -384,7 +383,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 
 - Paginated grid with live text search, category filter, price range filter, and sort options
 - Right-side filter drawer on category pages
-- Product detail with description, stock indicator, reviews, and AI-powered related product rail
+- Product detail with description, stock indicator, paginated customer reviews, and AI-powered related product rail
 
 ### 🛒 Cart and Checkout
 
