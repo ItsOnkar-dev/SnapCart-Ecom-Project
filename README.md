@@ -52,7 +52,6 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
   - [📡 API at a Glance](#-api-at-a-glance)
   - [🔐 Security Highlights](#-security-highlights)
   - [🚧 Work in Progress](#-work-in-progress)
-  - [✅ Recently Completed](#-recently-completed)
   - [🗓 Roadmap](#-roadmap)
   - [📚 Documentation](#-documentation)
   - [🤝 Contributing](#-contributing)
@@ -172,25 +171,25 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           Monorepo Root                             │
 │                                                                     │
-│   ┌──────────────────────────┐      ┌───────────────────────────┐  │
-│   │       frontend/          │      │         backend/          │  │
-│   │                          │      │                           │  │
-│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │  │
-│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │  │
-│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │  │
-│   │  Port 5173 (dev)         │      │  Port 5000                │  │
-│   └──────────────────────────┘      └──────────┬────────────────┘  │
-│                                                │                   │
-│                              ┌─────────────────▼──────────────┐   │
-│                              │         MongoDB Atlas           │   │
-│                              │   Users · Products · Orders     │   │
-│                              │   Cart · Reviews · Wishlists    │   │
-│                              └────────────────────────────────┘   │
+│   ┌──────────────────────────┐      ┌───────────────────────────┐   │
+│   │       frontend/          │      │         backend/          │   │
+│   │                          │      │                           │   │
+│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │   │
+│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │   │
+│   │  React Query · Zustand   │cookies  Rate limit · CSRF       │    │
+│   │  Port 5173 (dev)         │      │  Port 5000                │   │
+│   └──────────────────────────┘      └──────────┬────────────────┘   │
+│                                                │                    │
+│                              ┌─────────────────▼──────────────┐     │
+│                              │         MongoDB Atlas           │    │
+│                              │   Users · Products · Orders     │    │
+│                              │   Cart · Reviews · Wishlists    │    │
+│                              └────────────────────────────────┘     │
 │                                                                     │
-│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐  │
-│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │  │
-│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│  │
-│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘  │
+│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐    │
+│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │    │
+│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│    │
+│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -510,26 +509,13 @@ These features are **partially built or actively being developed** — they exis
 
 | Area                  | Status         | Notes                                                                                   |
 | --------------------- | -------------- | --------------------------------------------------------------------------------------- |
-| Payment flow          | ✅ Complete    | Razorpay integration with order creation, webhook verification, and idempotency         |
+| Payment flow          | 🔨 In progress | Razorpay order creation is wired up; full webhook confirmation flow being finalized     |
 | Seller dashboard UI   | 🔨 In progress | Product management works; seller analytics view still being designed                    |
 | Profile page          | 🔨 In progress | Page exists; edit-profile and avatar upload not yet complete                            |
 | Admin moderation      | 🔨 In progress | Seller approve/reject works; bulk actions and filters still to come                     |
 | Mobile responsiveness | 🔨 In progress | Core pages are responsive; some complex layouts (filter drawer, cart panel) need polish |
 
 > This is a portfolio project under active development. Some pages or flows may be incomplete or show placeholder UI.
-
----
-
-## ✅ Recently Completed
-
-These features were planned and are now fully implemented:
-
-- [x] **Razorpay payment integration** — full order creation, webhook, signature verification
-- [x] **CI/CD pipeline** — GitHub Actions running type-check, lint and build on every push
-- [x] **Multi-image upload** — product gallery with multiple Cloudinary images per listing
-- [x] **Dark mode** — system-aware theme toggle persisted across sessions
-- [x] **AI recommendations** — related, frequently-bought-together, and personalized rails
-- [x] **Pagination** — URL-based pagination with filters preserved across pages
 
 ---
 
@@ -543,6 +529,8 @@ These are **planned upcoming features** — not yet started, but on the list:
 - [ ] **Real-time order notifications** — WebSocket or SSE so buyers see status changes instantly without refreshing
 - [ ] **Advanced search** — full-text search powered by MongoDB Atlas Search or Elasticsearch
 - [ ] **Coupon / discount system** — promo codes with expiry dates, usage limits, and per-category rules
+- [ ] **Multi-image upload** — product gallery with multiple images per listing
+- [ ] **Dark mode** — light/dark theme toggle that persists the user's preference across sessions
 
 Have an idea or want to help build one of these? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
 

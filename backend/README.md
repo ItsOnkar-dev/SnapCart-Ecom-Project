@@ -357,7 +357,11 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | Method | Path                | Auth | Description                                     |
 | ------ | ------------------- | ---- | ----------------------------------------------- |
 | POST   | `/payments/order`   | Auth | Create a Razorpay order                         |
+<<<<<<< HEAD
 | POST   | `/payments/verify`  | None | Razorpay payment verification.                  |
+=======
+| POST   | `/payments/verify` | None | Razorpay payment verification.                  |
+>>>>>>> 3a6240c266282877908e0cbda1a437c930cce4e2
 | POST   | `/payments/webhook` | None | Razorpay webhook (raw body, signature verified) |
 
 ---
