@@ -43,7 +43,8 @@ const formatDate = (value: string) =>
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
-  const { data: orders = [], isLoading: isOrdersLoading } = useOrders();
+  const { data, isLoading: isOrdersLoading } = useOrders();
+  const orders = data?.orders ?? [];
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   if (!user) {
