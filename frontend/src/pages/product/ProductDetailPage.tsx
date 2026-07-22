@@ -152,8 +152,7 @@ export default function ProductDetailPage() {
   // ── Scroll to top on every product navigation ──────────────────────────────
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    setReviewPage(1);
-  }, [id]); // re-fires when product ID changes in the URL
+  }, [id]);
 
   const toggleSection = (section: string) =>
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
