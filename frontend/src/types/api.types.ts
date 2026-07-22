@@ -12,6 +12,16 @@ export interface ApiError {
   errors?: Record<string, string>; // Zod field errors from backend
 }
 
+// shared pagination shape — mirrors backend buildPaginationResult
+export interface PaginationResult {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 // query params for GET /products
 export interface ProductQueryParams {
   page?: number;

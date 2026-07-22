@@ -131,7 +131,8 @@ export default function ProductDetailPage() {
   const user = useAuthStore((s) => s.user);
 
   const { data: product, isLoading, error } = useProduct(id);
-  const { data: reviewsData } = useReviews(id);
+  const [reviewPage, setReviewPage] = useState(1);
+  const { data: reviewsData } = useReviews(id, reviewPage);
   const { mutate: createReview, isPending: isSubmittingReview } =
     useCreateReview(id ?? "");
   const { mutate: addToCart, isPending: isAdding } = useAddToCart();
@@ -151,6 +152,7 @@ export default function ProductDetailPage() {
   // ── Scroll to top on every product navigation ──────────────────────────────
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
+    setReviewPage(1);
   }, [id]); // re-fires when product ID changes in the URL
 
   const toggleSection = (section: string) =>
@@ -187,6 +189,7 @@ export default function ProductDetailPage() {
     product.discountPrice < product.price;
   const finalPrice = hasDiscount ? product.discountPrice : product.price;
   const reviews = reviewsData?.reviews ?? [];
+  const reviewPagination = reviewsData?.pagination;
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -492,6 +495,32 @@ export default function ProductDetailPage() {
                           </article>
                         ))}
                       </div>
+
+                      {/* ── Review pagination ── */}
+                      {reviewPagination && reviewPagination.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-3 pt-2">
+                          <button
+                            type="button"
+                            disabled={!reviewPagination.hasPrevPage}
+                            onClick={() => setReviewPage((p) => p - 1)}
+                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                          >
+                            ← Previous
+                          </button>
+                          <span className="text-xs text-muted-foreground">
+                            Page {reviewPagination.page} of{" "}
+                            {reviewPagination.totalPages}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={!reviewPagination.hasNextPage}
+                            onClick={() => setReviewPage((p) => p + 1)}
+                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                          >
+                            Next →
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">

@@ -7,6 +7,7 @@ import {
 } from "../services/review.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
 
 const getRouteParam = (value: string | string[] | undefined, name: string) => {
   if (Array.isArray(value)) {
@@ -54,14 +55,25 @@ export const getProductReviews = asyncHandler(
       throw new ApiError(404, "Product not found");
     }
 
-    const reviews = await Review.find({ product: productId })
-      .populate("user", "name avatar") // show reviewer's name and avatar
-      .sort({ createdAt: -1 }); // newest reviews first
+    const { page, limit, skip } = getPaginationParams(
+      req.query as { page?: string; limit?: string },
+      { limit: 20, maxLimit: 100 },
+    );
+
+    const [reviews, total] = await Promise.all([
+      Review.find({ product: productId })
+        .populate("user", "name avatar")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Review.countDocuments({ product: productId }),
+    ]);
 
     res.status(200).json(
       new ApiResponse(200, "Reviews fetched successfully", {
-        totalReviews: reviews.length,
+        totalReviews: total,
         reviews,
+        pagination: buildPaginationResult(total, { page, limit, skip }),
       }),
     );
   },

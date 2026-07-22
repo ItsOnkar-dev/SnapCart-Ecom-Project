@@ -13,16 +13,16 @@ import { productKeys } from "@/hooks/useProducts";
 import type { ReviewFormData } from "@/types/review.types";
 
 export const reviewKeys = {
-  list: (productId: string) => ["reviews", productId] as const,
+  list: (productId: string, page?: number) =>
+    ["reviews", productId, page ?? 1] as const,
 };
 
 // GET /reviews/:productId — public, no auth required
-export function useReviews(productId: string | undefined) {
+export function useReviews(productId: string | undefined, page: number = 1) {
   return useQuery({
-    queryKey: reviewKeys.list(productId ?? ""),
+    queryKey: reviewKeys.list(productId ?? "", page),
     queryFn: async () => {
-      const res = await getReviewsApi(productId!);
-      // res.data.data = Review[]
+      const res = await getReviewsApi(productId!, page);
       return res.data.data;
     },
     enabled: !!productId,

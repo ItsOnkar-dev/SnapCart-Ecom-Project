@@ -8,8 +8,8 @@ import { api } from "@/lib/axios";
 import type { ReviewFormData } from "@/types/review.types";
 
 // GET /api/reviews/:productId — public, no auth
-export const getReviewsApi = (productId: string) =>
-  api.get(`/reviews/${productId}`);
+export const getReviewsApi = (productId: string, page?: number) =>
+  api.get(`/reviews/${productId}`, { params: { page } });
 
 // POST /api/reviews/:productId — must be logged in, backend checks verified purchase
 export const createReviewApi = (productId: string, body: ReviewFormData) =>
