@@ -1,9 +1,9 @@
 // Global footer — Shop / Sell / Help columns + social, matching the screenshot.
 
-import {  Globe, Mail } from "lucide-react";
+import { Globe, Mail } from "lucide-react";
 import { Link } from "react-router";
 
-import { Logo } from "@/components/Logo";
+import { Logo } from "@/components/home/Logo";
 
 const COLUMNS: { heading: string; links: { label: string; to: string }[] }[] = [
   {

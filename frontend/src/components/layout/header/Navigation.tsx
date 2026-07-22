@@ -2,7 +2,7 @@ import { Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { Logo } from "@/components/Logo";
+import { Logo } from "@/components/home/Logo";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";

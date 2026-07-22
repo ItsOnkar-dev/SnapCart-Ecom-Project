@@ -1,6 +1,6 @@
 // src/components/header/AuthHeader.tsx
 
-import { Logo } from "@/components/Logo";
+import { Logo } from "@/components/home/Logo";
 import { Link } from "react-router-dom";
 
 const AuthHeader = () => {
