@@ -47,7 +47,7 @@ export default function AdminSellersPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans antialiased selection:bg-zinc-800 selection:text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased">
       <div className="max-w-6xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -56,7 +56,7 @@ export default function AdminSellersPage() {
           </h1>
           <Link
             to="/account"
-            className="text-sm font-medium text-zinc-400 hover:text-zinc-100 underline underline-offset-4 transition-colors"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
           >
             Back to account
           </Link>

@@ -64,25 +64,30 @@ const formatPrice = (value: number) =>
   }).format(value);
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "#eab308", // Yellow
-  confirmed: "#3b82f6", // Blue
-  shipped: "#6366f1", // Indigo
-  delivered: "#22c55e", // Green
-  cancelled: "#ef4444", // Red
+  pending: "#eab308",
+  confirmed: "#3b82f6",
+  shipped: "#6366f1",
+  delivered: "#22c55e",
+  cancelled: "#ef4444",
 };
 
 const CATEGORY_COLORS = [
-  "#818cf8", // Indigo
-  "#34d399", // Emerald
-  "#fb7185", // Rose
-  "#60a5fa", // Blue
-  "#fbbf24", // Amber
-  "#a78bfa", // Purple
-  "#2dd4bf", // Teal
+  "#818cf8",
+  "#34d399",
+  "#fb7185",
+  "#60a5fa",
+  "#fbbf24",
+  "#a78bfa",
+  "#2dd4bf",
 ];
 
+const tooltipStyle = {
+  backgroundColor: "hsl(var(--card))",
+  borderColor: "hsl(var(--border))",
+  borderRadius: "var(--radius)",
+};
+
 export default function AdminAnalyticsDashboard() {
-  // Destructuring and asserting the Hook data structure (if not already typed in the hook)
   const { data, isLoading, error } = useAnalytics() as {
     data: AnalyticsData | undefined;
     isLoading: boolean;
@@ -92,7 +97,7 @@ export default function AdminAnalyticsDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="w-8 h-8 text-white" />
+        <Spinner className="w-8 h-8 text-foreground" />
       </div>
     );
   }
@@ -154,7 +159,6 @@ export default function AdminAnalyticsDashboard() {
       </div>
 
       {/* KPI Grid */}
-      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card) => {
           const Icon = card.icon;
@@ -201,21 +205,17 @@ export default function AdminAnalyticsDashboard() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="date"
-                  stroke="#888"
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={11}
                   tickLine={false}
                 />
-                <YAxis stroke="#888" fontSize={11} tickLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#171717",
-                    borderColor: "#262626",
-                    borderRadius: "12px",
-                  }}
-                  labelStyle={{ fontWeight: "bold", color: "#fff" }}
+                  contentStyle={tooltipStyle}
+                  labelStyle={{ fontWeight: "bold", color: "hsl(var(--foreground))" }}
                 />
                 <Area
                   type="monotone"
@@ -262,13 +262,7 @@ export default function AdminAnalyticsDashboard() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#171717",
-                      borderColor: "#262626",
-                      borderRadius: "12px",
-                    }}
-                  />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -313,30 +307,24 @@ export default function AdminAnalyticsDashboard() {
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="#262626"
+                    stroke="hsl(var(--border))"
                     horizontal={false}
                   />
                   <XAxis
                     type="number"
-                    stroke="#888"
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={10}
                     tickLine={false}
                   />
                   <YAxis
                     dataKey="name"
                     type="category"
-                    stroke="#888"
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={10}
                     tickLine={false}
                     width={80}
                   />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#171717",
-                      borderColor: "#262626",
-                      borderRadius: "12px",
-                    }}
-                  />
+                  <Tooltip contentStyle={tooltipStyle} />
                   <Bar
                     dataKey="quantity"
                     fill="#3b82f6"
@@ -392,11 +380,7 @@ export default function AdminAnalyticsDashboard() {
                             ? formatPrice(val)
                             : String(val ?? "")
                         }
-                        contentStyle={{
-                          backgroundColor: "#171717",
-                          borderColor: "#262626",
-                          borderRadius: "12px",
-                        }}
+                        contentStyle={tooltipStyle}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -421,7 +405,7 @@ export default function AdminAnalyticsDashboard() {
                             {item.category}
                           </span>
                         </div>
-                        <span className="font-semibold text-white ml-2">
+                        <span className="font-semibold text-foreground ml-2">
                           {formatPrice(item.revenue)}
                         </span>
                       </div>
