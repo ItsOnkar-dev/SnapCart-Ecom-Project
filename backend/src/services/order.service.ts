@@ -4,6 +4,7 @@ import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 import { PopulatedCartItem } from "../types/cart.types";
 import { IShippingAddress } from "../types/order.types";
+import { invalidateAnalyticsCache } from "../utils/analyticsCache";
 import { ApiError } from "../utils/ApiResponse";
 import { Logger } from "../utils/logger";
 
@@ -119,6 +120,8 @@ export const placeOrderService = async (
 
     // Step 7 — Commit — all three writes land atomically
     await session.commitTransaction();
+
+    invalidateAnalyticsCache();
 
     Logger.info("Order placed", { orderId: order._id, userId });
 

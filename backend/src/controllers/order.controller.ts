@@ -7,6 +7,7 @@ import {
 } from "../services/order.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { invalidateAnalyticsCache } from "../utils/analyticsCache";
 
 // POST /api/orders
 export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
@@ -104,11 +105,8 @@ export const updateOrderStatus = asyncHandler(
       const session = await mongoose.startSession();
       session.startTransaction();
       try {
-        await restoreStockService(order._id, session); // use the service you already wrote
+        await restoreStockService(order._id, session);
         order.status = status;
-        // If the customer already paid, flag the payment for refund so
-        // admin can reconcile with Razorpay. Never silently keep
-        // "paid" state on a cancelled order.
         if (order.paymentStatus === "paid") {
           order.paymentStatus = "refund_pending";
         }
@@ -124,6 +122,9 @@ export const updateOrderStatus = asyncHandler(
       order.status = status;
       await order.save();
     }
+
+    invalidateAnalyticsCache();
+
     res
       .status(200)
       .json(new ApiResponse(200, `Order status updated to "${status}"`, order));
