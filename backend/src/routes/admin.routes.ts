@@ -6,7 +6,6 @@ import {
   updateSellerStatus,
 } from "../controllers/admin.controller";
 import { requireRole, verifyToken } from "../middleware/auth.middleware";
-import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { updateSellerStatusSchema } from "../validators/admin.validator";
 

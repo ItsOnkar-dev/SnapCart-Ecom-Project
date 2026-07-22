@@ -9,7 +9,6 @@ import {
     toggleWishlistShare,
 } from "../controllers/wishlist.controller";
 import { verifyToken } from "../middleware/auth.middleware";
-import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import {
     addToWishlistSchema,

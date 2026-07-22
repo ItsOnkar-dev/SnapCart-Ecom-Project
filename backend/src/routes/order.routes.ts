@@ -10,7 +10,6 @@ import {
   requireVerifiedEmail,
   verifyToken,
 } from "../middleware/auth.middleware";
-import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import {
   placeOrderSchema,
@@ -39,7 +38,6 @@ router.patch(
   "/:id/status",
   verifyToken,
   requireRole("admin", "seller"),
-  csrfProtection,
   validate(updateOrderStatusSchema),
   updateOrderStatus,
 );

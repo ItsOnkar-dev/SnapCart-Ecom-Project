@@ -18,7 +18,6 @@ import {
   googleCallback,
 } from "../controllers/googleAuth.controller";
 import { verifyToken } from "../middleware/auth.middleware";
-import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { ApiResponse } from "../utils/ApiResponse";
 import {
