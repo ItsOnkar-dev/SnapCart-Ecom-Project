@@ -12,7 +12,8 @@ export const placeOrderApi = (shippingAddress: ShippingAddress) =>
   api.post("/orders", { shippingAddress });
 
 // GET /api/orders — buyer sees their own orders only
-export const getOrdersApi = () => api.get("/orders");
+export const getOrdersApi = (page?: number) =>
+  api.get("/orders", { params: { page } });
 
 // GET /api/orders/:id
 export const getOrderByIdApi = (id: string) => api.get(`/orders/${id}`);

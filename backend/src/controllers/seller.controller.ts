@@ -6,6 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { auditLog } from "../utils/auditLogger";
 import { Logger } from "../utils/logger";
 import { sendSellerApplicationEmail } from "../utils/sendSellerApplicationEmail";
+import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
 
 // POST /api/seller/apply
 // Only customers can apply — sellers and admins already have elevated roles
@@ -56,15 +57,24 @@ export const getSellerProducts = asyncHandler(async (req: Request, res: Response
     throw new ApiError(401, "Unauthorized access");
   }
 
-  // Fetch products belonging ONLY to this specific seller, newest first
-  const products = await Product.find({ seller: sellerId }).sort({
-    createdAt: -1,
-  });
+  const { page, limit, skip } = getPaginationParams(
+    req.query as { page?: string; limit?: string },
+    { limit: 20, maxLimit: 100 },
+  );
+
+  const [products, total] = await Promise.all([
+    Product.find({ seller: sellerId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Product.countDocuments({ seller: sellerId }),
+  ]);
 
   res.status(200).json(
     new ApiResponse(200, "Seller products fetched successfully", {
-      count: products.length,
+      count: total,
       products,
+      pagination: buildPaginationResult(total, { page, limit, skip }),
     })
   );
 });

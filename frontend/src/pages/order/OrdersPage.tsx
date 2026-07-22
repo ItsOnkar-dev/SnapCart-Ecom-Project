@@ -1,4 +1,5 @@
 import { ChevronRight, PackageOpen } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,10 @@ const formatDate = (value: string) =>
   }).format(new Date(value));
 
 export default function OrdersPage() {
-  const { data: orders = [], isLoading, error } = useOrders();
+  const [orderPage, setOrderPage] = useState(1);
+  const { data, isLoading, error } = useOrders(orderPage);
+  const orders = data?.orders ?? [];
+  const pagination = data?.pagination;
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10">
@@ -95,6 +99,31 @@ export default function OrdersPage() {
                 </div>
               </Link>
             ))}
+
+            {/* ── Pagination ── */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-6">
+                <button
+                  type="button"
+                  disabled={!pagination.hasPrevPage}
+                  onClick={() => setOrderPage((p) => p - 1)}
+                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={!pagination.hasNextPage}
+                  onClick={() => setOrderPage((p) => p + 1)}
+                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import type { Product } from "./product.types";
+import type { PaginationResult } from "./api.types";
 
 export type OrderStatus =
   | "pending"
@@ -33,4 +34,9 @@ export interface Order {
   shippingAddress: ShippingAddress;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OrdersResponse {
+  orders: Order[];
+  pagination: PaginationResult;
 }

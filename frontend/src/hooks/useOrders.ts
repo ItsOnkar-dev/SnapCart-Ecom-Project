@@ -16,17 +16,16 @@ import type { OrderStatus, ShippingAddress } from "@/types/order.types";
 
 export const orderKeys = {
   all: ["orders"] as const,
-  list: ["orders", "list"] as const,
+  list: (page: number = 1) => ["orders", "list", page] as const,
   detail: (id: string) => ["orders", "detail", id] as const,
 };
 
 // GET /orders
-export function useOrders() {
+export function useOrders(page: number = 1) {
   return useQuery({
-    queryKey: orderKeys.list,
+    queryKey: orderKeys.list(page),
     queryFn: async () => {
-      const res = await getOrdersApi();
-      // res.data.data = Order[]
+      const res = await getOrdersApi(page);
       return res.data.data;
     },
     staleTime: 60 * 1000,
@@ -59,7 +58,7 @@ export function usePlaceOrder() {
       const order = res.data.data;
       // cart is empty server-side now — remove stale cache entirely
       queryClient.removeQueries({ queryKey: cartKeys.cart });
-      queryClient.invalidateQueries({ queryKey: orderKeys.list });
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order placed!");
       navigate(`/orders/${order._id}`);
     },
@@ -78,7 +77,7 @@ export function useUpdateOrderStatus(orderId: string) {
     mutationFn: (status: OrderStatus) => updateOrderStatusApi(orderId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
-      queryClient.invalidateQueries({ queryKey: orderKeys.list });
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order status updated.");
     },
     onError: (err: unknown) => {

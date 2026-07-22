@@ -8,6 +8,7 @@ import {
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { invalidateAnalyticsCache } from "../utils/analyticsCache";
+import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
 
 // POST /api/orders
 export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
@@ -36,18 +37,31 @@ export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
 
 // GET /api/orders
 export const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
-  const orders = await Order.find({ user: req.user!._id })
-    .sort({ createdAt: -1 })
-    .select("-__v");
+  const { page, limit, skip } = getPaginationParams(
+    req.query as { page?: string; limit?: string },
+    { limit: 10, maxLimit: 50 },
+  );
+
+  const [orders, total] = await Promise.all([
+    Order.find({ user: req.user!._id })
+      .sort({ createdAt: -1 })
+      .select("-__v")
+      .skip(skip)
+      .limit(limit),
+    Order.countDocuments({ user: req.user!._id }),
+  ]);
 
   if (orders.length === 0) {
-    res.status(200).json(new ApiResponse(200, "You have no orders yet", []));
+    res.status(200).json(new ApiResponse(200, "You have no orders yet", { orders: [], pagination: buildPaginationResult(0, { page, limit, skip }) }));
     return;
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Orders fetched successfully", orders));
+  res.status(200).json(
+    new ApiResponse(200, "Orders fetched successfully", {
+      orders,
+      pagination: buildPaginationResult(total, { page, limit, skip }),
+    }),
+  );
 });
 
 // GET /api/orders/:id
