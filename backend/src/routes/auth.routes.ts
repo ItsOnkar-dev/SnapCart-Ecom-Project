@@ -79,11 +79,10 @@ router.post("/resend-verification", passwordResetLimiter, resendVerification);
 router.post("/login", validate(loginSchema), login);
 router.post("/refresh", refreshLimiter, refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
-router.post("/logout", verifyToken, csrfProtection, logout);
+router.post("/logout", verifyToken, logout);
 router.patch(
   "/change-password",
   verifyToken,
-  csrfProtection,
   validate(changePasswordSchema),
   changePassword,
 );

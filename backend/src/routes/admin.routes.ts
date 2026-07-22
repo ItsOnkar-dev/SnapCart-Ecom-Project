@@ -19,7 +19,6 @@ router.patch(
   "/sellers/:id",
   verifyToken,
   requireRole("admin"),
-  csrfProtection,
   validate(updateSellerStatusSchema),
   updateSellerStatus,
 );

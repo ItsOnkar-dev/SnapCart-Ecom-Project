@@ -28,7 +28,6 @@ router.post(
   verifyToken,
   requireRole("admin"),
   requireVerifiedEmail,
-  csrfProtection,
   validate(placeOrderSchema),
   placeOrder,
 );

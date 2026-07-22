@@ -28,8 +28,8 @@ router.use(verifyToken);
 router.get("/", getWishlist);
 router.post("/add", validate(addToWishlistSchema), addToWishlist);
 router.delete("/remove/:productId", removeFromWishlist);
-router.post("/move-to-cart", csrfProtection, moveWishlistToCart);
-router.patch("/share", csrfProtection, validate(toggleWishlistShareSchema), toggleWishlistShare);
-router.post("/email", csrfProtection, validate(emailWishlistSchema), emailWishlist);
+router.post("/move-to-cart", moveWishlistToCart);
+router.patch("/share", validate(toggleWishlistShareSchema), toggleWishlistShare);
+router.post("/email", validate(emailWishlistSchema), emailWishlist);
 
 export default router;

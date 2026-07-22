@@ -19,15 +19,14 @@ const router = Router();
 // All cart routes require login — cart is personal
 router.use(verifyToken);
 
-router.post("/add", csrfProtection, validate(addToCartSchema), addToCart);
+router.post("/add", validate(addToCartSchema), addToCart);
 router.get("/", getCart);
 router.patch(
   "/:productId",
-  csrfProtection,
   validate(updateCartItemSchema),
   updateCartItem,
 );
-router.delete("/:productId", csrfProtection, removeFromCart);
-router.delete("/", csrfProtection, clearCart);
+router.delete("/:productId", removeFromCart);
+router.delete("/", clearCart);
 
 export default router;

@@ -92,12 +92,19 @@ app.use(generalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
-// ── CSRF — skip webhook ───────────────────────────────────────────────────────
+// ── CSRF — single enforcement point ────────────────────────────────────────────
+// This global middleware is the ONLY CSRF enforcement in the application.
+// Every state-changing request under /api (POST, PATCH, DELETE, PUT) is checked
+// against the double-submit cookie pattern — no exceptions except the Razorpay
+// webhook, which uses HMAC-SHA256 signature verification instead.
+//
+// Route files do NOT need to import or call csrfProtection individually.
+// If you add a new route file, CSRF is automatically applied by this middleware.
+//
 // Webhook is server-to-server from Razorpay — no CSRF token possible.
-// Security is handled by HMAC-SHA256 signature inside handleWebhook.
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-  if (req.path === "/payments/webhook") return next(); // skip CSRF for webhook
+  if (req.path === "/payments/webhook") return next();
   return csrfProtection(req, res, next);
 });
 
