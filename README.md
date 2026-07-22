@@ -27,7 +27,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
 ## 📋 Table of Contents
 
 - [🛒 SnapCart](#-snapcart)
-  - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
+    - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [🧩 About the Project](#-about-the-project)
   - [💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further](#-most-e-commerce-portfolio-projects-stop-at-add-to-cart-snapcart-goes-further)
@@ -52,6 +52,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
   - [📡 API at a Glance](#-api-at-a-glance)
   - [🔐 Security Highlights](#-security-highlights)
   - [🚧 Work in Progress](#-work-in-progress)
+  - [✅ Recently Completed](#-recently-completed)
   - [🗓 Roadmap](#-roadmap)
   - [📚 Documentation](#-documentation)
   - [🤝 Contributing](#-contributing)
@@ -476,6 +477,7 @@ Admin         GET  /api/admin/sellers
               GET  /api/admin/analytics
 
 Payments      POST /api/payments/order
+              POST /api/payments/verify
               POST /api/payments/webhook
 ```
 
@@ -489,7 +491,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ httpOnly cookies          — tokens never exposed to JavaScript
 ✅ Refresh-token rotation    — new token on every /refresh call
 ✅ Reuse detection           — replayed token clears all sessions
-✅ HMAC-SHA256 token hashing  — raw verification/reset tokens never stored in DB; hashed with secret key
+✅ HMAC-SHA256 token hashing — raw verification/reset tokens never stored in DB; hashed with secret key
 ✅ Double-submit CSRF        — timing-safe comparison on every mutation
 ✅ Helmet                    — secure HTTP headers out of the box
 ✅ Rate limiting             — 4 tiers: general (100), auth (20), password reset (5), refresh (60) per 10 min
@@ -508,7 +510,7 @@ These features are **partially built or actively being developed** — they exis
 
 | Area                  | Status         | Notes                                                                                   |
 | --------------------- | -------------- | --------------------------------------------------------------------------------------- |
-| Payment flow          | 🔨 In progress | Razorpay order creation is wired up; full webhook confirmation flow being finalized     |
+| Payment flow          | ✅ Complete    | Razorpay integration with order creation, webhook verification, and idempotency         |
 | Seller dashboard UI   | 🔨 In progress | Product management works; seller analytics view still being designed                    |
 | Profile page          | 🔨 In progress | Page exists; edit-profile and avatar upload not yet complete                            |
 | Admin moderation      | 🔨 In progress | Seller approve/reject works; bulk actions and filters still to come                     |
@@ -518,17 +520,29 @@ These features are **partially built or actively being developed** — they exis
 
 ---
 
+## ✅ Recently Completed
+
+These features were planned and are now fully implemented:
+
+- [x] **Razorpay payment integration** — full order creation, webhook, signature verification
+- [x] **CI/CD pipeline** — GitHub Actions running type-check, lint and build on every push
+- [x] **Multi-image upload** — product gallery with multiple Cloudinary images per listing
+- [x] **Dark mode** — system-aware theme toggle persisted across sessions
+- [x] **AI recommendations** — related, frequently-bought-together, and personalized rails
+- [x] **Pagination** — URL-based pagination with filters preserved across pages
+
+---
+
 ## 🗓 Roadmap
 
 These are **planned upcoming features** — not yet started, but on the list:
 
+- [ ] **Monolith to microservices migration** — decomposing the monolithic backend into decoupled, domain-specific services (e.g., Auth, Inventory, Ordering) to improve scalability and fault isolation
+- [ ] **API Gateway implementation** — deploying a central API Gateway (such as Kong, Apache APISIX, or KrakenD) to act as the single entry point for routing, authentication, rate limiting, and load balancing across services
 - [ ] **Automated test suite** — unit tests for services, integration tests for auth and checkout flows
 - [ ] **Real-time order notifications** — WebSocket or SSE so buyers see status changes instantly without refreshing
 - [ ] **Advanced search** — full-text search powered by MongoDB Atlas Search or Elasticsearch
-- [ ] **CI/CD pipeline** — GitHub Actions to run lint, type-check, and tests automatically on every pull request
 - [ ] **Coupon / discount system** — promo codes with expiry dates, usage limits, and per-category rules
-- [ ] **Multi-image upload** — product gallery with multiple images per listing
-- [ ] **Dark mode** — light/dark theme toggle that persists the user's preference across sessions
 
 Have an idea or want to help build one of these? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
 
