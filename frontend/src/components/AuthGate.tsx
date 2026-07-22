@@ -1,27 +1,35 @@
 // src/components/AuthGate.tsx
-import { Spinner } from "@/components/ui/spinner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router"; // Use "react-router" to match your router package
 import { useAuthStore } from "../store/auth.store";
+import { Logo } from "./home/Logo";
 
-export const AuthGate = ({ children }: { children: React.ReactNode }) => {
+export const AuthGate = () => {
   const initAuth = useAuthStore((s) => s.initAuth);
   const isAuthLoading = useAuthStore((s) => s.isAuthLoading);
 
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
   useEffect(() => {
     initAuth();
+
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [initAuth]);
 
-  if (isAuthLoading) {
+  if (isAuthLoading || !minTimeElapsed) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-        <Spinner className="w-10 h-10 animate-spin text-indigo-300" />
-        <p className="text-sm font-medium text-slate-500">
-          Loading SnapCart...
-        </p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse duration-1000">
+          <Logo className="scale-150" />
+        </div>
       </div>
     );
   }
 
-  // Only render routes once we know if the user is authenticated or not
-  return <>{children}</>;
+  // Once loading is finished, render the current route via Outlet
+  return <Outlet />;
 };

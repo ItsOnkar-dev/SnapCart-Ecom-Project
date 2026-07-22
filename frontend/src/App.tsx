@@ -2,6 +2,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import Header from "@/components/layout/header/Header";
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
+import { AuthGate } from "./components/AuthGate";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
@@ -64,84 +65,89 @@ function MainLayout() {
 
 const router = createBrowserRouter([
   {
-    element: <AuthLayout />,
+    element: <AuthGate />,
     children: [
       {
-        path: "/login",
-        element: <LoginPage />,
-      },
-      {
-        path: "/register",
-        element: <RegisterPage />,
-      },
-      {
-        path: "/forgot-password",
-        element: <ForgotPasswordPage />,
-      },
-      {
-        path: "/verify-email",
-        element: <VerifyEmailPage />,
-      },
-      {
-        path: "/reset-password",
-        element: <ResetPasswordPage />,
-      },
-    ],
-  },
-
-  // ── everything else gets the Header ───────────────────────────────────────
-  {
-    element: <MainLayout />,
-    children: [
-      {
-        path: "/",
-        element: <HomePage />,
-      },
-      {
-        path: "/wishlist/share/:shareId",
-        element: <WishlistSharePage />,
-      },
-      {
-        path: "/admin/review-seller",
-        element: <ReviewSellerRedirect />,
-      },
-      { path: "/products", element: <ProductsPage /> },
-      { path: "/products/:id", element: <ProductDetailPage /> },
-      { path: "/unauthorized", element: <Unauthorized /> },
-      { path: "*", element: <NotFound /> },
-
-      // ── protected: any authenticated user ───────────────────────────────
-      {
-        element: <ProtectedRoute />,
+        element: <AuthLayout />,
         children: [
-          { path: "/cart", element: <CartPage /> },
-          { path: "/payment-success", element: <PaymentSuccess /> },
-          { path: "/orders", element: <OrdersPage /> },
-          { path: "/orders/:id", element: <OrderDetailPage /> },
-          { path: "/profile", element: <ProfilePage /> },
-          { path: "/account", element: <ProfilePage /> },
-          { path: "/seller/apply", element: <SellerApplyPage /> },
-          { path: "/sell", element: <SellerApplyPage /> },
           {
-            path: "/wishlist",
-            element: <WishlistPage />,
+            path: "/login",
+            element: <LoginPage />,
           },
-
           {
-            element: <RoleRoute allowedRoles={["seller", "admin"]} />,
-            children: [
-              // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
-              { path: "/seller/products", element: <SellerProductsPage /> },
-            ],
+            path: "/register",
+            element: <RegisterPage />,
           },
-
           {
-            element: <RoleRoute allowedRoles={["admin"]} />,
+            path: "/forgot-password",
+            element: <ForgotPasswordPage />,
+          },
+          {
+            path: "/verify-email",
+            element: <VerifyEmailPage />,
+          },
+          {
+            path: "/reset-password",
+            element: <ResetPasswordPage />,
+          },
+        ],
+      },
+
+      // ── everything else gets the Header ───────────────────────────────────────
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            path: "/",
+            element: <HomePage />,
+          },
+          {
+            path: "/wishlist/share/:shareId",
+            element: <WishlistSharePage />,
+          },
+          {
+            path: "/admin/review-seller",
+            element: <ReviewSellerRedirect />,
+          },
+          { path: "/products", element: <ProductsPage /> },
+          { path: "/products/:id", element: <ProductDetailPage /> },
+          { path: "/unauthorized", element: <Unauthorized /> },
+          { path: "*", element: <NotFound /> },
+
+          // ── protected: any authenticated user ───────────────────────────────
+          {
+            element: <ProtectedRoute />,
             children: [
-              { path: "/admin/sellers", element: <AdminSellersPage /> },
+              { path: "/cart", element: <CartPage /> },
+              { path: "/payment-success", element: <PaymentSuccess /> },
+              { path: "/orders", element: <OrdersPage /> },
+              { path: "/orders/:id", element: <OrderDetailPage /> },
+              { path: "/profile", element: <ProfilePage /> },
+              { path: "/account", element: <ProfilePage /> },
+              { path: "/seller/apply", element: <SellerApplyPage /> },
+              { path: "/sell", element: <SellerApplyPage /> },
               {
-                path: "/admin/analytics",
-                element: <AdminAnalyticsDashboard />,
+                path: "/wishlist",
+                element: <WishlistPage />,
+              },
+
+              {
+                element: <RoleRoute allowedRoles={["seller", "admin"]} />,
+                children: [
+                  // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
+                  { path: "/seller/products", element: <SellerProductsPage /> },
+                ],
+              },
+
+              {
+                element: <RoleRoute allowedRoles={["admin"]} />,
+                children: [
+                  { path: "/admin/sellers", element: <AdminSellersPage /> },
+                  {
+                    path: "/admin/analytics",
+                    element: <AdminAnalyticsDashboard />,
+                  },
+                ],
               },
             ],
           },
