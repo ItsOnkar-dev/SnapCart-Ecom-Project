@@ -26,10 +26,20 @@ app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100, // Razorpay sends at most a handful per minute
+  message: "Too many webhook requests",
+});
+
 //  Raw body parser for Razorpay webhook. This middleware ONLY applies to /api/payments/webhook. Razorpay computes its webhook signature on the raw request body. If express.json() runs first, req.body becomes a parsed JS object and
 // JSON.stringify() on it may produce a different string (key order, whitespace),
 // breaking signature verification. Raw Buffer is the only safe option.
-app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+app.use(
+  "/api/payments/webhook",
+  webhookLimiter,
+  express.raw({ type: "application/json" }),
+);
 
 // Body Parsing
 app.use(express.json({ limit: "10kb" }));
