@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import Razorpay from "razorpay";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
+import { Product } from "../models/product.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Logger } from "../utils/logger";
@@ -195,6 +196,18 @@ export const verifyPayment = asyncHandler(
       throw new ApiError(404, "Order not found. Please contact support.");
     }
 
+    // ── Decrement stock atomically ─────────────────────────────────────────
+    // Use findOneAndUpdate with stock guard to avoid overselling in race conditions.
+    for (const item of order.items) {
+      await Product.findOneAndUpdate(
+        {
+          _id: item.product,
+          stock: { $gte: item.quantity },
+        },
+        { $inc: { stock: -item.quantity } },
+      );
+    }
+
     // ── Clear the cart now that order is confirmed ─────────────────────────
     await Cart.findOneAndUpdate(
       { user: req.user!._id },
@@ -321,6 +334,17 @@ export const handleWebhook = async (
         });
         res.status(200).json({ received: true });
         return;
+      }
+
+      // ── Decrement stock atomically ──────────────────────────────────────
+      for (const item of order.items) {
+        await Product.findOneAndUpdate(
+          {
+            _id: item.product,
+            stock: { $gte: item.quantity },
+          },
+          { $inc: { stock: -item.quantity } },
+        );
       }
 
       // Clear the cart — user's tab is closed so we can't do this client-side

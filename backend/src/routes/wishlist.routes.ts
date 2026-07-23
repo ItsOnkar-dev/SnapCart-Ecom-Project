@@ -30,13 +30,11 @@ router.post(
   "/add",
   validate(addToWishlistSchema),
   csrfProtection,
-  verifyToken,
   addToWishlist,
 );
 router.delete(
   "/remove/:productId",
   csrfProtection,
-  verifyToken,
   removeFromWishlist,
 );
 router.post("/move-to-cart", moveWishlistToCart);

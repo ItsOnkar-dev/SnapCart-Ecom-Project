@@ -485,7 +485,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 ---
 
-## 🔐 Security Highlights
+## 🛡 Security Highlights
 
 ```
 ✅ httpOnly cookies          — tokens never exposed to JavaScript
@@ -501,6 +501,78 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ Upload safety             — MIME check + size limit + memory-only storage
 ✅ Audit logging             — every sensitive event is recorded
 ```
+
+### CSRF Protection — Double-Submit Cookie Pattern
+
+**What CSRF protects against:** Imagine you're logged into SnapCart in one tab. Your browser holds your `accessToken` and `refreshToken` cookies. Now you visit a malicious website in another tab. That site secretly sends a `POST /api/wishlist/add` from your browser. Your browser **automatically attaches your SnapCart cookies** to that request. The server sees valid cookies → thinks it's you → executes the action. You never clicked anything.
+
+**How the fix works:**
+
+1. **Token injection (non-httpOnly cookie):**
+    - On page load, the frontend calls `GET /api/auth/csrf-token`
+    - The backend responds with `Set-Cookie: csrfToken=<64-hex-char-token>` — **`httpOnly: false`** by design
+    - `httpOnly: false` is required — the frontend JavaScript reads the cookie via `document.cookie` and sends it as the `x-csrf-token` header on every state-changing request
+
+2. **Why `httpOnly: false` isn't a security problem:**
+    - The CSRF token is **not** a secret in the traditional sense — it's a session-bound value that the server echoes back
+    - If an attacker had XSS access to read `document.cookie`, they'd already own the session (they could read the **real** secrets: `accessToken` and `refreshToken` in httpOnly cookies)
+    - The CSRF token's job is specifically to defeat **cross-origin** requests — requests that come without the attacker having any ability to read the cookie
+
+3. **Frontend attachment (axios interceptor):**
+    ```typescript
+    api.interceptors.request.use(async (config) => {
+      if (method !== "GET") {
+        const token = readCookie("csrfToken");
+        if (token) config.headers.set("x-csrf-token", token);
+      }
+      return config;
+    });
+    ```
+    - Every `POST`/`PATCH`/`DELETE`/`PUT` request automatically gets `x-csrf-token` header
+    - Token is cached in memory and refreshed when the cookie expires (1 hour)
+
+4. **Backend validation (timing-safe comparison):**
+    ```typescript
+    const cookieToken = req.cookies?.csrfToken;
+    const headerToken = req.get("x-csrf-token");
+    crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(cookieToken));
+    ```
+    - `crypto.timingSafeEqual` prevents timing attacks — attacker cannot brute-force the token character-by-character
+    - Length pre-check prevents unnecessary comparison on mismatched-length inputs
+
+5. **Global enforcement — single point of control:**
+    ```typescript
+    app.use("/api", (req, res, next) => {
+      if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+      if (req.path === "/payments/webhook") return next();  // server-to-server, uses HMAC-SHA256
+      return csrfProtection(req, res, next);
+    });
+    ```
+    - The CSRF check runs **before** any route handler — a single middleware protects **every** mutation across auth, cart, orders, products, reviews, wishlist, payments, seller, and admin routes
+    - New routes automatically get CSRF protection — no per-route imports needed
+    - The Razorpay webhook is exempted (Razorpay signs with HMAC-SHA256 on the raw request body, which is a stronger guarantee than any cookie-based CSRF token)
+
+6. **Why the attacker can't bypass:**
+    - The malicious site can trigger a `POST /api/wishlist/add` from the victim's browser
+    - Cookies are automatically attached — that part works for the attacker
+    - But the attacker **cannot read** the `csrfToken` cookie value (blocked by **Same-Origin Policy** — the attacker's `evil.com` JavaScript cannot read `snapcart.com`'s cookies)
+    - So the attacker cannot set the `x-csrf-token` header to the correct value
+    - The server sees valid cookies + missing/wrong `x-csrf-token` → **403 Invalid CSRF token** → request rejected
+
+**Coverage — all state-changing routes are protected:**
+
+| Route Group   | Endpoints                                                                 |
+|---------------|---------------------------------------------------------------------------|
+| Auth          | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `POST /auth/resend-verification` |
+| Cart          | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`  |
+| Orders        | `POST /orders`, `PATCH /orders/:id/status`                                |
+| Products      | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`           |
+| Reviews       | `POST /reviews/:productId`, `DELETE /reviews/:id`                         |
+| Wishlist      | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email` |
+| Payments      | `POST /payments/create-order`, `POST /payments/verify`                     |
+| Seller        | `POST /seller/apply`                                                       |
+| Admin         | `PATCH /admin/sellers/:id`                                                 |
+| **Exempted**  | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                  |
 
 ---
 
