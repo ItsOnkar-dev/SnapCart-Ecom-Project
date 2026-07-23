@@ -1,6 +1,7 @@
 import AuthLayout from "@/components/layout/AuthLayout";
 import Header from "@/components/layout/header/Header";
-import { lazy, Suspense } from "react";
+import { api } from "@/lib/axios";
+import { lazy, Suspense, useEffect } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import { AuthGate } from "./components/AuthGate";
 import Footer from "./components/layout/Footer";
@@ -54,6 +55,13 @@ const ReviewSellerRedirect = lazy(
 
 // ── layout wrapper — Header + page content via Outlet ────────────────────────
 function MainLayout() {
+  useEffect(() => {
+    // Fetch CSRF token once on app load — sets the csrfToken cookie
+    // Every subsequent POST/PATCH/DELETE will read it via the axios interceptor
+    api.get("/auth/csrf-token").catch(() => {
+      console.warn("Could not fetch CSRF token");
+    });
+  }, []);
   return (
     <>
       <Header />
