@@ -5,6 +5,7 @@ import {
   getProductReviews,
 } from "../controllers/review.controller";
 import { verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { createReviewSchema } from "../validators/review.validator";
 
@@ -16,10 +17,11 @@ router.get("/:productId", getProductReviews);
 // Must be logged in to write or delete
 router.post(
   "/:productId",
+  csrfProtection,
   verifyToken,
   validate(createReviewSchema),
   createReview,
 );
-router.delete("/:id", verifyToken, deleteReview);
+router.delete("/:id", csrfProtection, verifyToken, deleteReview);
 
 export default router;

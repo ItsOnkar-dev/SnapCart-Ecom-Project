@@ -18,6 +18,7 @@ import {
   googleCallback,
 } from "../controllers/googleAuth.controller";
 import { verifyToken } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { ApiResponse } from "../utils/ApiResponse";
 import {
@@ -56,27 +57,25 @@ const refreshLimiter = rateLimit({
 });
 
 router.get("/csrf-token", (req, res) => {
-  // 1. Generate a secure random token
   const token = crypto.randomBytes(32).toString("hex");
   const isProduction = process.env.NODE_ENV === "production";
-  // 2. Set the token as an httpOnly cookie
   res
-    .cookie("csrfToken", token, {
-      httpOnly: true,
+    .cookie("csrfToken", token, {  // non-httpOnly cookie (JS reads via document.cookie)
+      httpOnly: false,  // JS must be able to read it
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       path: "/",
       maxAge: 60 * 60 * 1000,
     })
     .status(200)
-    .json(new ApiResponse(200, "CSRF token generated", { csrfToken: token }));
+    .json(new ApiResponse(200, "CSRF token generated"));
 });
 
 router.post("/register", validate(registerSchema), register);
 router.get("/verify-email", verifyEmail);
 router.post("/resend-verification", passwordResetLimiter, resendVerification);
 router.post("/login", validate(loginSchema), login);
-router.post("/refresh", refreshLimiter, refreshAccessToken);
+router.post("/refresh", csrfProtection, refreshLimiter, refreshAccessToken);
 router.get("/me", verifyToken, getCurrentUser);
 router.post("/logout", verifyToken, logout);
 router.patch(
