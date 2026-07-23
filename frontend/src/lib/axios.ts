@@ -13,8 +13,11 @@ const getCsrfToken = async (): Promise<string | null> => {
       .get(`${import.meta.env.VITE_API_URL}/auth/csrf-token`, {
         withCredentials: true,
       })
-      .then((res) => {
-        csrfToken = res.data?.data?.csrfToken ?? null;
+      .then(() => {
+        const match = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("csrfToken="));
+        csrfToken = match ? decodeURIComponent(match.split("=")[1]) : null;
         return csrfToken;
       })
       .catch(() => null)
