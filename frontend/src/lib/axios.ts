@@ -85,10 +85,22 @@ api.interceptors.response.use(
     try {
       // Use a raw axios call, NOT `api`, so this request never
       // passes back through this same interceptor chain.
+      // Read CSRF token from cookie manually — the request interceptor that
+      // normally attaches x-csrf-token won't run on this raw call.
+      const csrfFromCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("csrfToken="))
+        ?.split("=")[1];
+
+      const refreshHeaders: Record<string, string> = {};
+      if (csrfFromCookie) {
+        refreshHeaders["x-csrf-token"] = csrfFromCookie;
+      }
+
       await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/refresh`,
         {},
-        { withCredentials: true },
+        { withCredentials: true, headers: refreshHeaders },
       );
       processQueue(null);
       return api(originalRequest);
