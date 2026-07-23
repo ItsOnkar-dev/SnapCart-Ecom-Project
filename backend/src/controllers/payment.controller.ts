@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import Razorpay from "razorpay";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
-import { placeOrderService } from "../services/order.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Logger } from "../utils/logger";
@@ -24,6 +23,19 @@ export const createRazorpayOrder = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!._id;
 
+    const { shippingAddress } = req.body;
+
+    if (
+      !shippingAddress?.fullName ||
+      !shippingAddress?.phone ||
+      !shippingAddress?.street ||
+      !shippingAddress?.city ||
+      !shippingAddress?.state ||
+      !shippingAddress?.pincode
+    ) {
+      throw new ApiError(400, "Complete shipping address is required");
+    }
+
     // Fetch cart with populated product details
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
@@ -36,6 +48,8 @@ export const createRazorpayOrder = asyncHandler(
     const SHIPPING_COST = 49;
 
     let subtotal = 0;
+    const orderItems = [];
+
     for (const item of cart.items) {
       const product = item.product as any;
 
@@ -53,6 +67,15 @@ export const createRazorpayOrder = asyncHandler(
           : product.price;
 
       subtotal += price * item.quantity;
+
+      // Build order items while we're already looping
+      orderItems.push({
+        product: product._id,
+        name: product.name,
+        price,
+        quantity: item.quantity,
+        image: product.images?.[0] ?? "",
+      });
     }
 
     const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
@@ -69,6 +92,22 @@ export const createRazorpayOrder = asyncHandler(
       notes: {
         userId: userId.toString(),
       },
+    });
+    // save a pending Order to DB immediately
+    // If the user pays but closes the tab before /verify completes,
+    // the webhook can find this order by razorpayOrderId and confirm it —
+    // because the shippingAddress is already saved here.
+    await Order.create({
+      user: userId,
+      items: orderItems,
+      shippingAddress,
+      subtotal,
+      shipping,
+      totalPrice: total,
+      paymentMethod: "razorpay",
+      paymentStatus: "pending", // ← will be updated to "paid" by /verify or webhook
+      status: "pending", // ← will be updated to "confirmed" by /verify or webhook
+      razorpayOrderId: razorpayOrder.id,
     });
 
     res.status(200).json(
@@ -92,29 +131,10 @@ export const createRazorpayOrder = asyncHandler(
 // ─────────────────────────────────────────────────────────────────────────────
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response) => {
-    const {
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
-      shippingAddress,
-      subtotal,
-      shipping,
-      total,
-    } = req.body;
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
       throw new ApiError(400, "Missing payment verification fields");
-    }
-
-    if (
-      !shippingAddress?.fullName ||
-      !shippingAddress?.phone ||
-      !shippingAddress?.street ||
-      !shippingAddress?.city ||
-      !shippingAddress?.state ||
-      !shippingAddress?.pincode
-    ) {
-      throw new ApiError(400, "Complete shipping address is required");
     }
 
     // ── Signature verification ─────────────────────────────────────────────
@@ -148,43 +168,51 @@ export const verifyPayment = asyncHandler(
       return;
     }
 
-    // ── Payment is genuine — now create the actual DB order ───────────────
-    try {
-      const order = await placeOrderService(req.user!._id, shippingAddress, {
-        paymentMethod: "razorpay",
+    // ── Find the pending order saved in create-order step ─────────────────
+    const order = await Order.findOneAndUpdate(
+      {
+        razorpayOrderId,
+        user: req.user!._id,
+        status: "pending", // safety: only update if still pending
+        paymentStatus: "pending",
+      },
+      {
         paymentStatus: "paid",
         status: "confirmed",
-        razorpayOrderId,
-        razorpayPaymentId,
-        subtotal,
-        shipping,
-        total,
-      });
+        razorpayPaymentId, // attach payment ID now that we have it
+      },
+      { new: true },
+    );
 
-      res.status(201).json(
-        new ApiResponse(201, "Payment verified and order placed successfully", {
-          orderId: order._id,
-          razorpayPaymentId,
-        }),
-      );
-    } catch (err) {
-      // Log for manual reconciliation if backend DB fails but user was charged
-      Logger.error("[PAYMENT/ORPHAN] Paid but order creation failed", {
-        userId: req.user!._id.toString(),
+    if (!order) {
+      // Pending order not found — log for investigation
+      Logger.error("[PAYMENT/VERIFY] Pending order not found", {
         razorpayOrderId,
-        razorpayPaymentId,
-        error: err instanceof Error ? err.message : err,
+        userId: req.user!._id.toString(),
       });
-      throw err;
+      throw new ApiError(404, "Order not found. Please contact support.");
     }
+
+    // ── Clear the cart now that order is confirmed ─────────────────────────
+    await Cart.findOneAndUpdate(
+      { user: req.user!._id },
+      { $set: { items: [] } },
+    );
+
+    res.status(200).json(
+      new ApiResponse(201, "Payment verified and order placed successfully", {
+        orderId: order._id,
+        razorpayPaymentId,
+      }),
+    );
   },
 );
 
 // POST /api/payments/webhook
 //
 // Called directly by Razorpay — NOT by your frontend.
-// This is the safety net for when the user pays but closes the tab before
-// /verify is called. Razorpay retries this endpoint until it gets a 200.
+// This is the safety net for when the user pays but closes the tab before /verify is called.
+// Razorpay retries this endpoint until it gets a 200.
 //
 // CRITICAL differences from /verify:
 //  1. No verifyToken — Razorpay has no user session cookie
@@ -267,37 +295,51 @@ export const handleWebhook = async (
         return;
       }
 
-      // Fetch the Razorpay order to get the userId from notes
-      // (we embedded it in createRazorpayOrder for exactly this purpose)
-      const rzpOrder = await razorpay.orders.fetch(razorpayOrderId);
-      const userId = (rzpOrder.notes as any)?.userId;
-
-      if (!userId) {
-        Logger.error("Webhook: no userId in Razorpay order notes", {
+      // ── NEW: find the pending order and confirm it ──────────────────────
+      // This works because create-order already saved the order with
+      // shippingAddress + razorpayOrderId. No manual reconciliation needed.
+      const order = await Order.findOneAndUpdate(
+        {
           razorpayOrderId,
+          status: "pending",
+          paymentStatus: "pending",
+        },
+        {
+          paymentStatus: "paid",
+          status: "confirmed",
+          razorpayPaymentId,
+        },
+        { new: true },
+      );
+
+      if (!order) {
+        Logger.error("Webhook: pending order not found for razorpayOrderId", {
+          razorpayOrderId,
+          razorpayPaymentId,
         });
         res.status(200).json({ received: true });
         return;
       }
 
-      Logger.error(
-        "Webhook: payment captured but no shippingAddress available for fallback order creation. " +
-          "Manual reconciliation required.",
-        {
-          razorpayPaymentId,
-          razorpayOrderId,
-          userId,
-          amount: payment.amount / 100,
-        },
+      // Clear the cart — user's tab is closed so we can't do this client-side
+      await Cart.findOneAndUpdate(
+        { user: order.user },
+        { $set: { items: [] } },
       );
 
-      // Respond 200 so Razorpay stops retrying — we've logged it
+      Logger.info("Webhook: order confirmed successfully", {
+        orderId: order._id,
+        razorpayPaymentId,
+        userId: order.user,
+      });
+
       res.status(200).json({ received: true });
     } catch (err) {
       Logger.error("Webhook: error processing payment.captured", {
         razorpayPaymentId,
         error: err instanceof Error ? err.message : err,
       });
+      // Still 200 — prevent Razorpay from retrying indefinitely
       res.status(200).json({ received: true });
     }
 
@@ -307,6 +349,17 @@ export const handleWebhook = async (
   // Handle payment.failed
   if (eventType === "payment.failed") {
     const payment = event?.payload?.payment?.entity;
+
+    // Mark the pending order as failed so it doesn't sit as "pending" forever
+    if (payment?.order_id) {
+      await Order.findOneAndUpdate(
+        { razorpayOrderId: payment.order_id, status: "pending" },
+        { paymentStatus: "failed", status: "cancelled" },
+      ).catch((err) =>
+        Logger.error("Webhook: failed to mark order as cancelled", { err }),
+      );
+    }
+
     Logger.info("Webhook: payment failed", {
       paymentId: payment?.id,
       orderId: payment?.order_id,
