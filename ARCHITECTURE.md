@@ -669,23 +669,29 @@ All other state (server data) lives in React Query caches. No Redux, no addition
 | File Uploads     | MIME validation, 5MB limit, memory-only storage (no disk)      |
 | Webhook          | HMAC-SHA256 signature verification on raw request body         |
 
-### CSRF Protection
+### CSRF Protection (Double-Submit Cookie Pattern)
 
 ```
 1. GET /auth/csrf-token
-   → Sets csrfToken as httpOnly cookie
-   → Returns csrfToken in response body
+   → Sets csrfToken as non-httpOnly cookie (JS must read via document.cookie)
+   → No CSRF token in response body (cookie is the source of truth)
 
-2. Frontend Axios interceptor reads the token from response
+2. Frontend Axios interceptor reads the cookie on first non-GET request
    → Caches it in memory (csrfToken variable)
 
 3. Every mutating request (POST/PATCH/DELETE):
    → Attaches x-csrf-token header with the cached value
 
-4. csrfProtection middleware:
+4. Global csrfProtection middleware (app.ts — single enforcement point):
    → Compares x-csrf-token header against csrfToken cookie
    → Uses crypto.timingSafeEqual (timing-safe comparison)
    → If mismatch → 403
+
+5. Why non-httpOnly is correct:
+   - CSRF token defeats cross-origin requests, not XSS
+   - If an attacker has XSS, httpOnly cookies don't help (real secrets: accessToken/refreshToken are httpOnly)
+   - Attacker's cross-origin request cannot read the csrfToken cookie (Same-Origin Policy)
+   - So the attacker cannot set the x-csrf-token header correctly → request rejected
 ```
 
 ### JWT Token Architecture
@@ -730,13 +736,24 @@ CART PAGE                     FRONTEND                    BACKEND               
    │  clicks "Place Order"       │                          │                             │
    │────────────────────────────►│                          │                             │
    │                             │  POST /payments/create-order                           │
+   │                             │  { shippingAddress }     │                             │
    │                             │─────────────────────────►│                             │
+   │                             │                          │  Validate shippingAddress   │
    │                             │                          │  Calculate total server-side│
    │                             │                          │  (NEVER trust frontend)     │
+   │                             │                          │  Validate stock             │
    │                             │                          │  Create Razorpay order      │
    │                             │                          │────────────────────────────►│
    │                             │                          │◄── { order_id, amount }    │
-   │                             │◄── { orderId, keyId }    │                             │
+   │                             │                          │                             │
+   │                             │                          │  Save pending Order to DB   │
+   │                             │                          │  (with shippingAddress,     │
+   │                             │                          │   status: "pending",        │
+   │                             │                          │   paymentStatus: "pending") │
+   │                             │                          │                             │
+   │                             │◄── { orderId, keyId,    │                             │
+   │                             │      subtotal, shipping, │                             │
+   │                             │      total }             │                             │
    │                             │                          │                             │
    │                             │  Load Razorpay popup     │                             │
    │                             │  (dynamically loads      │                             │
@@ -749,21 +766,51 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │  POST /payments/verify   │                             │
    │                             │  { razorpayOrderId,      │                             │
    │                             │    razorpayPaymentId,    │                             │
-   │                             │    razorpaySignature,    │                             │
-   │                             │    shippingAddress }     │                             │
+   │                             │    razorpaySignature }   │                             │
    │                             │─────────────────────────►│                             │
+   │                             │                          │  Wait 10s (anti-race)      │
    │                             │                          │  Verify HMAC-SHA256 sig     │
    │                             │                          │  Check idempotency          │
-   │                             │                          │  placeOrderService():       │
-   │                             │                          │    MongoDB transaction      │
-   │                             │                          │    ├── decrement stock      │
-   │                             │                          │    ├── create order         │
-   │                             │                          │    └── clear cart           │
+   │                             │                          │  Find + confirm pending     │
+   │                             │                          │  order                      │
+   │                             │                          │  Decrement stock            │
+   │                             │                          │  Clear cart                 │
    │                             │                          │                             │
    │                             │◄── { orderId }           │                             │
    │                             │                          │                             │
    │  Redirect to /payment-success                           │                             │
    │◄────────────────────────────│                          │                             │
+```
+
+### Webhook Recovery (Tab-Close Path)
+
+If the user's tab is closed after payment but before `/verify` completes:
+
+```
+Razorpay                    BACKEND
+   │                          │
+   │  POST /payments/webhook  │
+   │  (payment.captured)      │
+   │─────────────────────────►│
+   │                          │  Verify HMAC-SHA256 signature
+   │                          │  (raw request body)
+   │                          │
+   │                          │  Check idempotency — skip if
+   │                          │  /verify already processed this
+   │                          │
+   │                          │  Find pending order by
+   │                          │  razorpayOrderId (saved in
+   │                          │  create-order step with full
+   │                          │  shippingAddress)
+   │                          │
+   │                          │  Confirm order:
+   │                          │  ├── status → "confirmed"
+   │                          │  ├── paymentStatus → "paid"
+   │                          │  ├── attach razorpayPaymentId
+   │                          │  ├── decrement stock
+   │                          │  └── clear cart
+   │                          │
+   │◄── 200 { received: true }│
 ```
 
 ### Atomic Checkout (MongoDB Transaction)
@@ -786,8 +833,13 @@ If any step fails (insufficient stock, product deactivated), `session.abortTrans
 
 If the user closes the browser tab after payment but before `/verify` completes, Razorpay's server-to-server webhook (`payment.captured`) catches it. The webhook handler:
 1. Verifies HMAC-SHA256 signature on the raw request body
-2. Checks idempotency (skips if order already exists)
-3. Logs the event for manual reconciliation if shipping address is unavailable
+2. Checks idempotency (skips if `/verify` already processed this payment)
+3. Finds the pending order by `razorpayOrderId` (saved in `createRazorpayOrder` with full shipping address)
+4. Confirms the order (updates status + paymentStatus)
+5. Atomically decrements stock for each item
+6. Clears the user's cart
+
+This works because `createRazorpayOrder` now saves the pending Order to MongoDB (with `shippingAddress`) **before** the user sees the Razorpay popup, so the webhook always has everything it needs.
 
 ### Shipping Policy
 
@@ -1112,9 +1164,9 @@ The rotating USP bar (`StatusBar`) is imported in `Header.tsx` but commented out
 
 The COD (Cash on Delivery) order placement (`POST /orders`) requires admin role — meaning customers cannot place COD orders through the API. Only Razorpay payment flow is available to customers.
 
-### 7. Webhook Incomplete Checkout Handling
+### 7. Webhook Incomplete Checkout Handling (Fixed)
 
-The Razorpay webhook handler (`payment.captured`) logs paid-but-unordered transactions for manual reconciliation but cannot automatically create the order because it doesn't have the shipping address — the user would have provided it to the frontend, not Razorpay.
+The Razorpay webhook handler (`payment.captured`) previously logged paid-but-unordered transactions for manual reconciliation. **Fixed:** `createRazorpayOrder` now saves the pending Order with `shippingAddress` to MongoDB before the Razorpay popup opens. The webhook can find and confirm the order atomically — decrementing stock and clearing the cart. No manual reconciliation needed.
 
 ### 8. No Automated Tests
 
