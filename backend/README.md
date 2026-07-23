@@ -422,7 +422,7 @@ If `EMAIL_VERIFICATION_DEMO_MODE=true` (or if Resend delivery fails), the backen
 
 ### Orders — Atomic Checkout
 
-Checkout runs inside a **MongoDB transaction**:
+Checkout (COD/admin) runs inside a **MongoDB transaction**:
 
 ```
 1. Validate cart items and current stock
@@ -430,6 +430,34 @@ Checkout runs inside a **MongoDB transaction**:
 3. Create order snapshot        →  captures name, price, qty, image at time of purchase
 4. Clear the cart
 5. Commit all writes — or roll everything back on any failure
+```
+
+### Payments — Razorpay Flow
+
+The payment flow uses two server endpoints plus a webhook safety net:
+
+```
+1. POST /payments/create-order
+   - Validates stock and shipping address server-side
+   - Calculates totals (NEVER trusts the frontend)
+   - Creates Razorpay payment intent
+   - Saves a pending Order to MongoDB with shippingAddress,
+     status: "pending", paymentStatus: "pending"
+   - Returns { orderId, amount, currency, keyId } to the frontend
+
+2. POST /payments/verify
+   - Called after user completes payment in Razorpay popup
+   - Verifies HMAC-SHA256 signature on order_id|payment_id
+   - Confirms the pending order → status: "confirmed"
+   - Atomically decrements stock for each item
+   - Clears the cart
+
+3. POST /payments/webhook (server-to-server from Razorpay)
+   - Safety net for when user closes tab before /verify
+   - Raw-body HMAC-SHA256 signature verification
+   - Finds pending order by razorpayOrderId (saved in step 1)
+   - Confirms order, decrements stock, clears cart
+   - Idempotent — skips if /verify already processed
 ```
 
 Status flow: `pending` → `confirmed` → `shipped` → `delivered` / `cancelled`
@@ -496,19 +524,21 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | ------------------------- | ----------------------------------------------------------------------- |
 | HTTP headers              | Helmet                                                                  |
 | CORS                      | Credentials enabled, strict `FRONTEND_URL` origin                       |
-| Cookies                   | httpOnly access and refresh tokens                                      |
-| CSRF                      | Double-submit cookie; `x-csrf-token` validated with timing-safe compare |
-| Rate limiting             | 100 req/10 min general; 20 req/10 min on login and register             |
+| Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                 |
+| CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual` |
+| CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (webhook exempted—uses HMAC-SHA256) |
+| Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook |
 | Request size              | `express.json({ limit: "10kb" })`                                       |
 | Validation                | Zod schemas at route boundary                                           |
+| NoSQL injection           | Custom `mongoSanitize` middleware strips `$` and `.` from keys          |
 | Password storage          | bcrypt hashes only                                                      |
-| Verification/reset tokens | Raw token delivered, SHA-256 hash stored                                |
-| Refresh tokens            | Hashed, rotated on refresh, reuse detection                             |
+| Verification/reset tokens | Raw token delivered, SHA-256 hash stored (raw never persisted)          |
+| Refresh tokens            | HMAC-SHA256 hashed, rotated on refresh, reuse detection                 |
 | RBAC                      | `requireRole` middleware for customer / seller / admin flows            |
 | Verified email guard      | `requireVerifiedEmail` on sensitive operations                          |
-| Upload safety             | MIME validation + size limit + memory-only storage                      |
+| Upload safety             | MIME validation + 5MB limit + memory-only storage (no disk writes)      |
 | Audit logging             | Login, logout, refresh, verification, password, and seller events       |
-| Webhook integrity         | Raw body preserved for Razorpay signature verification                  |
+| Webhook integrity         | Raw body preserved for Razorpay HMAC-SHA256 signature verification      |
 
 ---
 

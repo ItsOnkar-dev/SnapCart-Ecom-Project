@@ -362,9 +362,10 @@ Everything else (products, cart, orders, wishlist, etc.) is **server state** man
 | ------------- | ------------------------------------------------------------------------------------------------------- |
 | Base URL      | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                             |
 | Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                        |
-| CSRF          | Request interceptor fetches `GET /api/auth/csrf-token` and attaches `x-csrf-token` on non-GET requests  |
-| Token refresh | Response interceptor catches `401` → silently calls `POST /api/auth/refresh` → retries original request |
-| Auth failure  | On repeated `401`, calls `clearAuth()` and redirects to `/login`                                        |
+| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` (sets non-httpOnly cookie, JS reads via `document.cookie`) |
+| CSRF header   | Request interceptor reads csrfToken cookie and attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT  |
+| Token refresh | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
+| Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                       |
 
 Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks/` wrap them with `useQuery` or `useMutation`.
 
