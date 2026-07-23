@@ -28,7 +28,7 @@ interface RazorpayOptions {
 interface RazorpayInstance {
   on(
     event: "payment.failed",
-    handler: (response: { error: { description?: string } }) => void
+    handler: (response: { error: { description?: string } }) => void,
   ): void;
   open(): void;
 }
@@ -81,9 +81,8 @@ export function usePayment() {
       }
 
       // Step 2 — create Razorpay order from backend
-      const res = await createRazorpayOrderApi();
-      const { orderId, amount, currency, keyId, subtotal, shipping, total } =
-        res.data.data;
+      const res = await createRazorpayOrderApi(shippingAddress);
+      const { orderId, amount, currency, keyId } = res.data.data;
 
       // Step 3 — open Razorpay popup
       // This is where the user sees the payment UI and enters card/UPI details
@@ -109,10 +108,6 @@ export function usePayment() {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
-                shippingAddress,
-                subtotal, // ← from createRazorpayOrder response
-                shipping, // ← locked at payment creation time
-                total, 
               })
                 .then((verifyRes) => {
                   resolve({
@@ -146,14 +141,17 @@ export function usePayment() {
           const rzp = new window.Razorpay(options);
 
           // Called when payment fails (wrong card, insufficient funds, etc.)
-          rzp.on("payment.failed", (response: { error: { description?: string } }) => {
-            reject(
-              new Error(
-                response.error?.description ??
-                  "Payment failed. Please try again.",
-              ),
-            );
-          });
+          rzp.on(
+            "payment.failed",
+            (response: { error: { description?: string } }) => {
+              reject(
+                new Error(
+                  response.error?.description ??
+                    "Payment failed. Please try again.",
+                ),
+              );
+            },
+          );
 
           rzp.open(); // Open the popup
         },
