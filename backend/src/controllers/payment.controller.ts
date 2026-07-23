@@ -133,6 +133,8 @@ export const verifyPayment = asyncHandler(
   async (req: Request, res: Response) => {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
       throw new ApiError(400, "Missing payment verification fields");
     }

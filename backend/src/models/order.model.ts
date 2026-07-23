@@ -63,11 +63,11 @@ const orderSchema = new Schema<IOrder>(
 
     razorpayOrderId: {
       type: String,
-      default: null,
+      // default: null,
     },
     razorpayPaymentId: {
       type: String,
-      default: null,
+      // default: null,
     },
     paymentStatus: {
       type: String,
