@@ -9,7 +9,7 @@ import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
 
-const getRouteParam = (value: string | string[] | undefined, name: string) => {
+const getRouteParam = (value: string | string[] | undefined, _name: string) => {
   if (Array.isArray(value)) {
     return value[0];
   }
