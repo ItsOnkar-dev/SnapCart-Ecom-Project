@@ -4,7 +4,7 @@
 // Every auth page imports from here — no inline schemas anywhere.
 
 import { z } from "zod";
-import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "@snapcart/validation";
+import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "../../../backend/src/validation-constants";
 
 // ── shared base ───────────────────────────────────────────────────────────────
 // Reused across login, register, forgot — same email rules everywhere

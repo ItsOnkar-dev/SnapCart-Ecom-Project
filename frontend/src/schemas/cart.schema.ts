@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CART_ITEM_QUANTITY_MIN } from "@snapcart/validation";
+import { CART_ITEM_QUANTITY_MIN } from "../../../backend/src/validation-constants";
 
 export const addToCartSchema = z.object({
   productId: z.string().min(1, "Please select a product"),

@@ -5,7 +5,7 @@ import {
   PRODUCT_DESC_MIN,
   PRODUCT_DESC_MAX,
   PRODUCT_CATEGORIES,
-} from "@snapcart/validation";
+} from "../../../backend/src/validation-constants";
 
 const productCategorySchema = z.enum(PRODUCT_CATEGORIES);
 

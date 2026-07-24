@@ -5,7 +5,7 @@ import {
   REVIEW_TITLE_MAX,
   REVIEW_COMMENT_MIN,
   REVIEW_COMMENT_MAX,
-} from "@snapcart/validation";
+} from "../../../backend/src/validation-constants";
 
 export const reviewFormSchema = z.object({
   rating: z.coerce
