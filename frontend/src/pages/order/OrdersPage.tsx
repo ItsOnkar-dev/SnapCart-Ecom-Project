@@ -107,7 +107,7 @@ export default function OrdersPage() {
                   type="button"
                   disabled={!pagination.hasPrevPage}
                   onClick={() => setOrderPage((p) => p - 1)}
-                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
                 >
                   ← Previous
                 </button>
@@ -118,7 +118,7 @@ export default function OrdersPage() {
                   type="button"
                   disabled={!pagination.hasNextPage}
                   onClick={() => setOrderPage((p) => p + 1)}
-                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
                 >
                   Next →
                 </button>

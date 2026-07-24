@@ -384,7 +384,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => setPaymentMethod("online")}
-                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
+                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
                           paymentMethod === "online"
                             ? "border-primary bg-primary/5"
                             : "border-border bg-card hover:border-muted-foreground/30"
@@ -406,7 +406,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => setPaymentMethod("cod")}
-                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
+                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
                           paymentMethod === "cod"
                             ? "border-primary bg-primary/5"
                             : "border-border bg-card hover:border-muted-foreground/30"

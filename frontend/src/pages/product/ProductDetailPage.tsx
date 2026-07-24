@@ -310,7 +310,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="px-3.5 py-2 text-sm hover:bg-muted/30 transition-colors border-r border-border"
+                  className="px-3.5 py-2 text-sm hover:bg-muted/30 transition-colors border-r border-border cursor-pointer"
                 >
                   −
                 </button>
@@ -322,7 +322,7 @@ export default function ProductDetailPage() {
                   onClick={() =>
                     setQuantity((q) => Math.min(product.stock, q + 1))
                   }
-                  className="px-3.5 py-2 text-sm hover:bg-muted/30 transition-colors border-l border-border"
+                  className="px-3.5 py-2 text-sm hover:bg-muted/30 transition-colors border-l border-border cursor-pointer"
                 >
                   +
                 </button>
@@ -362,7 +362,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => toggleSection("description")}
-                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5"
+                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
               >
                 <span>Description</span>
                 {openSections.description ? (
@@ -383,7 +383,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => toggleSection("details")}
-                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5"
+                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
               >
                 <span>Product Details</span>
                 {openSections.details ? (
@@ -406,7 +406,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => toggleSection("care")}
-                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5"
+                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
               >
                 <span>Care & Cleaning</span>
                 {openSections.care ? (
@@ -428,7 +428,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => toggleSection("reviews")}
-                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5"
+                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
               >
                 <span>Customer Reviews</span>
                 {openSections.reviews ? (
@@ -502,7 +502,7 @@ export default function ProductDetailPage() {
                             type="button"
                             disabled={!reviewPagination.hasPrevPage}
                             onClick={() => setReviewPage((p) => p - 1)}
-                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
                           >
                             ← Previous
                           </button>
@@ -514,7 +514,7 @@ export default function ProductDetailPage() {
                             type="button"
                             disabled={!reviewPagination.hasNextPage}
                             onClick={() => setReviewPage((p) => p + 1)}
-                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed"
+                            className="px-3 py-1.5 text-xs font-medium border border-border rounded-md disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
                           >
                             Next →
                           </button>
@@ -608,7 +608,7 @@ function ReviewDialog({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="text-muted-foreground transition hover:text-foreground"
+              className="text-muted-foreground transition hover:text-foreground cursor-pointer"
               aria-label="Close review dialog"
             >
               <X className="size-5" />
@@ -627,7 +627,7 @@ function ReviewDialog({
                     key={value}
                     type="button"
                     onClick={() => setRating(value)}
-                    className="text-muted-foreground transition hover:text-primary-glow"
+                    className="text-muted-foreground transition hover:text-primary-glow cursor-pointer"
                     aria-label={`Rate ${value} stars`}
                   >
                     <Star

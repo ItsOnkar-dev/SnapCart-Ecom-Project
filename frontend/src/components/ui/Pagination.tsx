@@ -88,7 +88,7 @@ export default function Pagination({
                 onClick={() => onPageChange(page as number)}
                 aria-label={`Go to page ${page}`}
                 aria-current={currentPage === page ? "page" : undefined}
-                className={`grid h-9 w-9 place-items-center rounded-md text-sm font-medium transition-colors ${
+                className={`grid h-9 w-9 place-items-center rounded-md text-sm font-medium transition-colors cursor-pointer ${
                   currentPage === page
                     ? "bg-foreground text-background"
                     : "text-foreground hover:bg-muted/30 border border-transparent hover:border-border"
