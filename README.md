@@ -140,7 +140,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
   <tr>
     <td>Email</td>
     <td>Resend</td>
-    <td>Modern email API with demo-mode fallback</td>
+    <td>Transactional emails with sandbox mode (free tier sends only to verified recipients). Full delivery unlocks with domain verification — no code changes needed</td>
   </tr>
   <tr>
     <td>Images</td>
