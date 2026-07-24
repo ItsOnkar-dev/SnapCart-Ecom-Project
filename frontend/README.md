@@ -66,6 +66,8 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ✅ Role-based routing    ProtectedRoute + RoleRoute guards enforce buyer / seller / admin access
 ✅ Recharts dashboard    Interactive admin analytics rendered from MongoDB aggregation data
 ✅ Razorpay checkout     Full payment flow with order creation and payment confirmation
+✅ COD checkout          Cash on Delivery option alongside Razorpay
+✅ User-friendly errors  All API errors shown as clear toast messages, no technical jargon
 ```
 
 ---
@@ -362,8 +364,8 @@ Everything else (products, cart, orders, wishlist, etc.) is **server state** man
 | ------------- | ------------------------------------------------------------------------------------------------------- |
 | Base URL      | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                             |
 | Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                        |
-| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` (sets non-httpOnly cookie, JS reads via `document.cookie`) |
-| CSRF header   | Request interceptor reads csrfToken cookie and attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT  |
+| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility |
+| CSRF header   | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT |
 | Token refresh | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
 | Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                       |
 
@@ -390,6 +392,8 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 
 - Persistent server-side cart synced on every mutation
 - Razorpay payment flow with confirmation screen
+- Cash on Delivery option — place orders without a payment gateway
+- Cart badge updates instantly after order placement
 - "Complete your order" AI recommendation rail at the bottom of the cart page
 
 ### 💝 Wishlist

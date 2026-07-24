@@ -237,18 +237,18 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🛍️ Buyer Features
 
-| Feature          | Details                                                                          |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Product Catalog  | Paginated grid with live text search, category & price filters, and sort options |
-| Product Detail   | Image gallery, description, stock indicator, related product rails               |
-| Cart             | Persistent server-side cart; add, update quantity, remove, clear                 |
-| Checkout         | Razorpay payment flow backed by a MongoDB transaction                            |
-| Order Tracking   | Status timeline: `pending → confirmed → shipped → delivered`                     |
-| Order History    | Full order list with per-order detail view                                       |
-| Reviews          | Write a review only after receiving a delivered order                            |
-| Wishlist         | Heart-toggle from any product card; move all items to cart in one click          |
-| Wishlist Sharing | Generate a public share link or email it to anyone                               |
-| Recommendations  | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
+| Feature            | Details                                                                          |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
+| Product Detail     | Image gallery, description, stock indicator, related product rails               |
+| Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
+| Checkout           | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
+| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                     |
+| Order History      | Full order list with per-order detail view                                       |
+| Reviews            | Write a review only after receiving a delivered order                            |
+| Wishlist           | Heart-toggle from any product card; move all items to cart in one click          |
+| Wishlist Sharing   | Generate a public share link or email it to anyone                               |
+| Recommendations    | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
 
 ### 🏪 Seller Features
 
@@ -492,7 +492,9 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ Refresh-token rotation    — new token on every /refresh call
 ✅ Reuse detection           — replayed token clears all sessions
 ✅ HMAC-SHA256 token hashing — raw verification/reset tokens never stored in DB; hashed with secret key
-✅ Double-submit CSRF        — timing-safe comparison on every mutation
+✅ Double-submit CSRF        — timing-safe comparison on every mutation; cross-origin compatible
+✅ CSRF skip for auth routes — login, register, forgot/reset password excluded (no session yet)
+✅ User-friendly errors      — all API error messages use plain language, no internal terminology exposed
 ✅ Helmet                    — secure HTTP headers out of the box
 ✅ Rate limiting             — 4 tiers: general (100), auth (20), password reset (5), refresh (60) per 10 min
 ✅ Zod validation            — schema-enforced at the route boundary
@@ -500,6 +502,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ Verified email guard      — checkout and seller writes require verification
 ✅ Upload safety             — MIME check + size limit + memory-only storage
 ✅ Audit logging             — every sensitive event is recorded
+✅ TypeScript strict         — no `any` types in production code
 ```
 
 ### CSRF Protection — Double-Submit Cookie Pattern
@@ -576,49 +579,19 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 ---
 
-## 🚧 Work in Progress
+## 🗳️ What's Next
 
-Some features are **partially built or actively being developed** — they exist in the codebase but are not fully complete yet:
+SnapCart is feature-complete for its current scope. Planned enhancements include:
 
-- **Admin Panel:** The dashboard UI is visible, but the update/delete actions are currently mock functions.
-- **User Profiles:** Users can sign up, but the ability to edit profile details is still under construction.
-
-> This is a portfolio project under active development. Some pages or flows may be incomplete or show placeholder UI.
-> If you encounter any unexpected bugs or have feedback while exploring the application, feel free to open an issue.
-
----
-
-## ✅ Recently Completed
-
-These features were planned and are now fully implemented:
-
-- [] **Razorpay payment integration** — full order creation, webhook, signature verification
-- [] **CI/CD pipeline** — GitHub Actions running type-check, lint and build on every push
-- [] **Multi-image upload** — product gallery with multiple Cloudinary images per listing
-- [] **Dark mode** — system-aware theme toggle persisted across sessions
-- [] **AI recommendations** — related, frequently-bought-together, and personalized rails
-- [] **Pagination** — URL-based pagination with filters preserved across pages
-- [x] **Review pagination** — public product reviews now paginated (20 per page) with frontend navigation
-- [x] **Analytics caching** — admin analytics cached in-memory with 5-minute TTL, auto-invalidated on order changes
-- [x] **Orders pagination** — order history paginated (10 per page) with frontend navigation
-- [ ] **Seller dashboard pagination** — seller products list paginated via API (20 per page)
-
-> 💡 **Note on Payments:** The payment gateway is currently running in **Razorpay Test Mode**. You can safely test the entire checkout flow using dummy card details(4242) or simulated payment methods without spending real money.
+- **Admin product/order management UI** — full CRUD actions for the admin panel
+- **Seller dashboard** — order analytics and performance metrics for sellers
+- **WebSocket notifications** — real-time order status updates
+- **Coupon/discount system** — promo codes with expiry and category rules
+- **Full-text search** — MongoDB Atlas Search for better relevance
 
 ---
 
-## 🗓 Roadmap
-
-These are **planned upcoming features** — not yet started, but on the list:
-
-- [ ] **Monolith to microservices migration** — decomposing the monolithic backend into decoupled, domain-specific services (e.g., Auth, Inventory, Ordering) to improve scalability and fault isolation
-- [ ] **API Gateway implementation** — deploying a central API Gateway (such as Kong, Apache APISIX, or KrakenD) to act as the single entry point for routing, authentication, rate limiting, and load balancing across services
-- [ ] **Automated test suite** — unit tests for services, integration tests for auth and checkout flows
-- [ ] **Real-time order notifications** — WebSocket or SSE so buyers see status changes instantly without refreshing
-- [ ] **Advanced search** — full-text search powered by MongoDB Atlas Search or Elasticsearch
-- [ ] **Coupon / discount system** — promo codes with expiry dates, usage limits, and per-category rules
-
-Have an idea or want to help build one of these? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
+Have an idea or want to contribute? [Open a feature request →](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
 
 ---
 

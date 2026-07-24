@@ -483,7 +483,7 @@ All endpoints are prefixed with `/api`.
 
 | Method   | Path              | Auth              | Description                                        |
 | -------- | ----------------- | ----------------- | -------------------------------------------------- |
-| `POST`   | `/`               | Admin+Verified    | Place COD order (admin only)                       |
+| `POST`   | `/`               | Auth+Verified     | Place order (COD or admin)                         |
 | `GET`    | `/`               | Auth              | List user's orders (paginated, default 10, `?page=`)|
 | `GET`    | `/:id`            | Auth              | Single order (ownership-gated)                     |
 | `PATCH`  | `/:id/status`     | Admin/Seller+CSRF | Update order status (state machine)                |
@@ -1146,7 +1146,7 @@ The rotating USP bar (`StatusBar`) is imported in `Header.tsx` but commented out
 
 ### 3. COD Order Route
 
-The COD (Cash on Delivery) order placement (`POST /orders`) requires admin role — meaning customers cannot place COD orders through the API. Only Razorpay payment flow is available to customers.
+COD (Cash on Delivery) is fully implemented and available to all verified users via the order creation endpoint. Customers can choose between Razorpay online payment or COD at checkout.
 
 ### 4. No Automated Tests
 
@@ -1154,31 +1154,27 @@ Both `package.json` files have placeholder test scripts:
 - Backend: `"test": "echo \"Error: no test specified\" && exit 1"`
 - Frontend: No test script at all (no test dependencies installed)
 
-### 5. Zod Schema Duplication
+### 5. Validation Constants
 
-Validation schemas are duplicated between backend `validators/` and frontend `schemas/`. There's no shared types package.
+Shared validation constants (min lengths, enums, etc.) are centralized in `backend/src/validation-constants.ts`. Both backend `validators/` and frontend `schemas/` import from this file via relative paths, eliminating drift between frontend and backend validation rules.
 
 ---
 
 ## Suggested Improvements
 
-### Critical
-
-1. **Add test suites** — Unit tests for services (Jest/Vitest), integration tests for API endpoints, E2E tests for critical flows (auth, checkout). This is the biggest gap.
-
 ### High Priority
 
-2. **Shared types package** — Extract Zod schemas + TypeScript interfaces into a shared package (or workspace package) to eliminate duplication between frontend and backend.
-3. **Implement COD checkout** — Enable customer-facing COD order placement (currently admin-only).
-4. **Add admin product/order management UI** — Admin seller/analytics pages exist, but product and order management actions are mock-only.
+1. **Add admin product/order management UI** — Admin seller/analytics pages exist, but product and order management actions are mock-only.
 
 ### Medium Priority
 
-5. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
-6. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
-7. **Error monitoring** — Integrate Sentry or similar for production error tracking.
-8. **CI/CD pipeline** — Add lint + type-check to GitHub Actions; consider adding test runner.
+2. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
+3. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
+4. **Error monitoring** — Integrate Sentry or similar for production error tracking.
+5. **Add test suites** — Unit tests for services, integration tests for API endpoints, E2E tests for critical flows.
 
 ### Nice-to-Have
 
-9. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
+6. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
+7. **WebSocket notifications** — Real-time order status updates for buyers.
+8. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.

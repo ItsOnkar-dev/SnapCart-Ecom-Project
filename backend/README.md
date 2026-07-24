@@ -57,6 +57,8 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 ✅ Seller workflow       Apply → admin approve → manage products with ownership checks
 ✅ Admin analytics       Revenue, orders, top products, category breakdown via aggregation
 ✅ Defence in depth      Helmet · CSRF · rate limiting · Zod · RBAC · audit logging
+✅ User-friendly errors  All API errors use plain language, no internal terminology
+✅ TypeScript strict     No `any` types — Mongoose boundary uses targeted eslint-disable
 ```
 
 ---
@@ -526,7 +528,8 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | CORS                      | Credentials enabled, strict `FRONTEND_URL` origin                       |
 | Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                 |
 | CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual` |
-| CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (webhook exempted—uses HMAC-SHA256) |
+| CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (auth routes excluded; webhook uses HMAC-SHA256) |
+| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Railway) |
 | Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook |
 | Request size              | `express.json({ limit: "10kb" })`                                       |
 | Validation                | Zod schemas at route boundary                                           |
