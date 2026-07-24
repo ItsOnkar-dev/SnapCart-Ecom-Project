@@ -1,5 +1,0 @@
-{
-  "name": "snapcart-monorepo",
-  "private": true,
-  "workspaces": ["packages/validation", "backend", "frontend"]
-}
