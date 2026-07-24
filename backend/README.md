@@ -632,7 +632,8 @@ Railway detects the `start` script in `package.json` automatically. No Procfile 
 - [ ] `MONGO_URI` points to the production Atlas cluster
 - [ ] `FRONTEND_URL` matches the deployed frontend origin exactly
 - [ ] `GOOGLE_CALLBACK_URL` uses the production backend domain
-- [ ] `EMAIL_VERIFICATION_DEMO_MODE=false` with valid `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- [ ] `EMAIL_VERIFICATION_DEMO_MODE=false` with valid `RESEND_API_KEY` and `RESEND_FROM_EMAIL` for production
+- [ ] `EMAIL_VERIFICATION_DEMO_MODE=true` for portfolio/local deployments (skip paid Resend domain)
 
 ---
 

@@ -179,6 +179,8 @@ VITE_API_URL=http://localhost:5000
 
 > All Vite environment variables must be prefixed with `VITE_` to be accessible in the browser bundle. The value is **inlined at build time**, so set this correctly before running `npm run build` for production.
 
+> **Note:** The backend must have `EMAIL_VERIFICATION_DEMO_MODE=true` set in its environment for the demo verification button to appear after registration. Without it, Resend attempts real email delivery (which fails silently on the free sandbox tier).
+
 ---
 
 ## 📜 Available Scripts
