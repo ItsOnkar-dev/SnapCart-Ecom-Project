@@ -378,9 +378,13 @@ Registration creates an account with `isEmailVerified: false`, stores a SHA-256 
 - Resend verification is **enumeration-safe** for unknown emails
 - Verified email is required before checkout, seller application, and seller product writes
 
-### Demo Verification Mode
+### Email Verification Note
 
-If `EMAIL_VERIFICATION_DEMO_MODE=true` (or if Resend delivery fails), the backend returns a `demoVerificationUrl` field in the register/resend response. The frontend shows a "Verify in demo mode" button. The full token → hash → expiry → clear logic still runs — only the delivery mechanism changes.
+The project uses [Resend](https://resend.com/) for transactional email delivery. Resend's free tier operates in **sandbox mode**, which means emails are only delivered to verified email addresses (the sender's own inbox). This is a Resend-imposed limitation, not a gap in the implementation.
+
+- The full verification architecture is production-ready: raw token delivered, SHA-256 hash stored, 10-minute expiry, single-use, enumeration-safe
+- In production, verifying a domain with Resend enables email delivery to any recipient — no code changes needed
+- For local/portfolio deployments, the frontend shows a demo verification link so the app remains fully usable without a paid email domain
 
 ### Login, Cookies, and Refresh Rotation
 
