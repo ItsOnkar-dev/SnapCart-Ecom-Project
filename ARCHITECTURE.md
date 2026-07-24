@@ -1178,9 +1178,9 @@ Both `package.json` files have placeholder test scripts:
 
 Validation schemas are duplicated between backend `validators/` and frontend `schemas/`. There's no shared types package.
 
-### 10. inconsistent Seed Script
+### 10. Inconsistent Seed Script (Fixed)
 
-The seed script at `backend/src/scripts/seed.dev.ts` creates test users with plain-text password "password123" — acceptable for development only.
+The seed script at `backend/src/scripts/seed.dev.ts` previously had phantom fields (`slug`, `isNew`) not in the schema, logged the bcrypt hash instead of the plain-text password, and created users with `isEmailVerified: false`. **Fixed:** Removed phantom fields, added `discountPrice` to 2 products, logs the actual login password, and marks all seed users as email-verified. Plain-text password "password123" is acceptable for a dev-only script behind the `NODE_ENV !== "production"` guard.
 
 ---
 
