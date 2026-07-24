@@ -144,19 +144,47 @@ export default function VerifyEmailPage() {
   return (
     <div className="h-full flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        <div className="flex justify-center mb-5">
-          <Mail className="h-10 w-10 text-primary" />
-        </div>
+        {demoVerificationUrl ? (
+          <>
+            <div className="flex justify-center mb-5">
+              <CheckCircle className="h-10 w-10 text-primary" />
+            </div>
 
-        <h1 className="text-2xl font-light text-center text-foreground mb-2">
-          Check your email
-        </h1>
+            <h1 className="text-2xl font-light text-center text-foreground mb-2">
+              Almost there
+            </h1>
 
-        <p className="text-sm font-light text-center text-muted-foreground mb-8">
-          We've sent you a verification link. It expires in 10 minutes.
-        </p>
+            <p className="text-sm font-light text-center text-muted-foreground mb-8">
+              Since we're in demo mode, click the button below to verify your
+              email instantly — no inbox needed.
+            </p>
 
-        <DemoVerificationLink demoVerificationUrl={demoVerificationUrl} />
+            <Button
+              asChild
+              className="mb-6 h-12 w-full rounded-none bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <a href={demoVerificationUrl}>Verify my email now</a>
+            </Button>
+
+            <p className="mb-6 text-center text-xs text-muted-foreground">
+              Need a fresh link? Use the form below.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-center mb-5">
+              <Mail className="h-10 w-10 text-primary" />
+            </div>
+
+            <h1 className="text-2xl font-light text-center text-foreground mb-2">
+              Check your email
+            </h1>
+
+            <p className="text-sm font-light text-center text-muted-foreground mb-8">
+              We've sent you a verification link. It expires in 10 minutes.
+            </p>
+          </>
+        )}
 
         <ResendForm
           register={register}

@@ -59,7 +59,7 @@ export function useRegister() {
       const demoVerificationUrl = res.data?.data?.demoVerificationUrl;
       toast.success(
         demoVerificationUrl
-          ? "Account created! Use demo verification to continue."
+          ? "Account created! Click the demo verification link to continue."
           : "Account created! Check your email to verify.",
       );
       navigate("/verify-email", {
