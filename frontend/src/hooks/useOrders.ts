@@ -56,8 +56,9 @@ export function usePlaceOrder() {
       placeOrderApi(shippingAddress),
     onSuccess: (res) => {
       const order = res.data.data;
-      // cart is empty server-side now — remove stale cache entirely
-      queryClient.removeQueries({ queryKey: cartKeys.cart });
+      // Immediately set cart to empty so the nav badge updates instantly
+      queryClient.setQueryData(cartKeys.cart, { items: [], totalPrice: 0 });
+      queryClient.invalidateQueries({ queryKey: cartKeys.cart });
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order placed!");
       navigate(`/orders/${order._id}`);

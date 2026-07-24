@@ -62,7 +62,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest?.url?.includes("/auth/refresh")) {
+    // Don't intercept auth or refresh requests — let them pass through
+    // so login with wrong password returns "Invalid email or password"
+    // instead of being swallowed by the refresh token logic.
+    if (
+      originalRequest?.url?.includes("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/register")
+    ) {
       return Promise.reject(error);
     }
 
