@@ -5,7 +5,7 @@ import {
   PRODUCT_DESC_MIN,
   PRODUCT_DESC_MAX,
   PRODUCT_CATEGORIES,
-} from "@snapcart/validation";
+} from "../validation-constants";
 
 export const createProductSchema = z
   .object({

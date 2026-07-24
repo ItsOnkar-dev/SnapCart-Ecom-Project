@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ORDER_STATUSES } from "@snapcart/validation";
+import { ORDER_STATUSES } from "../validation-constants";
 
 export const shippingAddressSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required"),

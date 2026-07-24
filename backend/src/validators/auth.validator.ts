@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "@snapcart/validation";
+import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "../validation-constants";
 
 export const registerSchema = z.object({
   name: z

@@ -5,7 +5,7 @@ import {
   REVIEW_TITLE_MAX,
   REVIEW_COMMENT_MIN,
   REVIEW_COMMENT_MAX,
-} from "@snapcart/validation";
+} from "../validation-constants";
 
 export const createReviewSchema = z.object({
   rating: z
