@@ -1,17 +1,24 @@
 import { z } from "zod";
+import {
+  PRODUCT_NAME_MIN,
+  PRODUCT_NAME_MAX,
+  PRODUCT_DESC_MIN,
+  PRODUCT_DESC_MAX,
+  PRODUCT_CATEGORIES,
+} from "@snapcart/validation";
 
 export const createProductSchema = z
   .object({
     name: z
       .string({ error: "Product name is required" })
       .trim()
-      .min(3, "Product name must be at least 3 characters")
-      .max(100, "Product name cannot exceed 100 characters"),
+      .min(PRODUCT_NAME_MIN, `Product name must be at least ${PRODUCT_NAME_MIN} characters`)
+      .max(PRODUCT_NAME_MAX, `Product name cannot exceed ${PRODUCT_NAME_MAX} characters`),
     description: z
       .string({ error: "Description is required" })
       .trim()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description cannot exceed 2000 characters"),
+      .min(PRODUCT_DESC_MIN, `Description must be at least ${PRODUCT_DESC_MIN} characters`)
+      .max(PRODUCT_DESC_MAX, `Description cannot exceed ${PRODUCT_DESC_MAX} characters`),
     price: z.coerce
       .number({ error: "Price is required" })
       .min(0, "Price cannot be negative"),
@@ -19,20 +26,7 @@ export const createProductSchema = z
       .number()
       .min(0, "Discount price cannot be negative")
       .optional(),
-    category: z.enum(
-      [
-        "All Products",
-        "electronics",
-        "fashion",
-        "home",
-        "beauty",
-        "sports",
-        "books",
-        "gaming",
-        "new in",
-      ],
-      { error: "Category is required" },
-    ),
+    category: z.enum(PRODUCT_CATEGORIES, { error: "Category is required" }),
     stock: z.coerce
       .number({ error: "Stock is required" })
       .min(0, "Stock cannot be negative"),
@@ -47,15 +41,15 @@ export const updateProductSchema = z
     name: z
       .string()
       .trim()
-      .min(3, "Product name must be at least 3 characters")
-      .max(100, "Product name cannot exceed 100 characters")
+      .min(PRODUCT_NAME_MIN, `Product name must be at least ${PRODUCT_NAME_MIN} characters`)
+      .max(PRODUCT_NAME_MAX, `Product name cannot exceed ${PRODUCT_NAME_MAX} characters`)
       .optional(),
 
     description: z
       .string()
       .trim()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description cannot exceed 2000 characters")
+      .min(PRODUCT_DESC_MIN, `Description must be at least ${PRODUCT_DESC_MIN} characters`)
+      .max(PRODUCT_DESC_MAX, `Description cannot exceed ${PRODUCT_DESC_MAX} characters`)
       .optional(),
 
     price: z.coerce
@@ -68,17 +62,7 @@ export const updateProductSchema = z
       .optional(),
 
     category: z
-      .enum([
-        "All Products",
-        "electronics",
-        "fashion",
-        "home",
-        "beauty",
-        "sports",
-        "books",
-        "gaming",
-        "new in",
-      ])
+      .enum(PRODUCT_CATEGORIES)
       .optional(),
 
     stock: z.coerce

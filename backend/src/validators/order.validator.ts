@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ORDER_STATUSES } from "@snapcart/validation";
 
 export const shippingAddressSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required"),
@@ -14,5 +15,5 @@ export const placeOrderSchema = z.object({
 });
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
+  status: z.enum(ORDER_STATUSES),
 });

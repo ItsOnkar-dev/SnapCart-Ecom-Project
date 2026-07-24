@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "@snapcart/validation";
 
 export const registerSchema = z.object({
   name: z
     .string({ error: "Name is required" })
     .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(50, "Name cannot exceed 50 characters"),
+    .min(NAME_MIN, `Name must be at least ${NAME_MIN} characters`)
+    .max(NAME_MAX, `Name cannot exceed ${NAME_MAX} characters`),
 
   email: z
     .string({ error: "Email is required" })
@@ -17,8 +18,8 @@ export const registerSchema = z.object({
 
   password: z
     .string({ error: "Password is required" })
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password is too long"),
+    .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+    .max(PASSWORD_MAX, "Password is too long"),
 });
 
 export const loginSchema = z.object({
@@ -43,8 +44,8 @@ export const changePasswordSchema = z
 
     newPassword: z
       .string({ error: "New password is required" })
-      .min(8, "New password must be at least 8 characters")
-      .max(100, "New password is too long"),
+      .min(PASSWORD_MIN, `New password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, "New password is too long"),
 
     confirmNewPassword: z.string({ error: "Please confirm your new password" }),
   })
@@ -75,8 +76,8 @@ export const resetPasswordSchema = z
 
     newPassword: z
       .string({ error: "Password is required" })
-      .min(8, "Password must be at least 8 characters")
-      .max(100, "Password is too long"),
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, "Password is too long"),
 
     confirmNewPassword: z
       .string({ error: "Please confirm your new password" })
