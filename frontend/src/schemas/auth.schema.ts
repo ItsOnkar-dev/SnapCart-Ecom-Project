@@ -4,6 +4,7 @@
 // Every auth page imports from here — no inline schemas anywhere.
 
 import { z } from "zod";
+import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "@snapcart/validation";
 
 // ── shared base ───────────────────────────────────────────────────────────────
 // Reused across login, register, forgot — same email rules everywhere
@@ -30,13 +31,13 @@ export const registerSchema = z
     name: z
       .string()
       .trim()
-      .min(2, "Name must be at least 2 characters")
-      .max(50, "Name cannot exceed 50 characters"),
+      .min(NAME_MIN, `Name must be at least ${NAME_MIN} characters`)
+      .max(NAME_MAX, `Name cannot exceed ${NAME_MAX} characters`),
     email: emailSchema,
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(100, "Password is too long"),
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, "Password is too long"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -70,8 +71,8 @@ export const resetPasswordSchema = z
   .object({
     newPassword: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(100, "Password is too long"),
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, "Password is too long"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -88,8 +89,8 @@ export const changePasswordSchema = z
     currentPassword: z.string().min(1, "Current password is required"),
     newPassword: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(100, "Password is too long"),
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, "Password is too long"),
     confirmPassword: z.string().min(1, "Please confirm your new password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

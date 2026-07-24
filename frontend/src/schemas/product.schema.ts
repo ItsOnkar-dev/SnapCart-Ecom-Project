@@ -1,18 +1,13 @@
 import { z } from "zod";
+import {
+  PRODUCT_NAME_MIN,
+  PRODUCT_NAME_MAX,
+  PRODUCT_DESC_MIN,
+  PRODUCT_DESC_MAX,
+  PRODUCT_CATEGORIES,
+} from "@snapcart/validation";
 
-const productCategoryValues = [
-  "All Products",
-  "electronics",
-  "fashion",
-  "home",
-  "beauty",
-  "sports",
-  "books",
-  "gaming",
-  "new in",
-] as const;
-
-const productCategorySchema = z.enum(productCategoryValues);
+const productCategorySchema = z.enum(PRODUCT_CATEGORIES);
 
 const optionalNumberSchema = z.preprocess(
   (value) => (value === "" ? undefined : value),
@@ -24,13 +19,13 @@ export const productFormSchema = z
     name: z
       .string()
       .trim()
-      .min(3, "Product name must be at least 3 characters")
-      .max(100, "Product name cannot exceed 100 characters"),
+      .min(PRODUCT_NAME_MIN, `Product name must be at least ${PRODUCT_NAME_MIN} characters`)
+      .max(PRODUCT_NAME_MAX, `Product name cannot exceed ${PRODUCT_NAME_MAX} characters`),
     description: z
       .string()
       .trim()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description cannot exceed 2000 characters"),
+      .min(PRODUCT_DESC_MIN, `Description must be at least ${PRODUCT_DESC_MIN} characters`)
+      .max(PRODUCT_DESC_MAX, `Description cannot exceed ${PRODUCT_DESC_MAX} characters`),
     price: z.coerce
       .number({ error: "Price is required" })
       .min(0, "Price cannot be negative"),
@@ -52,14 +47,14 @@ export const updateProductSchema = z
     name: z
       .string()
       .trim()
-      .min(3, "Product name must be at least 3 characters")
-      .max(100, "Product name cannot exceed 100 characters")
+      .min(PRODUCT_NAME_MIN, `Product name must be at least ${PRODUCT_NAME_MIN} characters`)
+      .max(PRODUCT_NAME_MAX, `Product name cannot exceed ${PRODUCT_NAME_MAX} characters`)
       .optional(),
     description: z
       .string()
       .trim()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description cannot exceed 2000 characters")
+      .min(PRODUCT_DESC_MIN, `Description must be at least ${PRODUCT_DESC_MIN} characters`)
+      .max(PRODUCT_DESC_MAX, `Description cannot exceed ${PRODUCT_DESC_MAX} characters`)
       .optional(),
     price: z.coerce.number().min(0, "Price cannot be negative").optional(),
     discountPrice: optionalNumberSchema,
