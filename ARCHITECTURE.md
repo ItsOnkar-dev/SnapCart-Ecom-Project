@@ -1136,51 +1136,27 @@ Products: 12 products across 6 categories
 
 ## Known Technical Debt
 
-### 1. TypeScript Module Conflicts
-
-Both `backend/package.json` and `frontend/package.json` list conflicting TypeScript versions:
-- `"typescript": "^6.0.3"` (backend) and `"typescript": "~6.0.2"` (frontend)
-- `"@types/express": "^5.0.6"` is listed as a dependency but Express 5 types ship with the package itself
-
-### 2. Duplicate bcrypt Packages
-
-`backend/package.json` lists both `"bcrypt": "^6.0.0"` and `"bcryptjs": "^3.0.3"`. Only `bcryptjs` is used in the codebase (the pure-JS version, no native compilation needed). The `bcrypt` native package is unused.
-
-### 3. Unused Dependencies
-
-- `express-validator` — Zod is used for validation; express-validator is not imported anywhere
-- `shadcn` on the frontend — the CLI tool, not a runtime dependency
-- `react-is` — likely a transitive dependency listed explicitly
-
-### 4. Seller Dashboard Route
+### 1. Seller Dashboard Route
 
 The seller dashboard route (`/seller/dashboard`) is commented out in `App.tsx`. The `SellerDashboardPage` lazy import is also commented out.
 
-### 5. StatusBar Component
+### 2. StatusBar Component
 
 The rotating USP bar (`StatusBar`) is imported in `Header.tsx` but commented out — not rendered.
 
-### 6. COD Order Route
+### 3. COD Order Route
 
 The COD (Cash on Delivery) order placement (`POST /orders`) requires admin role — meaning customers cannot place COD orders through the API. Only Razorpay payment flow is available to customers.
 
-### 7. Webhook Incomplete Checkout Handling (Fixed)
-
-The Razorpay webhook handler (`payment.captured`) previously logged paid-but-unordered transactions for manual reconciliation. **Fixed:** `createRazorpayOrder` now saves the pending Order with `shippingAddress` to MongoDB before the Razorpay popup opens. The webhook can find and confirm the order atomically — decrementing stock and clearing the cart. No manual reconciliation needed.
-
-### 8. No Automated Tests
+### 4. No Automated Tests
 
 Both `package.json` files have placeholder test scripts:
 - Backend: `"test": "echo \"Error: no test specified\" && exit 1"`
 - Frontend: No test script at all (no test dependencies installed)
 
-### 9. Zod Schema Duplication
+### 5. Zod Schema Duplication
 
 Validation schemas are duplicated between backend `validators/` and frontend `schemas/`. There's no shared types package.
-
-### 10. Inconsistent Seed Script (Fixed)
-
-The seed script at `backend/src/scripts/seed.dev.ts` previously had phantom fields (`slug`, `isNew`) not in the schema, logged the bcrypt hash instead of the plain-text password, and created users with `isEmailVerified: false`. **Fixed:** Removed phantom fields, added `discountPrice` to 2 products, logs the actual login password, and marks all seed users as email-verified. Plain-text password "password123" is acceptable for a dev-only script behind the `NODE_ENV !== "production"` guard.
 
 ---
 
@@ -1189,28 +1165,20 @@ The seed script at `backend/src/scripts/seed.dev.ts` previously had phantom fiel
 ### Critical
 
 1. **Add test suites** — Unit tests for services (Jest/Vitest), integration tests for API endpoints, E2E tests for critical flows (auth, checkout). This is the biggest gap.
-2. **Remove unused bcrypt dependency** — Keep only `bcryptjs`, remove `bcrypt` to eliminate unnecessary native compilation.
-3. **Fix TypeScript version alignment** — Use the same TypeScript version across both packages.
 
 ### High Priority
 
-4. **Shared types package** — Extract Zod schemas + TypeScript interfaces into a shared package (or workspace package) to eliminate duplication between frontend and backend.
-5. **Implement COD checkout** — Enable customer-facing COD order placement (currently admin-only).
-6. **Complete webhook order creation** — Store shipping address server-side (e.g., in a temporary cache keyed by Razorpay order ID) so the webhook can create complete orders.
-7. **Add admin product/order management UI** — Admin seller/analytics pages exist, but product and order management actions are mock-only.
+2. **Shared types package** — Extract Zod schemas + TypeScript interfaces into a shared package (or workspace package) to eliminate duplication between frontend and backend.
+3. **Implement COD checkout** — Enable customer-facing COD order placement (currently admin-only).
+4. **Add admin product/order management UI** — Admin seller/analytics pages exist, but product and order management actions are mock-only.
 
 ### Medium Priority
 
-8. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
-9. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
-10. **Error monitoring** — Integrate Sentry or similar for production error tracking.
-11. **CI/CD pipeline** — Add lint + type-check to GitHub Actions; consider adding test runner.
+5. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
+6. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
+7. **Error monitoring** — Integrate Sentry or similar for production error tracking.
+8. **CI/CD pipeline** — Add lint + type-check to GitHub Actions; consider adding test runner.
 
 ### Nice-to-Have
 
-12. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
-13. **WebSocket notifications** — Real-time order status updates (shipped → delivered) for buyers, new order alerts for sellers.
-14. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.
-15. **Image optimization** — Add sharp/resize pipeline before Cloudinary upload for smaller payloads.
-16. **Rate-limited account lockout** — Lock accounts after N failed login attempts (currently only IP-based rate limiting).
-17. **Refresh token expiry cleanup** — Background job to remove expired refresh tokens from the database.
+9. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
