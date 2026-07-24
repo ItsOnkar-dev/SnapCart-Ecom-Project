@@ -8,6 +8,7 @@ import {
 } from "../services/recommendation.service";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import type { RecommendedProduct } from "../services/recommendation.service";
 
 // GET /api/recommendations
 export const getRecommendations = asyncHandler(
@@ -30,7 +31,7 @@ export const getRecommendations = asyncHandler(
     const userId = req.user?._id?.toString() ?? null;
 
     try {
-      let products: any[] = [];
+      let products: RecommendedProduct[] = [];
 
       if (recMode === "cart" && productIds.length > 0) {
         // Cart drawer — cross-sell based on everything in the cart
@@ -48,7 +49,7 @@ export const getRecommendations = asyncHandler(
 
         // Merge: bought-together first (stronger signal), then fill with related
         const seen = new Set<string>();
-        const merged: any[] = [];
+        const merged: RecommendedProduct[] = [];
 
         for (const p of [...bought, ...related]) {
           const id = p._id?.toString();

@@ -26,6 +26,7 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       default: null,
       validate: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         validator: function (this: any, value: number | null) {
           if (value === null || value === undefined) return true;
           return value < this.price;

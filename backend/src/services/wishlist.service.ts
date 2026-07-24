@@ -51,7 +51,7 @@ export const addToWishlistService = async (
 
   if (!isAlreadyInWishlist) {
     wishlist.items.push({
-      product: new Types.ObjectId(productId) as any,
+      product: new Types.ObjectId(productId),
       addedAt: new Date(),
     });
     await wishlist.save();
@@ -75,7 +75,7 @@ export const removeFromWishlistService = async (
 
   wishlist.items = wishlist.items.filter(
     (item) => item.product.toString() !== productId,
-  ) as any;
+  ) as typeof wishlist.items;
 
   await wishlist.save();
   await wishlist.populate(

@@ -17,15 +17,12 @@ export interface RecommendedProduct {
   averageRating: number;
   totalReviews: number;
   isActive: boolean;
-  reason: string; // Always present — this is what shows under each card
-  [key: string]: unknown;
+  reason: string;
 }
 
-type ScoredProduct = {
-  product: any;
-  score: number;
-  reason: string;
-};
+// Mongoose .lean() returns complex document-shaped objects — use a loose type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScoredProduct = { product: any; score: number; reason: string };
 
 // ─── Text Helpers ─────────────────────────────────────────────────────────────
 
@@ -36,7 +33,6 @@ const getTokens = (str: string): string[] =>
     .split(/\s+/)
     .filter((t) => t.length > 2);
 
-// Jaccard similarity — clean, well-understood, no external deps
 const jaccardSimilarity = (a: string[], b: string[]): number => {
   if (!a.length || !b.length) return 0;
   const setA = new Set(a);
@@ -47,15 +43,11 @@ const jaccardSimilarity = (a: string[], b: string[]): number => {
 };
 
 // ─── Reason Generators ────────────────────────────────────────────────────────
-// These produce the short human-readable label shown under each AI pick card.
-const relatedReason = (
-  candidate: any,
-  current: any,
-  similarityScore: number,
-): string => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const relatedReason = (candidate: any, current: any, similarityScore: number): string => {
   if (similarityScore > 0.4) return `Similar ${current.category} product`;
   if (similarityScore > 0.2) return `Customers also viewed this`;
-  if (candidate.averageRating >= 4.5)
+  if (candidate.averageRating && candidate.averageRating >= 4.5)
     return `Top rated in ${candidate.category}`;
   return `More from ${candidate.category}`;
 };
@@ -66,6 +58,7 @@ const boughtTogetherReason = (coCount: number): string => {
   return `Customers also bought this`;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const personalizedReason = (product: any, categoryWeight: number): string => {
   if (categoryWeight >= 6) return `Based on your cart`;
   if (categoryWeight >= 4) return `Based on your wishlist`;
@@ -157,9 +150,9 @@ export const getFrequentlyBoughtTogether = async (
   return productIds
     .map((id) => byId.get(id.toString()))
     .filter(Boolean)
-    .map((p: any) => ({
+    .map((p) => ({
       ...p,
-      reason: boughtTogetherReason(countById.get(p._id.toString()) ?? 1),
+      reason: boughtTogetherReason(countById.get(p!._id.toString()) ?? 1),
     })) as RecommendedProduct[];
 };
 
@@ -218,7 +211,7 @@ export const getCartRecommendations = async (
     return topPairIds
       .map((id) => byId.get(id.toString()))
       .filter(Boolean)
-      .map((p: any) => ({
+      .map((p) => ({
         ...p,
         reason: `Pairs well with your cart`,
       })) as RecommendedProduct[];
@@ -269,12 +262,15 @@ export const getPersonalizedRecommendations = async (
     const categoryWeights: Record<string, number> = {};
 
     // Gather all product IDs we need to fetch categories for
-    const cartProductIds = cart ? cart.items.map((i: any) => i.product) : [];
-    const wishlistProductIds = wishlist
-      ? wishlist.items.map((i: any) => i.product)
+    const cartProductIds = cart
+      ? cart.items.map((i: { product: Types.ObjectId }) => i.product)
       : [];
-    const orderedProductIds = orders.flatMap((o: any) =>
-      o.items.map((i: any) => i.product),
+    const wishlistProductIds = wishlist
+      ? wishlist.items.map((i: { product: Types.ObjectId }) => i.product)
+      : [];
+    const orderedProductIds = orders.flatMap(
+      (o: { items: { product: Types.ObjectId }[] }) =>
+        o.items.map((i: { product: Types.ObjectId }) => i.product),
     );
 
     // Mark as excluded
@@ -300,10 +296,8 @@ export const getPersonalizedRecommendations = async (
             .lean()
         : [];
 
-    const cartIdSet = new Set(cartProductIds.map((id: any) => id.toString()));
-    const wishlistIdSet = new Set(
-      wishlistProductIds.map((id: any) => id.toString()),
-    );
+    const cartIdSet = new Set(cartProductIds.map((id) => id.toString()));
+    const wishlistIdSet = new Set(wishlistProductIds.map((id) => id.toString()));
 
     for (const p of interactionProducts) {
       const id = p._id.toString();

@@ -4,6 +4,7 @@ import Razorpay from "razorpay";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
+import type { IProduct } from "../types/product.types";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Logger } from "../utils/logger";
@@ -52,7 +53,7 @@ export const createRazorpayOrder = asyncHandler(
     const orderItems = [];
 
     for (const item of cart.items) {
-      const product = item.product as any;
+      const product = item.product as unknown as IProduct;
 
       // Validate stock before accepting payment
       if (product.stock < item.quantity) {
@@ -273,7 +274,20 @@ export const handleWebhook = async (
   }
 
   // Parse the raw body now that signature is verified
-  let event: any;
+  let event: {
+    event: string;
+    payload?: {
+      payment?: {
+        entity?: {
+          id?: string;
+          order_id?: string;
+          error_description?: string;
+          [key: string]: unknown;
+        };
+      };
+    };
+    [key: string]: unknown;
+  };
   try {
     event = JSON.parse(req.body.toString());
   } catch {
