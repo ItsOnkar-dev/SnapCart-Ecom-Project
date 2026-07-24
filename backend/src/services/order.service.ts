@@ -45,94 +45,71 @@ export const placeOrderService = async (
   const shipping = paymentInfo.shipping ?? calculatedShipping;
   const totalPrice = paymentInfo.total ?? subtotal + shipping;
 
-  // Start a MongoDB session + transaction
-  // All writes (order create, stock decrement, cart clear) are wrapped automatically.
-  // If anything fails mid-way, every write is rolled back automatically.
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // Atomic stock reservation: check availability AND decrement in one operation
-    for (const item of items) {
-      if (!item.product || !item.product.isActive) {
-        throw new ApiError(
-          400,
-          `A product in your cart is no longer available`,
-        );
-      }
-
-      const updated = await Product.findOneAndUpdate(
-        {
-          _id: item.product._id,
-          isActive: true,
-          stock: { $gte: item.quantity }, // atomic guard — only matches if enough stock exists
-        },
-        { $inc: { stock: -item.quantity } },
-        { new: true, session },
+  // Sequential operations — no MongoDB transaction.
+  // Atlas M0 free tier does not support transactions. Each operation is atomic
+  // individually; if stock decrement fails the order is never created.
+  // For payment flows the Razorpay verify/webhook handles recovery.
+  for (const item of items) {
+    if (!item.product || !item.product.isActive) {
+      throw new ApiError(
+        400,
+        `A product in your cart is no longer available`,
       );
-
-      if (!updated) {
-        // Either out of stock or product deactivated between cart add and checkout
-        const latest = await Product.findById(item.product._id).session(
-          session,
-        );
-        const reason =
-          !latest || !latest.isActive
-            ? `"${item.product.name}" is no longer available`
-            : `Only ${latest.stock} unit(s) of "${item.product.name}" are left in stock`;
-        throw new ApiError(400, reason);
-      }
     }
 
-    // Step 4 — Build order item list from cart items
-    const orderItems = items.map((item) => ({
-      product: item.product._id,
-      name: item.product.name,
-      price: item.price,
-      quantity: item.quantity,
-      image: item.product.images?.[0] ?? "",
-    }));
-
-    // Step 5 — Create the order inside the transaction (with payment metadata baked in)
-    const [order] = await Order.create(
-      [
-        {
-          user: userId,
-          items: orderItems,
-          shippingAddress,
-          subtotal,
-          shipping,
-          totalPrice,
-          status: paymentInfo.status ?? "pending",
-          paymentMethod: paymentInfo.paymentMethod ?? "razorpay",
-          paymentStatus: paymentInfo.paymentStatus ?? "pending",
-          razorpayOrderId: paymentInfo.razorpayOrderId ?? null,
-          razorpayPaymentId: paymentInfo.razorpayPaymentId ?? null,
-        },
-      ],
-      { session },
+    const updated = await Product.findOneAndUpdate(
+      {
+        _id: item.product._id,
+        isActive: true,
+        stock: { $gte: item.quantity },
+      },
+      { $inc: { stock: -item.quantity } },
+      { new: true },
     );
 
-    // Step 6 — Clear the cart inside the transaction
-    cart.items = [] as typeof cart.items;
-    cart.totalPrice = 0;
-    await cart.save({ session });
-
-    // Step 7 — Commit — all three writes land atomically
-    await session.commitTransaction();
-
-    invalidateAnalyticsCache();
-
-    Logger.info("Order placed", { orderId: order._id, userId });
-
-    return order;
-  } catch (err) {
-    // Roll back every write in this transaction
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    await session.endSession();
+    if (!updated) {
+      const latest = await Product.findById(item.product._id);
+      const reason =
+        !latest || !latest.isActive
+          ? `"${item.product.name}" is no longer available`
+          : `Only ${latest.stock} unit(s) of "${item.product.name}" are left in stock`;
+      throw new ApiError(400, reason);
+    }
   }
+
+  const orderItems = items.map((item) => ({
+    product: item.product._id,
+    name: item.product.name,
+    price: item.price,
+    quantity: item.quantity,
+    image: item.product.images?.[0] ?? "",
+  }));
+
+  const [order] = await Order.create([
+    {
+      user: userId,
+      items: orderItems,
+      shippingAddress,
+      subtotal,
+      shipping,
+      totalPrice,
+      status: paymentInfo.status ?? "pending",
+      paymentMethod: paymentInfo.paymentMethod ?? "razorpay",
+      paymentStatus: paymentInfo.paymentStatus ?? "pending",
+      razorpayOrderId: paymentInfo.razorpayOrderId ?? null,
+      razorpayPaymentId: paymentInfo.razorpayPaymentId ?? null,
+    },
+  ]);
+
+  cart.items = [] as typeof cart.items;
+  cart.totalPrice = 0;
+  await cart.save();
+
+  invalidateAnalyticsCache();
+
+  Logger.info("Order placed", { orderId: order._id, userId });
+
+  return order;
 };
 
 export const restoreStockService = async (
