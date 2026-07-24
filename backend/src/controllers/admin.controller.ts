@@ -44,7 +44,7 @@ export const updateSellerStatus = asyncHandler(
         : "";
 
     if (!sellerId) {
-      throw new ApiError(400, "Invalid seller id");
+      throw new ApiError(400, "Seller not found");
     }
 
     const user = await updateSellerStatusService(sellerId, status);

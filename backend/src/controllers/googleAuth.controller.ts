@@ -36,7 +36,7 @@ export const googleCallback = asyncHandler(
     if (!code) {
       throw new ApiError(
         400,
-        "Google authentication failed — no code received",
+        "Google sign-in failed. Please try again.",
       );
     }
 

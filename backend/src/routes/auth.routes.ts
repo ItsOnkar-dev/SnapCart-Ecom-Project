@@ -60,7 +60,7 @@ router.get("/csrf-token", (req, res) => {
   const token = crypto.randomBytes(32).toString("hex");
   const isProduction = process.env.NODE_ENV === "production";
   res
-    .cookie("csrfToken", token, {  // non-httpOnly cookie (JS reads via document.cookie)
+    .cookie("csrfToken", token, {
       httpOnly: false,  // JS must be able to read it
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
@@ -68,7 +68,7 @@ router.get("/csrf-token", (req, res) => {
       maxAge: 60 * 60 * 1000,
     })
     .status(200)
-    .json(new ApiResponse(200, "CSRF token generated"));
+    .json(new ApiResponse(200, "CSRF token generated", { csrfToken: token }));
 });
 
 router.post("/register", validate(registerSchema), register);

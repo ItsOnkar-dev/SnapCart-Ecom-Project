@@ -18,7 +18,7 @@ const getRouteParam = (value: string | string[] | undefined, name: string) => {
     return value;
   }
 
-  throw new ApiError(400, `Invalid ${name} parameter`);
+  throw new ApiError(400, "Invalid request");
 };
 
 // POST /api/reviews/:productId

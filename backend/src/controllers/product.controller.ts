@@ -17,7 +17,7 @@ const getRouteParam = (value: string | string[] | undefined, name: string) => {
     return value;
   }
 
-  throw new ApiError(400, `Invalid ${name} parameter`);
+  throw new ApiError(400, "Invalid request");
 };
 
 // POST /api/products
@@ -211,7 +211,7 @@ export const updateAdminProductStatus = asyncHandler(
     const { isActive } = req.body as { isActive?: boolean };
 
     if (typeof isActive !== "boolean") {
-      throw new ApiError(400, "isActive must be true or false");
+      throw new ApiError(400, "Product status must be active or inactive");
     }
 
     const product = await Product.findByIdAndUpdate(

@@ -31,7 +31,7 @@ export const addToWishlistService = async (
   productId: string,
 ) => {
   if (!productId) {
-    throw new ApiError(400, "Product ID is required");
+    throw new ApiError(400, "Please select a product");
   }
 
   const product = await Product.findById(productId);

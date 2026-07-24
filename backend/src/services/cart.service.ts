@@ -13,7 +13,7 @@ export const addToCartService = async (
   quantity: number = 1,
 ) => {
   if (!productId) {
-    throw new ApiError(400, "Product ID is required");
+    throw new ApiError(400, "Please select a product");
   }
 
   if (quantity < 1) {

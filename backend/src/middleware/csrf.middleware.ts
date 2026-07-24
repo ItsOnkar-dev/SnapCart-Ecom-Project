@@ -38,7 +38,7 @@ const doubleSubmitCookie = (
       Buffer.from(cookieToken),
     )
   ) {
-    next(new ApiError(403, "Invalid CSRF token"));
+    next(new ApiError(403, "Session expired. Please refresh and try again."));
     return;
   }
 

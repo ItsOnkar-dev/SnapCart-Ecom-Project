@@ -111,10 +111,21 @@ app.use("/api/auth/register", authLimiter);
 // Route files do NOT need to import or call csrfProtection individually.
 // If you add a new route file, CSRF is automatically applied by this middleware.
 //
+// The following routes are excluded because they are public entry points that
+// cannot have a CSRF token before authentication:
+//   - /auth/login, /auth/register — no session yet
+//   - /auth/forgot-password, /auth/reset-password — one-time token from email
+//
 // Webhook is server-to-server from Razorpay — no CSRF token possible.
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   if (req.path === "/payments/webhook") return next();
+  if (
+    req.path === "/auth/login" ||
+    req.path === "/auth/register" ||
+    req.path === "/auth/forgot-password" ||
+    req.path === "/auth/reset-password"
+  ) return next();
   return csrfProtection(req, res, next);
 });
 

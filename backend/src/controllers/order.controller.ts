@@ -96,10 +96,7 @@ export const updateOrderStatus = asyncHandler(
     const { status } = req.body as { status: OrderStatus };
 
     if (!status || !ORDER_STATUSES.includes(status)) {
-      throw new ApiError(
-        400,
-        `Status must be one of: ${ORDER_STATUSES.join(", ")}`,
-      );
+      throw new ApiError(400, "Invalid order status");
     }
 
     const order = await Order.findById(req.params.id);
@@ -109,10 +106,7 @@ export const updateOrderStatus = asyncHandler(
     const newIndex = ORDER_STATUSES.indexOf(status);
 
     if (newIndex < currentIndex && status !== "cancelled") {
-      throw new ApiError(
-        400,
-        `Cannot move order from "${order.status}" to "${status}"`,
-      );
+      throw new ApiError(400, "Order status cannot be changed in this way");
     }
 
     if (status === "cancelled" && order.status !== "delivered") {

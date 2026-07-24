@@ -18,7 +18,7 @@ const getRouteParam = (value: string | string[] | undefined, name: string) => {
   if (typeof value === "string") {
     return value;
   }
-  throw new ApiError(400, `Invalid ${name} parameter`);
+  throw new ApiError(400, "Invalid request");
 };
 
 // GET /api/wishlist

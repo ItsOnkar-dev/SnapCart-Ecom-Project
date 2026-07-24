@@ -192,7 +192,7 @@ export const refreshAccessToken = asyncHandler(
     const token = req.cookies?.refreshToken;
 
     if (!token) {
-      throw new ApiError(401, "No refresh token");
+      throw new ApiError(401, "Session expired. Please log in again.");
     }
 
     // Step 2 — Verify it
@@ -203,7 +203,7 @@ export const refreshAccessToken = asyncHandler(
         process.env.REFRESH_TOKEN_SECRET as string,
       ) as { userId: string };
     } catch {
-      throw new ApiError(401, "Invalid or expired refresh token");
+      throw new ApiError(401, "Session expired. Please log in again.");
     }
 
     // Step 3 — Find user and check stored refresh token matches
@@ -218,7 +218,7 @@ export const refreshAccessToken = asyncHandler(
       }
       throw new ApiError(
         401,
-        "Refresh token reuse detected. Please login again.",
+        "Your session has expired. Please log in again.",
       );
     }
 
@@ -307,7 +307,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const { token } = req.query;
 
   if (!token || typeof token !== "string") {
-    throw new ApiError(400, "Verification token is required");
+    throw new ApiError(400, "Verification link is required");
   }
 
   // Step 2 — hash the incoming raw token THE SAME WAY we hashed it at registration
@@ -535,7 +535,7 @@ export const resetPassword = asyncHandler(
     });
 
     if (!user) {
-      throw new ApiError(400, "Invalid or expired reset token.");
+      throw new ApiError(400, "The password reset link is invalid or has expired.");
     }
 
     user.password = await bcrypt.hash(newPassword, 12);

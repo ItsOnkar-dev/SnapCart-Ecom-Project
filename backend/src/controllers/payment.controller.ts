@@ -137,7 +137,7 @@ export const verifyPayment = asyncHandler(
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-      throw new ApiError(400, "Missing payment verification fields");
+      throw new ApiError(400, "Payment verification information is incomplete");
     }
 
     // ── Signature verification ─────────────────────────────────────────────
@@ -150,7 +150,7 @@ export const verifyPayment = asyncHandler(
     if (expectedSignature !== razorpaySignature) {
       throw new ApiError(
         400,
-        "Payment verification failed. Invalid signature.",
+        "Payment verification failed. Please try again.",
       );
     }
 
