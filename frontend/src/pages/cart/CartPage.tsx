@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/useCart";
 import { usePayment } from "@/hooks/usePayment";
+import { usePlaceOrder } from "@/hooks/useOrders";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
 
@@ -48,8 +49,10 @@ export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { mutate: updateCartItem, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
-  const { initiatePayment, isPending: isPlacingOrder } = usePayment();
+  const { initiatePayment, isPending: isRazorpayPending } = usePayment();
+  const { mutate: placeOrder, isPending: isCodPending } = usePlaceOrder();
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   // ── Derived values — after hooks, before render ───────────────────────────
   // Memoize `items` to keep a stable array reference — otherwise the `?? []`
@@ -102,7 +105,11 @@ export default function CartPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canCheckout) return;
-    initiatePayment(address);
+    if (paymentMethod === "cod") {
+      placeOrder(address);
+    } else {
+      initiatePayment(address);
+    }
   };
 
   // ── Loading skeleton ───────────────────────────────────────────────────────
@@ -368,6 +375,59 @@ export default function CartPage() {
                     />
                   </div>
 
+                  {/* Payment method selector */}
+                  <div className="my-6 space-y-3">
+                    <p className="text-sm font-semibold text-foreground">
+                      Payment method
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("online")}
+                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
+                          paymentMethod === "online"
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-card hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <span
+                          className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                            paymentMethod === "online"
+                              ? "border-primary bg-primary"
+                              : "border-muted-foreground"
+                          }`}
+                        >
+                          {paymentMethod === "online" && (
+                            <span className="size-2 rounded-full bg-white" />
+                          )}
+                        </span>
+                        <span className="font-medium">Pay Online</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("cod")}
+                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
+                          paymentMethod === "cod"
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-card hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <span
+                          className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                            paymentMethod === "cod"
+                              ? "border-primary bg-primary"
+                              : "border-muted-foreground"
+                          }`}
+                        >
+                          {paymentMethod === "cod" && (
+                            <span className="size-2 rounded-full bg-white" />
+                          )}
+                        </span>
+                        <span className="font-medium">Cash on Delivery</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Order summary */}
                   <div className="my-6 space-y-3 border-y border-sidebar-border py-5 text-sm">
                     <div className="flex justify-between text-muted-foreground">
@@ -392,9 +452,13 @@ export default function CartPage() {
                     type="submit"
                     size="lg"
                     className="h-12 w-full rounded-md"
-                    disabled={!canCheckout || isPlacingOrder}
+                    disabled={!canCheckout || isRazorpayPending || isCodPending}
                   >
-                    {isPlacingOrder ? "Processing..." : "Pay & Place Order"}
+                    {isRazorpayPending || isCodPending
+                      ? "Processing..."
+                      : paymentMethod === "cod"
+                        ? "Place Order (COD)"
+                        : "Pay & Place Order"}
                     <ArrowRight className="size-4" />
                   </Button>
                   <Button
