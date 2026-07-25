@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
 
-export type UserRole = "customer" | "seller" | "admin";
+export type UserRole = "customer" | "seller" | "admin" | "demo_admin";
 export type SellerStatus = "none" | "pending" | "approved" | "rejected";
 
 export interface IUser extends Document {

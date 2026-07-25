@@ -133,7 +133,7 @@ export default function UserMenu() {
                 </MenuLink>
               </>
             )}
-            {user.role === "admin" && (
+            {(user.role === "admin" || user.role === "demo_admin") && (
               <>
                 <MenuLink to="/admin/analytics" icon={TrendingUp}>
                   Admin Analytics

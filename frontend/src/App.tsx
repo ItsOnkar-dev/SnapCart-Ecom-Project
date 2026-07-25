@@ -147,7 +147,7 @@ const router = createBrowserRouter([
               },
 
               {
-                element: <RoleRoute allowedRoles={["admin"]} />,
+                element: <RoleRoute allowedRoles={["admin", "demo_admin"]} />,
                 children: [
                   { path: "/admin/sellers", element: <AdminSellersPage /> },
                   {

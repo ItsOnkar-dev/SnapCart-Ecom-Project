@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 import { IUser } from "../types/user.types";
+import { ROLE_PERMISSIONS, Permission } from "../config/permissions";
 import { ApiError } from "../utils/ApiResponse";
 
 declare global {
@@ -89,6 +90,20 @@ export const requireRole = (...roles: string[]) => {
       );
     }
 
+    next();
+  };
+};
+
+export const requirePermission = (permission: Permission) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const userRole = req.user!.role;
+    const allowed = ROLE_PERMISSIONS[userRole] ?? [];
+    if (!allowed.includes(permission)) {
+      throw new ApiError(
+        403,
+        "You don't have permission to perform this action",
+      );
+    }
     next();
   };
 };

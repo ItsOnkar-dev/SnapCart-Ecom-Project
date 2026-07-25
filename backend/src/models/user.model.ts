@@ -23,7 +23,7 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
     },
     role: {
       type: String,
-      enum: ["customer", "seller", "admin"],
+      enum: ["customer", "seller", "admin", "demo_admin"],
       default: "customer",
     },
     sellerStatus: {

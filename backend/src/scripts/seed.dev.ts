@@ -10,9 +10,8 @@ import { Logger } from "../utils/logger";
 
 const MONGODB_URI =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/SnapCart_TS";
-const SEED_PASSWORD = process.env.SEED_PASSWORD || "password123";
+const SEED_PASSWORD = "Demo@1234";
 
-// Matches IProduct — no slug, no isNew (not in schema)
 interface ProductInput {
   name: string;
   category: string;
@@ -161,10 +160,6 @@ const products: ProductInput[] = [
 ];
 
 async function seedDatabase() {
-  if (process.env.NODE_ENV === "production" && !process.env.SEED_PASSWORD) {
-    throw new Error("FATAL: SEED_PASSWORD is not set in production!");
-  }
-
   if (process.env.NODE_ENV === "production") {
     Logger.error("❌ SAFETY ALERT: Cannot run seed script in production!");
     process.exit(1);
@@ -174,36 +169,37 @@ async function seedDatabase() {
     Logger.info("🔄 Connecting to MongoDB...");
     await connectDB(MONGODB_URI);
 
-    Logger.info("🧹 Clearing existing data...");
+    Logger.info("🧹 Clearing existing demo data...");
+    // Only delete demo accounts — never touch users with role "admin"
     await Promise.all([
-      User.deleteMany({}),
+      User.deleteMany({ role: { $in: ["demo_admin", "seller", "customer"] } }),
       Product.deleteMany({}),
       Cart.deleteMany({}),
       Order.deleteMany({}),
     ]);
 
-    Logger.info("👤 Creating accounts...");
+    Logger.info("👤 Creating demo accounts...");
 
     const hashedPassword = await bcrypt.hash(SEED_PASSWORD, 12);
 
-    const admin = new User({
-      name: "Snapcart Admin",
-      email: process.env.TEST_ADMIN_EMAIL || "admin@snapcart.test",
-      role: "admin",
+    const demoAdmin = new User({
+      name: "Demo Admin",
+      email: "demo_admin@snapcart.dev",
+      role: "demo_admin",
       isEmailVerified: true,
       password: hashedPassword,
     });
-    await admin.save();
+    await demoAdmin.save();
 
     const seller = new User({
       name: "Demo Seller",
-      email: "seller@snapcart.test",
+      email: "demo_seller@snapcart.dev",
       role: "seller",
       sellerStatus: "approved",
       isEmailVerified: true,
       sellerApplication: {
         storeName: "Demo Electronics Shop",
-        contactEmail: "seller@snapcart.test",
+        contactEmail: "demo_seller@snapcart.dev",
         contactPhone: "9237486789",
         taxId: "TAX-99887766",
         businessAddress: "123 Innovation Drive, Tech City",
@@ -217,7 +213,7 @@ async function seedDatabase() {
 
     const shopper = new User({
       name: "Demo Shopper",
-      email: "shopper@snapcart.test",
+      email: "demo_customer@snapcart.dev",
       role: "customer",
       isEmailVerified: true,
       password: hashedPassword,
@@ -225,14 +221,14 @@ async function seedDatabase() {
     await shopper.save();
 
     Logger.info("📦 Inserting products...");
-    // Map products to include the seller objectId
     await Product.insertMany(
       products.map((p) => ({ ...p, seller: seller._id })),
     );
 
     Logger.info("\n✅ Seed complete!");
-    Logger.info(`- Admin: ${admin.email}`);
+    Logger.info(`- Demo Admin: ${demoAdmin.email}`);
     Logger.info(`- Seller: ${seller.email} (Status: ${seller.sellerStatus})`);
+    Logger.info(`- Customer: ${shopper.email}`);
     Logger.info(`- Password: ${SEED_PASSWORD}`);
   } catch (error) {
     if (error instanceof Error) {

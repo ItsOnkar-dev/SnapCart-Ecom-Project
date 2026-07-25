@@ -7,38 +7,58 @@ import {
   getPendingSellers,
   updateSellerStatus,
 } from "../controllers/admin.controller";
-import { requireRole, verifyToken } from "../middleware/auth.middleware";
+import {
+  requirePermission,
+  requireRole,
+  verifyToken,
+} from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { updateSellerStatusSchema } from "../validators/admin.validator";
 
 const router = Router();
 
-// All admin routes — must be logged in + must be admin
-router.get("/analytics", verifyToken, requireRole("admin"), getAnalytics);
-router.get("/sellers", verifyToken, requireRole("admin"), getPendingSellers);
+// All admin routes — must be logged in + be admin or demo_admin
+router.get(
+  "/analytics",
+  verifyToken,
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_dashboard"),
+  getAnalytics,
+);
+router.get(
+  "/sellers",
+  verifyToken,
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_dashboard"),
+  getPendingSellers,
+);
 router.patch(
   "/sellers/:id",
   verifyToken,
   requireRole("admin"),
+  requirePermission("approve_sellers"),
   validate(updateSellerStatusSchema),
   updateSellerStatus,
 );
 router.get(
   "/dashboard",
   verifyToken,
-  requireRole("admin"),
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_dashboard"),
   getAdminDashboardMetrics,
 );
 router.get(
   "/orders",
   verifyToken,
-  requireRole("admin"),
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_orders"),
   getAllOrders,
 );
 router.get(
   "/products/count",
   verifyToken,
-  requireRole("admin"),
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_dashboard"),
   getAllProductsCount,
 );
 
