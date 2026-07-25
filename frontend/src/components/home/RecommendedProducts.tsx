@@ -38,10 +38,12 @@ const CarouselSkeleton = ({ count }: { count: number }) =>
 
 const CompactSkeleton = () =>
   Array.from({ length: 2 }).map((_, i) => (
-    <div key={i} className="space-y-2">
-      <div className="aspect-square rounded-2xl bg-muted/20 animate-pulse" />
-      <div className="h-3 w-2/3 bg-muted/20 animate-pulse rounded" />
-    </div>
+    <CarouselItem key={i} className="pl-3 basis-[45%]">
+      <div className="space-y-2">
+        <div className="aspect-square rounded-2xl bg-muted/20 animate-pulse" />
+        <div className="h-3 w-2/3 bg-muted/20 animate-pulse rounded" />
+      </div>
+    </CarouselItem>
   ));
 
 // ─── Reason Label ─────────────────────────────────────────────────────────────
@@ -81,19 +83,25 @@ const RecommendedProducts = ({
         </span>
       </div>
 
-      {/* ── Compact layout (cart drawer) ── */}
+      {/* ── Compact layout (cart drawer) — horizontal scroll ── */}
       {compact ? (
-        <div className="grid grid-cols-2 gap-3">
-          {isLoading ? (
-            <CompactSkeleton />
-          ) : (
-            (data ?? []).slice(0, 2).map((product: RecommendationProduct) => (
-              <div key={product._id} className="space-y-1">
-                <ProductCard product={product} />
-                {product.reason && <ReasonLabel reason={product.reason} />}
-              </div>
-            ))
-          )}
+        <div className="-mx-5">
+          <Carousel opts={{ align: "start", loop: false, dragFree: true }} className="w-full px-5">
+            <CarouselContent className="-ml-3">
+              {isLoading ? (
+                <CompactSkeleton />
+              ) : (
+                (data ?? []).map((product: RecommendationProduct) => (
+                  <CarouselItem key={product._id} className="pl-3 basis-[45%]">
+                    <div className="space-y-1">
+                      <ProductCard product={product} />
+                      {product.reason && <ReasonLabel reason={product.reason} />}
+                    </div>
+                  </CarouselItem>
+                ))
+              )}
+            </CarouselContent>
+          </Carousel>
         </div>
       ) : (
         /* ── Full carousel layout (product detail page) ── */

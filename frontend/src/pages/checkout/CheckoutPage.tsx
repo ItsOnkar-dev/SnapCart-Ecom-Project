@@ -159,7 +159,7 @@ export default function CheckoutPage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
             {/* ── Left: Customer Information ──────────────────────────────── */}
             <section className="order-2 lg:order-1">
-              <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+              <div className="rounded-none border border-border bg-card/50 p-6 md:p-8">
                 <h2 className="mb-6 text-xl font-bold text-foreground">
                   Customer Information
                 </h2>
@@ -176,6 +176,7 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("fullName", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -188,6 +189,7 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("phone", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -200,6 +202,7 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("street", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
                   <div>
@@ -212,6 +215,7 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("city", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
                   <div>
@@ -224,6 +228,7 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("state", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -236,9 +241,10 @@ export default function CheckoutPage() {
                       onChange={(e) =>
                         handleAddressChange("pincode", e.target.value)
                       }
+                      className="rounded-none"
                     />
                   </div>
-                </div>
+                  </div>  {/* ── end address fields grid ── */}
 
                 {/* ── Shipping Method ──────────────────────────────────────────── */}
                 <div className="mt-8 border-t border-border pt-8">
@@ -366,7 +372,7 @@ export default function CheckoutPage() {
 
             {/* ── Right: Order Summary ─────────────────────────────────────── */}
             <aside className="order-1 lg:order-2 lg:sticky lg:top-28 lg:self-start">
-              <div className="rounded-2xl border border-border bg-sidebar p-6 md:p-8">
+              <div className="rounded-none border border-border bg-card/50 p-6 md:p-8">
                 <h2 className="mb-6 text-xl font-bold text-foreground">
                   Order Summary
                 </h2>
@@ -450,7 +456,7 @@ export default function CheckoutPage() {
                   <div className="flex gap-2">
                     <Input
                       placeholder="Enter code"
-                      className="flex-1"
+                      className="flex-1 rounded-none"
                     />
                     <Button type="button" variant="outline" className="shrink-0">
                       Apply

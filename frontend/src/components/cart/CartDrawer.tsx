@@ -90,8 +90,8 @@ export default function CartDrawer() {
           </Button>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        {/* Body — scrollbar hidden */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 py-4">
           {isLoading ? (
             <div className="space-y-4 animate-pulse">
               {[1, 2].map((i) => (
