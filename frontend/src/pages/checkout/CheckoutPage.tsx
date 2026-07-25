@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 import CheckoutHeader from "@/components/layout/CheckoutHeader";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
@@ -118,6 +119,7 @@ export default function CheckoutPage() {
             <div className="h-96 rounded-2xl border border-border bg-card/50" />
           </div>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -127,6 +129,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-screen bg-background px-4 py-20 md:px-6">
+        <CheckoutHeader />
         <div className="mx-auto max-w-sm text-center">
           <ShoppingBag className="mx-auto mb-5 size-12 text-muted-foreground" />
           <h1 className="text-2xl font-semibold text-foreground">
@@ -139,6 +142,7 @@ export default function CheckoutPage() {
             <Link to="/products">Browse products</Link>
           </Button>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -491,6 +495,7 @@ export default function CheckoutPage() {
           </div>
         </form>
       </div>
+      <Footer />
     </main>
   );
 }
