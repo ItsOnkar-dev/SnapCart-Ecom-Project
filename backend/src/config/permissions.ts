@@ -1,5 +1,3 @@
-import type { UserRole } from "../types/user.types";
-
 export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
   admin: [
     "view_dashboard",
