@@ -29,6 +29,7 @@ const WishlistSharePage = lazy(
 
 // ── protected buyer pages ─────────────────────────────────────────────────────
 const CartPage = lazy(() => import("@/pages/cart/CartPage"));
+const CheckoutPage = lazy(() => import("@/pages/checkout/CheckoutPage"));
 const OrdersPage = lazy(() => import("@/pages/order/OrdersPage"));
 const OrderDetailPage = lazy(() => import("@/pages/order/OrderDetailPage"));
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
@@ -127,6 +128,7 @@ const router = createBrowserRouter([
             element: <ProtectedRoute />,
             children: [
               { path: "/cart", element: <CartPage /> },
+              { path: "/checkout", element: <CheckoutPage /> },
               { path: "/payment-success", element: <PaymentSuccess /> },
               { path: "/orders", element: <OrdersPage /> },
               { path: "/orders/:id", element: <OrderDetailPage /> },
