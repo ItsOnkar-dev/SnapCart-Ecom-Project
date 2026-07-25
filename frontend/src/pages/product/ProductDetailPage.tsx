@@ -180,7 +180,7 @@ export default function ProductDetailPage() {
   const isInWishlist = wishlist?.items?.some(
     (item: WishlistItem) =>
       item.product === product._id ||
-      (typeof item.product === "object" && item.product._id === product._id),
+      (typeof item.product === "object" && item.product !== null && item.product._id === product._id),
   );
 
   const hasDiscount =
