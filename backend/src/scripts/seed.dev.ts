@@ -165,6 +165,13 @@ async function seedDatabase() {
     process.exit(1);
   }
 
+  if (process.env.MONGO_URI?.includes("mongodb+srv")) {
+    Logger.error(
+      "❌ SAFETY ALERT: MONGO_URI points to a cloud database. Refusing to seed.",
+    );
+    process.exit(1);
+  }
+
   try {
     Logger.info("🔄 Connecting to MongoDB...");
     await connectDB(MONGODB_URI);

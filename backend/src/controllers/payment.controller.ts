@@ -149,10 +149,7 @@ export const verifyPayment = asyncHandler(
       .digest("hex");
 
     if (expectedSignature !== razorpaySignature) {
-      throw new ApiError(
-        400,
-        "Payment verification failed. Please try again.",
-      );
+      throw new ApiError(400, "Payment verification failed. Please try again.");
     }
 
     // ── Idempotency guard ──────────────────────────────────────────────────
