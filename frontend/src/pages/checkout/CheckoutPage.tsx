@@ -102,10 +102,11 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-10 md:px-6">
-        <div className="mx-auto max-w-6xl animate-pulse space-y-6">
+      <main className="min-h-screen bg-background">
+        <CheckoutHeader />
+        <div className="mx-auto max-w-7xl animate-pulse space-y-6 px-4 py-10 md:px-6">
           <div className="h-8 w-48 rounded bg-muted/30" />
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="grid gap-8 lg:grid-cols-[1fr_460px]">
             <div className="space-y-6">
               {[1, 2].map((i) => (
                 <div
@@ -158,7 +159,7 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit}>
           {/* Mobile: Order Summary first ──────────────────────────────────── */}
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="grid gap-8 lg:grid-cols-[1fr_460px]">
             {/* ── Left: Customer Information ──────────────────────────────── */}
             <section className="order-2 lg:order-1">
               <div className="rounded-none border border-border bg-muted/20 p-6 md:p-8">
@@ -354,7 +355,7 @@ export default function CheckoutPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="mt-8 h-12 w-full"
+                  className="mt-8 h-12 w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
                   disabled={!canCheckout || isRazorpayPending || isCodPending}
                 >
                   {isRazorpayPending || isCodPending
