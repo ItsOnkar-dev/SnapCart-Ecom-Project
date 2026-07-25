@@ -280,15 +280,40 @@ The User model stores `passwordChangedAt` (timestamp). Each access token contain
 
 ### Role-Based Access Control (RBAC)
 
-Three roles, enforced at the route level via composable middleware:
+Permissions are **config-based** and derived from the user's role at runtime — never stored in the database. The mapping lives in `backend/src/config/permissions.ts`.
 
-| Role       | Guard Middleware                    | Capabilities                                                      |
-| ---------- | ----------------------------------- | ----------------------------------------------------------------- |
-| `customer` | `requireRole("customer")`           | Browse, cart, checkout, orders, reviews, wishlist                 |
-| `seller`   | `requireRole("seller")`             | Customer capabilities + manage own products, update order status  |
-| `admin`    | `requireRole("admin")`              | All seller capabilities + manage seller applications, analytics   |
+| Role         | Guard Middleware                    | Capabilities                                                      |
+| ------------ | ----------------------------------- | ----------------------------------------------------------------- |
+| `customer`   | `requireRole("customer")`           | Browse, cart, checkout, orders, reviews, wishlist                 |
+| `seller`     | `requireRole("seller")`             | Customer capabilities + manage own products, update order status  |
+| `admin`      | `requireRole("admin")` + permission | Full access — dashboard, orders, approve sellers, manage products |
+| `demo_admin` | `requireRole("admin", "demo_admin")` + permission | View-only — dashboard and orders only           |
+
+The `requirePermission` middleware checks the user's role against `ROLE_PERMISSIONS`:
+
+```typescript
+export const requirePermission = (permission: Permission) => {
+  return (req, res, next) => {
+    const allowed = ROLE_PERMISSIONS[req.user!.role] ?? [];
+    if (!allowed.includes(permission)) {
+      throw new ApiError(403, "You don't have permission to perform this action");
+    }
+    next();
+  };
+};
+```
 
 The `requireRole(...roles)` middleware accepts multiple roles (e.g. `requireRole("seller", "admin")`) for routes shared between seller and admin.
+
+### Primary Administrator Setup
+
+The seed script creates **only demo accounts** — it never touches production administrator accounts. The primary admin is created separately via an idempotent bootstrap script:
+
+```bash
+npm run bootstrap:admin
+```
+
+This checks if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set, then either creates a new admin or promotes an existing user. It exits safely if a primary admin already exists.
 
 ### Seller Application Flow
 
@@ -1040,7 +1065,9 @@ No structured logging on the frontend. Error visibility is through:
 | `CLOUDINARY_API_SECRET`      | Yes      | Cloudinary API secret                  |
 | `RESEND_API_KEY`             | No       | Transactional emails                   |
 | `RESEND_FROM_EMAIL`          | No       | Verified sender email                  |
-| `ADMIN_EMAIL`                | No       | Seller application notifications       |
+| `RESEND_EMAIL`               | No       | Seller application notifications       |
+| `ADMIN_EMAIL`                | No       | Bootstrap script — primary admin email |
+| `ADMIN_PASSWORD`             | No       | Bootstrap script — primary admin password |
 | `RAZORPAY_KEY_ID`            | No       | Razorpay payment API key               |
 | `RAZORPAY_KEY_SECRET`        | No       | Razorpay payment API secret            |
 | `RAZORPAY_WEBHOOK_SECRET`    | No       | Webhook signature secret               |

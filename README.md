@@ -278,8 +278,8 @@ Log In → Review Seller Applications → Approve / Reject
 | Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
 | CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality                                                     |
 | Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
-| RBAC                          | `requireRole` middleware for customer / seller / admin-gated routes                                                         |
-| Audit Logging                 | Login, logout, refresh, verification, password, and seller events                                                           |
+| RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config |
+| Audit Logging                 | Login, logout, refresh, verification, password, and seller events                           |
 
 ---
 
@@ -341,6 +341,35 @@ cd backend && npm install
 # Install frontend dependencies
 cd ../frontend && npm install
 ```
+
+### Seed Demo Accounts (Development Only)
+
+```bash
+cd backend
+npm run db:seed:dev
+```
+
+This creates three demo accounts with fixed credentials:
+
+| Account   | Email                          | Password   |
+| --------- | ------------------------------ | ---------- |
+| Admin     | `demo_admin@snapcart.dev`      | `Demo@1234` |
+| Seller    | `demo_seller@snapcart.dev`     | `Demo@1234` |
+| Customer  | `demo_customer@snapcart.dev`   | `Demo@1234` |
+
+> The demo admin has **view-only** permissions — it can browse the dashboard and orders but cannot perform destructive actions like approving sellers or managing products.
+
+### Create Your Primary Admin (Run Once)
+
+```bash
+cd backend
+npm run bootstrap:admin
+```
+
+The bootstrap script requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables. It is **idempotent** — safe to run multiple times. It will:
+- Check if a primary admin already exists → if yes, exit safely
+- If the email exists → promote that user to admin with full permissions
+- If not → create a new admin account
 
 ### Run in Development
 
@@ -498,7 +527,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ Helmet                    — secure HTTP headers out of the box
 ✅ Rate limiting             — 4 tiers: general (100), auth (20), password reset (5), refresh (60) per 10 min
 ✅ Zod validation            — schema-enforced at the route boundary
-✅ RBAC                      — role middleware on every protected route
+✅ RBAC with permissions — config-based, not stored in DB: roles map to granular permissions
 ✅ Verified email guard      — checkout and seller writes require verification
 ✅ Upload safety             — MIME check + size limit + memory-only storage
 ✅ Audit logging             — every sensitive event is recorded
@@ -588,6 +617,18 @@ SnapCart is feature-complete for its current scope. Planned enhancements include
 - **WebSocket notifications** — real-time order status updates
 - **Coupon/discount system** — promo codes with expiry and category rules
 - **Full-text search** — MongoDB Atlas Search for better relevance
+
+---
+
+## 🛡️ Live Demo Notice
+
+This project uses a **config-based permission system** where each role has a fixed set of permissions defined in code (`backend/src/config/permissions.ts`).
+
+To protect the integrity of the live deployment, high-privilege administrative actions (approving seller applications, managing users, destructive operations) are restricted to the **primary administrator** account. Demo admin accounts (`demo_admin@snapcart.dev`) are intentionally **view-only** — they can browse the dashboard and orders but cannot modify resources.
+
+If you'd like to experience the complete seller workflow, you can register as a seller on the live demo. Seller applications are reviewed manually by the primary administrator before access is granted.
+
+This restriction exists solely to protect the production demo while still showcasing the complete authorization architecture within the source code. Anyone who clones the project can designate their own primary administrator by running the bootstrap script.
 
 ---
 

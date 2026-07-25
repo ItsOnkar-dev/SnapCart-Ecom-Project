@@ -239,7 +239,9 @@ cp .env.example .env
 | `EMAIL_VERIFICATION_DEMO_MODE` | Optional | `true` → returns verification URL in response         |
 | `RESEND_API_KEY`               | Optional | From resend.com — required for real email delivery    |
 | `RESEND_FROM_EMAIL`            | Optional | Verified sender address on your Resend domain         |
-| `ADMIN_EMAIL`                  | Optional | Receives seller application notification emails       |
+| `RESEND_EMAIL`                 | Optional | Receives seller application notification emails       |
+| `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin |
+| `ADMIN_PASSWORD`               | Optional | Used by bootstrap script — password of the primary admin |
 | `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                               |
 | `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                               |
 
@@ -264,7 +266,8 @@ npm run dev     # starts on http://localhost:5000 with hot reload
 | `npm start`           | Run the compiled production server (`node dist/server.js`) |
 | `npm run lint`        | Run ESLint across `src/`                                   |
 | `npm run type-check`  | Type-check without emitting files                          |
-| `npm run db:seed:dev` | Seed the database with development sample data             |
+| `npm run db:seed:dev` | Seed the database with development demo accounts           |
+| `npm run bootstrap:admin` | Create or promote the primary admin account (idempotent) |
 
 ---
 
@@ -541,7 +544,7 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | Password storage          | bcrypt hashes only                                                      |
 | Verification/reset tokens | Raw token delivered, SHA-256 hash stored (raw never persisted)          |
 | Refresh tokens            | HMAC-SHA256 hashed, rotated on refresh, reuse detection                 |
-| RBAC                      | `requireRole` middleware for customer / seller / admin flows            |
+| RBAC                      | `requireRole` + `requirePermission` — roles and permissions defined in `config/permissions.ts`, never stored per-user |
 | Verified email guard      | `requireVerifiedEmail` on sensitive operations                          |
 | Upload safety             | MIME validation + 5MB limit + memory-only storage (no disk writes)      |
 | Audit logging             | Login, logout, refresh, verification, password, and seller events       |
