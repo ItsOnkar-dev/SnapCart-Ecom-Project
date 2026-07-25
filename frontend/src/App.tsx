@@ -46,7 +46,9 @@ const SellerProductsPage = lazy(
 );
 
 // ── admin pages ───────────────────────────────────────────────────────────────
-const AdminSellersPage = lazy(() => import("@/pages/admin/AdminSellersPage"));
+const AdminDashboardPage = lazy(
+  () => import("@/pages/admin/AdminDashboardPage"),
+);
 const AdminAnalyticsDashboard = lazy(
   () => import("@/pages/admin/AdminAnalyticsDashboard"),
 );
@@ -141,7 +143,6 @@ const router = createBrowserRouter([
               {
                 element: <RoleRoute allowedRoles={["seller", "admin"]} />,
                 children: [
-                  // { path: "/seller/dashboard", element: <SellerDashboardPage /> },
                   { path: "/seller/products", element: <SellerProductsPage /> },
                 ],
               },
@@ -149,7 +150,7 @@ const router = createBrowserRouter([
               {
                 element: <RoleRoute allowedRoles={["admin", "demo_admin"]} />,
                 children: [
-                  { path: "/admin/sellers", element: <AdminSellersPage /> },
+                  { path: "/admin/dashboard", element: <AdminDashboardPage /> },
                   {
                     path: "/admin/analytics",
                     element: <AdminAnalyticsDashboard />,
@@ -164,9 +165,7 @@ const router = createBrowserRouter([
       // ── checkout — no MainLayout, no footer ────────────────────────────────
       {
         element: <ProtectedRoute />,
-        children: [
-          { path: "/checkout", element: <CheckoutPage /> },
-        ],
+        children: [{ path: "/checkout", element: <CheckoutPage /> }],
       },
     ],
   },

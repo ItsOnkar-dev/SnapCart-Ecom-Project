@@ -138,8 +138,8 @@ export default function UserMenu() {
                 <MenuLink to="/admin/analytics" icon={TrendingUp}>
                   Admin Analytics
                 </MenuLink>
-                <MenuLink to="/admin/sellers" icon={UserCircle}>
-                  Seller Applications
+                <MenuLink to="/admin/dashboard" icon={UserCircle}>
+                  Admin Dashboard
                 </MenuLink>
               </>
             )}
