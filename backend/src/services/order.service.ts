@@ -97,7 +97,7 @@ export const placeOrderService = async (
       paymentMethod: paymentInfo.paymentMethod ?? "razorpay",
       paymentStatus: paymentInfo.paymentStatus ?? "pending",
       razorpayOrderId: paymentInfo.razorpayOrderId ?? null,
-      razorpayPaymentId: paymentInfo.razorpayPaymentId ?? null,
+      razorpayPaymentId: paymentInfo.razorpayPaymentId ?? undefined,
     },
   ]);
 
