@@ -33,6 +33,19 @@ const getItemPrice = (item: CartItem) =>
     ? item.product.discountPrice
     : item.product.price;
 
+type ShippingOption = "standard" | "express" | "overnight";
+
+const SHIPPING_OPTIONS: {
+  key: ShippingOption;
+  label: string;
+  duration: string;
+  cost: number;
+}[] = [
+  { key: "standard", label: "Standard", duration: "3–5 days", cost: 0 },
+  { key: "express", label: "Express", duration: "1–2 days", cost: 15 },
+  { key: "overnight", label: "Overnight", duration: "Tomorrow", cost: 35 },
+];
+
 // ─── Checkout Page ────────────────────────────────────────────────────────────
 
 export default function CheckoutPage() {
@@ -42,6 +55,7 @@ export default function CheckoutPage() {
   const { mutate: placeOrder, isPending: isCodPending } = usePlaceOrder();
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
+  const [shippingOption, setShippingOption] = useState<ShippingOption>("standard");
 
   // ── Derived values ──────────────────────────────────────────────────────────
   const items = useMemo(() => cart?.items ?? [], [cart?.items]);
@@ -56,7 +70,7 @@ export default function CheckoutPage() {
     [items],
   );
 
-  const shipping = subtotal >= 500 || subtotal === 0 ? 0 : 49;
+  const shipping = shippingOption === "standard" ? 0 : shippingOption === "express" ? 15 : 35;
   const total = subtotal + shipping;
 
   const hasInvalidStock = items.some(
@@ -223,6 +237,55 @@ export default function CheckoutPage() {
                         handleAddressChange("pincode", e.target.value)
                       }
                     />
+                  </div>
+                </div>
+
+                {/* ── Shipping Method ──────────────────────────────────────────── */}
+                <div className="mt-8 border-t border-border pt-8">
+                  <h3 className="mb-4 text-lg font-bold text-foreground">
+                    Shipping Method
+                  </h3>
+                  <div className="space-y-3">
+                    {SHIPPING_OPTIONS.map((opt) => {
+                      const isSelected = shippingOption === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setShippingOption(opt.key)}
+                          className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3.5 text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-card hover:border-muted-foreground/30"
+                          }`}
+                        >
+                          <span
+                            className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                              isSelected
+                                ? "border-primary bg-primary"
+                                : "border-muted-foreground"
+                            }`}
+                          >
+                            {isSelected && (
+                              <span className="size-2 rounded-full bg-white" />
+                            )}
+                          </span>
+                          <div className="flex flex-1 items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-foreground">
+                                {opt.label}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {opt.duration}
+                              </p>
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">
+                              {opt.cost === 0 ? "Free" : formatPrice(opt.cost)}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -409,11 +472,6 @@ export default function CheckoutPage() {
                       {shipping === 0 ? "Free" : formatPrice(shipping)}
                     </span>
                   </div>
-                  {shipping > 0 && subtotal >= 500 - shipping && (
-                    <p className="text-xs text-muted-foreground">
-                      Add {formatPrice(500 - subtotal)} more for free shipping
-                    </p>
-                  )}
                   <div className="flex justify-between border-t border-sidebar-border pt-3 text-lg font-bold text-foreground">
                     <span>Total</span>
                     <span>{formatPrice(total)}</span>

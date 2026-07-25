@@ -253,9 +253,15 @@ export default function CartDrawer() {
               onClick={close}
               className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/80 transition-colors cursor-pointer disabled:opacity-50"
               aria-disabled={hasInvalidStock}
-              // The link navigates even with disabled visual — we handle stock validation on the checkout page
             >
               Proceed to Checkout
+            </Link>
+            <Link
+              to="/products"
+              onClick={close}
+              className="mt-2 flex h-11 w-full items-center justify-center rounded-lg border border-border bg-transparent text-sm font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors cursor-pointer"
+            >
+              Continue Shopping
             </Link>
           </div>
         )}
