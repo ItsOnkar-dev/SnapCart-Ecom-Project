@@ -4,6 +4,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import {
+  getAdminOrdersApi,
+  getAdminProductsCountApi,
+} from "@/api/admin.api";
 import { getPendingSellersApi, updateSellerStatusApi } from "@/api/seller.api";
 import { getApiErrorMessage } from "@/types/api.types";
 
@@ -11,6 +15,8 @@ import type { SellerDecisionStatus } from "@/types/seller.types";
 
 export const adminKeys = {
   sellers: ["admin", "sellers"] as const,
+  orders: ["admin", "orders"] as const,
+  productsCount: ["admin", "products", "count"] as const,
 };
 
 // GET /admin/sellers
@@ -20,10 +26,9 @@ export function useAdminSellers() {
     queryKey: adminKeys.sellers,
     queryFn: async () => {
       const res = await getPendingSellersApi();
-      // res.data.data = SellerApplicant[]
       return res.data.data;
     },
-    staleTime: 30 * 1000, // 30s — admin needs fresher data
+    staleTime: 30 * 1000,
   });
 }
 
@@ -46,5 +51,29 @@ export function useUpdateSellerStatus() {
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Could not update seller status."));
     },
+  });
+}
+
+// GET /admin/orders
+export function useAdminOrders(page: number = 1) {
+  return useQuery({
+    queryKey: [...adminKeys.orders, page],
+    queryFn: async () => {
+      const res = await getAdminOrdersApi(page);
+      return res.data.data;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+// GET /admin/products/count
+export function useAdminProductsCount() {
+  return useQuery({
+    queryKey: adminKeys.productsCount,
+    queryFn: async () => {
+      const res = await getAdminProductsCountApi();
+      return res.data.data.count;
+    },
+    staleTime: 60 * 1000,
   });
 }

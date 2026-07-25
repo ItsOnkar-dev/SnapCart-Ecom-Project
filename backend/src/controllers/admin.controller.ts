@@ -7,6 +7,7 @@ import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { auditLog } from "../utils/auditLogger";
 import { getAnalyticsData } from "../utils/analyticsCache";
+import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
 
 // GET /api/admin/sellers
 // Admin sees all users who have applied to become sellers
@@ -111,5 +112,43 @@ export const getAnalytics = asyncHandler(
   async (req: Request, res: Response) => {
     const data = await getAnalyticsData();
     res.status(200).json(new ApiResponse(200, "Analytics fetched successfully", data));
+  },
+);
+
+// GET /api/admin/orders
+// Admin sees ALL orders across all users with pagination
+export const getAllOrders = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page, limit, skip } = getPaginationParams(
+      req.query as { page?: string; limit?: string },
+      { limit: 20, maxLimit: 50 },
+    );
+
+    const [orders, total] = await Promise.all([
+      Order.find()
+        .sort({ createdAt: -1 })
+        .populate("user", "name email")
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments(),
+    ]);
+
+    res.status(200).json(
+      new ApiResponse(200, "All orders fetched successfully", {
+        orders,
+        pagination: buildPaginationResult(total, { page, limit, skip }),
+      }),
+    );
+  },
+);
+
+// GET /api/admin/products/count
+// Admin sees total active product count
+export const getAllProductsCount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const count = await Product.countDocuments({ isActive: true });
+    res.status(200).json(
+      new ApiResponse(200, "Product count fetched", { count }),
+    );
   },
 );

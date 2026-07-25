@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   getAdminDashboardMetrics,
+  getAllOrders,
+  getAllProductsCount,
   getAnalytics,
   getPendingSellers,
   updateSellerStatus,
@@ -21,13 +23,23 @@ router.patch(
   validate(updateSellerStatusSchema),
   updateSellerStatus,
 );
-// GET /api/admin/dashboard
-// Protect with token AND strict admin role check
 router.get(
   "/dashboard",
   verifyToken,
   requireRole("admin"),
   getAdminDashboardMetrics,
+);
+router.get(
+  "/orders",
+  verifyToken,
+  requireRole("admin"),
+  getAllOrders,
+);
+router.get(
+  "/products/count",
+  verifyToken,
+  requireRole("admin"),
+  getAllProductsCount,
 );
 
 export default router;
