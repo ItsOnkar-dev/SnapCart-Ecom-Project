@@ -54,8 +54,6 @@ const ReviewSellerRedirect = lazy(
   () => import("@/pages/admin/ReviewSellerRedirect"),
 );
 
-import CheckoutHeader from "@/components/layout/CheckoutHeader";
-
 // ── layout wrapper — Header + page content via Outlet ────────────────────────
 function MainLayout() {
   useEffect(() => {
@@ -68,21 +66,6 @@ function MainLayout() {
       <Header />
       <Outlet />
       <Footer />
-    </>
-  );
-}
-
-// ── checkout layout — dedicated minimal header, no footer ────────────────────
-function CheckoutLayout() {
-  useEffect(() => {
-    api.get("/auth/csrf-token").catch(() => {
-      console.warn("Could not fetch CSRF token");
-    });
-  }, []);
-  return (
-    <>
-      <CheckoutHeader />
-      <Outlet />
     </>
   );
 }
@@ -138,14 +121,6 @@ const router = createBrowserRouter([
           { path: "/unauthorized", element: <Unauthorized /> },
           { path: "*", element: <NotFound /> },
 
-          // ── checkout ──────────────────────────────────────────────────────────
-          {
-            element: <CheckoutLayout />,
-            children: [
-              { path: "/checkout", element: <CheckoutPage /> },
-            ],
-          },
-
           // ── protected: any authenticated user ───────────────────────────────
           {
             element: <ProtectedRoute />,
@@ -183,6 +158,14 @@ const router = createBrowserRouter([
               },
             ],
           },
+        ],
+      },
+
+      // ── checkout — no MainLayout, no footer ────────────────────────────────
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "/checkout", element: <CheckoutPage /> },
         ],
       },
     ],

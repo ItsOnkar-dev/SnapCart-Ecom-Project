@@ -2,6 +2,7 @@ import { ArrowRight, Lock, ShoppingBag, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import CheckoutHeader from "@/components/layout/CheckoutHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
@@ -145,7 +146,8 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
+      <CheckoutHeader />
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
         {/* Page header */}
         <div className="mb-8 border-b border-border/70 pb-6">
           <p className="text-sm text-muted-foreground">Home / Checkout</p>
@@ -159,7 +161,7 @@ export default function CheckoutPage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
             {/* ── Left: Customer Information ──────────────────────────────── */}
             <section className="order-2 lg:order-1">
-              <div className="rounded-none border border-border bg-card/50 p-6 md:p-8">
+              <div className="rounded-none border border-border bg-muted/20 p-6 md:p-8">
                 <h2 className="mb-6 text-xl font-bold text-foreground">
                   Customer Information
                 </h2>
@@ -259,7 +261,7 @@ export default function CheckoutPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setShippingOption(opt.key)}
-                          className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3.5 text-left transition-all cursor-pointer ${
+                          className={`flex w-full items-center gap-4 border px-4 py-3.5 text-left transition-all cursor-pointer ${
                             isSelected
                               ? "border-primary bg-primary/5"
                               : "border-border bg-card hover:border-muted-foreground/30"
@@ -304,7 +306,7 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("online")}
-                      className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
+                      className={`flex items-center gap-3 border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
                         paymentMethod === "online"
                           ? "border-primary bg-primary/5"
                           : "border-border bg-card hover:border-muted-foreground/30"
@@ -326,7 +328,7 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("cod")}
-                      className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
+                      className={`flex items-center gap-3 border-2 px-4 py-3 text-left text-sm transition-all cursor-pointer ${
                         paymentMethod === "cod"
                           ? "border-primary bg-primary/5"
                           : "border-border bg-card hover:border-muted-foreground/30"
@@ -372,7 +374,7 @@ export default function CheckoutPage() {
 
             {/* ── Right: Order Summary ─────────────────────────────────────── */}
             <aside className="order-1 lg:order-2 lg:sticky lg:top-28 lg:self-start">
-              <div className="rounded-none border border-border bg-card/50 p-6 md:p-8">
+              <div className="rounded-none border border-border bg-muted/20 p-6 md:p-8">
                 <h2 className="mb-6 text-xl font-bold text-foreground">
                   Order Summary
                 </h2>
