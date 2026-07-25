@@ -12,7 +12,7 @@ declare namespace NodeJS {
     GOOGLE_CLIENT_SECRET: string;
     GOOGLE_CALLBACK_URL: string;
 
-    ADMIN_EMAIL: string;
+    RESEND_EMAIL: string;
 
     FRONTEND_URL: string;
 

@@ -9,7 +9,7 @@ export const sendSellerApplicationEmail = async (applicant: IUser) => {
 
   await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL as string,
-    to: process.env.ADMIN_EMAIL as string, // admin's email from env — never hardcoded
+    to: process.env.RESEND_EMAIL as string, // admin's email from env — never hardcoded
     subject: "New seller application — SnapCart",
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
