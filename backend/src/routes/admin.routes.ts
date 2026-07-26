@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAdminDashboardMetrics,
   getAllOrders,
+  getAllProducts,
   getAllProductsCount,
   getAnalytics,
   getPendingSellers,
@@ -53,6 +54,13 @@ router.get(
   requireRole("admin", "demo_admin"),
   requirePermission("view_orders"),
   getAllOrders,
+);
+router.get(
+  "/products",
+  verifyToken,
+  requireRole("admin", "demo_admin"),
+  requirePermission("view_dashboard"),
+  getAllProducts,
 );
 router.get(
   "/products/count",

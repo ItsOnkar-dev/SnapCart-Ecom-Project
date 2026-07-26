@@ -10,7 +10,7 @@ import { Logger } from "../utils/logger";
 
 const MONGODB_URI =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/SnapCart_TS";
-const SEED_PASSWORD = "Demo-SnapCart-Admin@321";
+const SEED_PASSWORD = "Demo@1234";
 
 interface ProductInput {
   name: string;
@@ -165,12 +165,12 @@ async function seedDatabase() {
     process.exit(1);
   }
 
-  // if (process.env.MONGO_URI?.includes("mongodb+srv")) {
-  //   Logger.error(
-  //     "❌ SAFETY ALERT: MONGO_URI points to a cloud database. Refusing to seed.",
-  //   );
-  //   process.exit(1);
-  // }
+  if (process.env.MONGO_URI?.includes("mongodb+srv")) {
+    Logger.error(
+      "❌ SAFETY ALERT: MONGO_URI points to a cloud database. Refusing to seed.",
+    );
+    process.exit(1);
+  }
 
   try {
     Logger.info("🔄 Connecting to MongoDB...");

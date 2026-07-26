@@ -136,22 +136,6 @@ export const getSellerProducts = asyncHandler(
   },
 );
 
-// GET /api/products/admin/all
-// Admin catalog controls â€” all products, including inactive soft-deleted records.
-export const getAdminProducts = asyncHandler(
-  async (_req: Request, res: Response) => {
-    const products = await Product.find({})
-      .populate("seller", "name email")
-      .sort({ createdAt: -1 });
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, "Admin products fetched successfully", products),
-      );
-  },
-);
-
 // GET /api/products/:id
 // Public — single product detail page
 export const getProductById = asyncHandler(

@@ -147,6 +147,41 @@ export const getAllOrders = asyncHandler(
   },
 );
 
+// GET /api/admin/products
+// Admin catalog controls â€” all products, including inactive soft-deleted records.
+export const getAllProducts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page, limit, skip } = getPaginationParams(
+      req.query as { page?: string; limit?: string },
+      {
+        limit: 10,
+        maxLimit: 50,
+      },
+    );
+
+    const [products, total] = await Promise.all([
+      Product.find({})
+        .populate("seller", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Product.countDocuments({}),
+    ]);
+
+    res.status(200).json(
+      new ApiResponse(200, "All products fetched successfully", {
+        products,
+        pagination: buildPaginationResult(total, {
+          page,
+          limit,
+          skip,
+        }),
+      }),
+    );
+  },
+);
+
 // GET /api/admin/products/count
 // Admin sees total active product count
 export const getAllProductsCount = asyncHandler(
