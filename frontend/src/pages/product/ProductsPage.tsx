@@ -216,7 +216,7 @@ export default function ProductsPage() {
           isFiltersOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex h-full flex-col overflow-y-auto pr-1">
+        <div className="flex h-full flex-col overflow-y-auto pr-1 scrollbar-hide">
           <div className="flex items-center justify-between border-b border-sidebar-border pb-6">
             <h2 className="text-2xl font-bold text-foreground">Filters</h2>
             <Button

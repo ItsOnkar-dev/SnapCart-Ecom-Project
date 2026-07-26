@@ -152,7 +152,7 @@ export default function ProductsTab() {
 
       {/* Edit Form Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold tracking-tight">
               Edit product
