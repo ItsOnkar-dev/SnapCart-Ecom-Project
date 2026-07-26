@@ -3,11 +3,14 @@ import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 import { User } from "../models/user.model";
 import { updateSellerStatusService } from "../services/seller.service";
+import { getAnalyticsData } from "../utils/analyticsCache";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { auditLog } from "../utils/auditLogger";
-import { getAnalyticsData } from "../utils/analyticsCache";
-import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
+import {
+  buildPaginationResult,
+  getPaginationParams,
+} from "../utils/pagination";
 
 // GET /api/admin/sellers
 // Admin sees all users who have applied to become sellers
@@ -111,7 +114,9 @@ export const getAdminDashboardMetrics = asyncHandler(
 export const getAnalytics = asyncHandler(
   async (req: Request, res: Response) => {
     const data = await getAnalyticsData();
-    res.status(200).json(new ApiResponse(200, "Analytics fetched successfully", data));
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Analytics fetched successfully", data));
   },
 );
 
@@ -121,7 +126,7 @@ export const getAllOrders = asyncHandler(
   async (req: Request, res: Response) => {
     const { page, limit, skip } = getPaginationParams(
       req.query as { page?: string; limit?: string },
-      { limit: 20, maxLimit: 50 },
+      { limit: 10, maxLimit: 50 },
     );
 
     const [orders, total] = await Promise.all([
@@ -147,8 +152,8 @@ export const getAllOrders = asyncHandler(
 export const getAllProductsCount = asyncHandler(
   async (req: Request, res: Response) => {
     const count = await Product.countDocuments({ isActive: true });
-    res.status(200).json(
-      new ApiResponse(200, "Product count fetched", { count }),
-    );
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Product count fetched", { count }));
   },
 );

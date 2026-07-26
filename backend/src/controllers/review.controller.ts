@@ -7,7 +7,10 @@ import {
 } from "../services/review.service";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
+import {
+  buildPaginationResult,
+  getPaginationParams,
+} from "../utils/pagination";
 
 const getRouteParam = (value: string | string[] | undefined, _name: string) => {
   if (Array.isArray(value)) {
@@ -57,7 +60,7 @@ export const getProductReviews = asyncHandler(
 
     const { page, limit, skip } = getPaginationParams(
       req.query as { page?: string; limit?: string },
-      { limit: 20, maxLimit: 100 },
+      { limit: 10, maxLimit: 100 },
     );
 
     const [reviews, total] = await Promise.all([
