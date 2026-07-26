@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import {
   getAdminOrdersApi,
+  getAdminProductsApi,
   getAdminProductsCountApi,
 } from "@/api/admin.api";
 import { getPendingSellersApi, updateSellerStatusApi } from "@/api/seller.api";
@@ -16,6 +17,7 @@ import type { SellerDecisionStatus } from "@/types/seller.types";
 export const adminKeys = {
   sellers: ["admin", "sellers"] as const,
   orders: ["admin", "orders"] as const,
+  products: ["admin", "products"] as const,
   productsCount: ["admin", "products", "count"] as const,
 };
 
@@ -60,6 +62,18 @@ export function useAdminOrders(page: number = 1) {
     queryKey: [...adminKeys.orders, page],
     queryFn: async () => {
       const res = await getAdminOrdersApi(page);
+      return res.data.data;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+// GET /admin/products — paginated list of all products
+export function useAdminProducts(page: number = 1) {
+  return useQuery({
+    queryKey: [...adminKeys.products, page],
+    queryFn: async () => {
+      const res = await getAdminProductsApi(page);
       return res.data.data;
     },
     staleTime: 30 * 1000,

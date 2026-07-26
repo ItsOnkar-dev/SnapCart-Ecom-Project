@@ -10,6 +10,10 @@ export const getAdminAnalyticsApi = () => api.get("/admin/analytics");
 export const getAdminOrdersApi = (page?: number) =>
   api.get("/admin/orders", { params: { page } });
 
+// GET /api/admin/products — fetches all products with pagination (admin only)
+export const getAdminProductsApi = (page?: number) =>
+  api.get("/admin/products", { params: { page } });
+
 // GET /api/admin/products/count — fetches total active product count
 export const getAdminProductsCountApi = () => api.get("/admin/products/count");
 

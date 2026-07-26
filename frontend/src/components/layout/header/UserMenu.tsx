@@ -128,7 +128,7 @@ export default function UserMenu() {
             </MenuLink>
             {user.role === "seller" && (
               <>
-                <MenuLink to="/seller/products" icon={TrendingUp}>
+                <MenuLink to="/seller/dashboard" icon={TrendingUp}>
                   Manage Products
                 </MenuLink>
               </>

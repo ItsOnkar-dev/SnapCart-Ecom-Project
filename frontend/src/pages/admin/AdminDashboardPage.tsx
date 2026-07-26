@@ -1,3 +1,4 @@
+import AdminProductCard from "@/components/admin/AdminProductCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useAdminOrders,
+  useAdminProducts,
   useAdminProductsCount,
   useAdminSellers,
   useUpdateSellerStatus,
@@ -23,6 +25,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import type { Order } from "@/types/order.types";
+import type { Product } from "@/types/product.types";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -51,10 +54,19 @@ export default function AdminDashboardPage() {
     "approved" | "rejected" | null
   >(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("sellers");
+
   const [orderPage, setOrderPage] = useState(1);
   const { data: ordersData, isLoading: ordersLoading } = useAdminOrders(
     activeTab === "orders" ? orderPage : 1,
   );
+  const [productPage, setProductPage] = useState(1);
+
+  const { data: productsData, isLoading: productsLoading } = useAdminProducts(
+    activeTab === "products" ? productPage : 1,
+  );
+
+  const products: Product[] = productsData?.products ?? [];
+  const productsPagination = productsData?.pagination;
 
   const tabs: { key: ActiveTab; label: string; count: number | null }[] = [
     { key: "analytics", label: "Analytics", count: null },
@@ -116,16 +128,60 @@ export default function AdminDashboardPage() {
 
         {/* Products Section */}
         {activeTab === "products" && (
-          <div className="flex flex-col items-center justify-center py-16 bg-muted/20 border border-dashed border-border text-center">
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              Product Management
-            </h2>
-            <p className="text-sm text-muted-foreground mb-1">
-              {productsCount ?? 0} active products
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Product management UI coming soon.
-            </p>
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Product Management</h2>
+            {productsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="p-4 bg-card border border-border space-y-2"
+                  >
+                    <Skeleton className="h-5 w-1/3 bg-muted" />
+                    <Skeleton className="h-4 w-1/2 bg-muted" />
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-12 bg-muted/20 border border-dashed border-border">
+                <p className="text-sm text-muted-foreground">
+                  No products found.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+                  {products.map((product) => (
+                    <AdminProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+
+                {productsPagination && productsPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-3 pt-4">
+                    <button
+                      type="button"
+                      disabled={!productsPagination.hasPrevPage}
+                      onClick={() => setProductPage((p) => p - 1)}
+                      className="px-3 py-1.5 text-xs font-medium border border-border disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+                    <span className="text-xs text-muted-foreground">
+                      Page {productsPagination.page} of{" "}
+                      {productsPagination.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!productsPagination.hasNextPage}
+                      onClick={() => setProductPage((p) => p + 1)}
+                      className="px-3 py-1.5 text-xs font-medium border border-border disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 

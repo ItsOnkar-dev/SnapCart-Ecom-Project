@@ -65,7 +65,7 @@ export function useCreateProduct() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       toast.success("Product created!");
-      navigate("/seller/products");
+      navigate("/seller/dashboard");
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Failed to create product."));
@@ -84,7 +84,7 @@ export function useUpdateProduct(id: string) {
       queryClient.invalidateQueries({ queryKey: productKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       toast.success("Product updated!");
-      navigate("/seller/products");
+      navigate("/seller/dashboard");
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Failed to update product."));

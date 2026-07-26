@@ -142,7 +142,7 @@ const router = createBrowserRouter([
               {
                 element: <RoleRoute allowedRoles={["seller", "admin"]} />,
                 children: [
-                  { path: "/seller/products", element: <SellerDashboardPage /> },
+                  { path: "/seller/dashboard", element: <SellerDashboardPage /> },
                 ],
               },
 
