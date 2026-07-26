@@ -1,5 +1,5 @@
-import type { Product } from "./product.types";
 import type { PaginationResult } from "./api.types";
+import type { Product } from "./product.types";
 
 export type OrderStatus =
   | "pending"
@@ -29,8 +29,12 @@ export interface Order {
   _id: string;
   user: string;
   items: OrderItem[];
+  subtotal: number;
+  shipping: number;
   totalPrice: number;
   status: OrderStatus;
+  paymentStatus: "pending" | "paid" | "failed" | "refund_pending" | "refunded";
+  paymentMethod: "razorpay" | "cod";
   shippingAddress: ShippingAddress;
   createdAt: string;
   updatedAt: string;

@@ -162,7 +162,6 @@ const router = createBrowserRouter([
         ],
       },
 
-      // ── checkout — no MainLayout, no footer ────────────────────────────────
       {
         element: <ProtectedRoute />,
         children: [{ path: "/checkout", element: <CheckoutPage /> }],

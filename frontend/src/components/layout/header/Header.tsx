@@ -1,5 +1,3 @@
-// components/layout/Header.tsx
-// Sticky wrapper around the main navigation.
 import Navigation from "./Navigation";
 // import StatusBar from "./StatusBar";
 

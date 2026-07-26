@@ -1,4 +1,4 @@
-import { ChevronRight, PackageOpen } from "lucide-react";
+import { PackageOpen } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
@@ -19,6 +19,49 @@ const formatDate = (value: string) =>
     month: "short",
     year: "numeric",
   }).format(new Date(value));
+
+const statusConfig: Record<
+  string,
+  { label: string; dot: string; text: string }
+> = {
+  delivered: {
+    label: "Delivered",
+    dot: "bg-emerald-500",
+    text: "text-emerald-600 dark:text-emerald-400",
+  },
+  shipped: {
+    label: "Out for delivery",
+    dot: "bg-blue-500",
+    text: "text-blue-600 dark:text-blue-400",
+  },
+  confirmed: {
+    label: "Confirmed · Preparing",
+    dot: "bg-amber-500",
+    text: "text-amber-600 dark:text-amber-400",
+  },
+  pending: {
+    label: "Pending",
+    dot: "bg-muted-foreground",
+    text: "text-muted-foreground",
+  },
+  cancelled: {
+    label: "Cancelled",
+    dot: "bg-rose-500",
+    text: "text-rose-600 dark:text-rose-400",
+  },
+};
+
+function OrderStatusPill({ status }: { status: string }) {
+  const cfg = statusConfig[status] ?? statusConfig.pending;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${cfg.text}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  );
+}
 
 export default function OrdersPage() {
   const [orderPage, setOrderPage] = useState(1);
@@ -67,37 +110,94 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order: Order) => (
-              <Link
+              <div
                 key={order._id}
-                to={`/orders/${order._id}`}
-                className="grid gap-4 rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 md:grid-cols-[1fr_auto]"
+                className="overflow-hidden rounded-2xl border border-border bg-card"
               >
-                <div>
-                  <div className="mb-3 flex flex-wrap items-center gap-3">
-                    <span className="text-sm text-muted-foreground">
-                      Order #{order._id.slice(-8).toUpperCase()}
+                {/* Header bar */}
+                <div className="grid grid-cols-2 gap-4 border-b border-border bg-muted/40 px-5 py-3 sm:grid-cols-4">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Order placed
                     </span>
-                    <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold capitalize text-primary-glow">
-                      {order.status}
+                    <span className="text-sm font-medium text-foreground">
+                      {formatDate(order.createdAt)}
                     </span>
                   </div>
-                  <h2 className="text-lg font-semibold text-foreground">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Total
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {formatPrice(order.totalPrice)}
+                    </span>
+                    <span className="text-xs text-muted-foreground capitalize">
+                      {order.paymentMethod === "cod"
+                        ? "Cash on delivery"
+                        : "Razorpay"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Ship to
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {order.shippingAddress.fullName}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {order.shippingAddress.city},{" "}
+                      {order.shippingAddress.state}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Order #
+                    </span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {order._id.slice(-8).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Item rows */}
+                <div className="divide-y divide-border px-5">
+                  {order.items.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-4 py-4">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-[72px] w-[72px] shrink-0 rounded-lg border border-border object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground leading-snug mb-1">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Qty: {item.quantity}
+                        </p>
+                        <OrderStatusPill status={order.status} />
+                      </div>
+                      <span className="shrink-0 text-sm font-medium text-foreground pt-0.5">
+                        {formatPrice(item.price * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between border-t border-border bg-muted/40 px-5 py-3">
+                  <span className="text-xs text-muted-foreground">
                     {order.items.length}{" "}
-                    {order.items.length === 1 ? "item" : "items"} placed on{" "}
-                    {formatDate(order.createdAt)}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Delivering to {order.shippingAddress.city},{" "}
-                    {order.shippingAddress.state}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between gap-5 md:justify-end">
-                  <span className="text-xl font-bold text-foreground">
-                    {formatPrice(order.totalPrice)}
+                    {order.items.length === 1 ? "item" : "items"}
                   </span>
-                  <ChevronRight className="size-5 text-muted-foreground" />
+                  <Link
+                    to={`/orders/${order._id}`}
+                    className="text-xs font-medium text-primary hover:underline underline-offset-4 transition-colors"
+                  >
+                    View details →
+                  </Link>
                 </div>
-              </Link>
+              </div>
             ))}
 
             {/* ── Pagination ── */}
