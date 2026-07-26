@@ -7,9 +7,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 // Extract Components
-import OrdersTab from "@/components/admin/OrdersTab";
-import ProductsTab from "@/components/admin/ProductsTab";
-import SellersTab from "@/components/admin/SellersTab";
+import OrdersTab from "@/components/admin/tabs/OrdersTab";
+import ProductsTab from "@/components/admin/tabs/ProductsTab";
+import SellersTab from "@/components/admin/tabs/SellersTab";
 
 type ActiveTab = "analytics" | "products" | "orders" | "sellers";
 

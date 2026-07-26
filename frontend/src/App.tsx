@@ -8,6 +8,9 @@ import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
 
+// Error Boundary
+import RouteErrorBoundary from "@/pages/error/RouteErrorBoundary";
+
 // ── auth pages ────────────────────────────────────────────────────────────────
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
@@ -74,6 +77,7 @@ function MainLayout() {
 const router = createBrowserRouter([
   {
     element: <AuthGate />,
+    errorElement: <RouteErrorBoundary />, 
     children: [
       {
         element: <AuthLayout />,

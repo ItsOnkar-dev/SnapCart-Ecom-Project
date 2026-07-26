@@ -7,8 +7,8 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
-import { usePayment } from "@/hooks/usePayment";
 import { usePlaceOrder } from "@/hooks/useOrders";
+import { usePayment } from "@/hooks/usePayment";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
 
@@ -30,10 +30,14 @@ const emptyAddress: ShippingAddress = {
   pincode: "",
 };
 
-const getItemPrice = (item: CartItem) =>
-  item.product.discountPrice && item.product.discountPrice < item.product.price
+const getItemPrice = (item: CartItem) => {
+  if (!item.product) return 0;
+
+  return item.product.discountPrice &&
+    item.product.discountPrice < item.product.price
     ? item.product.discountPrice
     : item.product.price;
+};
 
 type ShippingOption = "standard" | "express" | "overnight";
 
@@ -56,11 +60,17 @@ export default function CheckoutPage() {
   const { initiatePayment, isPending: isRazorpayPending } = usePayment();
   const { mutate: placeOrder, isPending: isCodPending } = usePlaceOrder();
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
-  const [shippingOption, setShippingOption] = useState<ShippingOption>("standard");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
+    "online",
+  );
+  const [shippingOption, setShippingOption] =
+    useState<ShippingOption>("standard");
 
-  // ── Derived values ──────────────────────────────────────────────────────────
-  const items = useMemo(() => cart?.items ?? [], [cart?.items]);
+  const items = useMemo(() => {
+    return (cart?.items ?? []).filter(
+      (item: CartItem) => item.product !== null && item.product !== undefined,
+    );
+  }, [cart?.items]);
 
   const subtotal = useMemo(
     () =>
@@ -72,7 +82,8 @@ export default function CheckoutPage() {
     [items],
   );
 
-  const shipping = shippingOption === "standard" ? 0 : shippingOption === "express" ? 15 : 35;
+  const shipping =
+    shippingOption === "standard" ? 0 : shippingOption === "express" ? 15 : 35;
   const total = subtotal + shipping;
 
   const hasInvalidStock = items.some(
@@ -83,8 +94,6 @@ export default function CheckoutPage() {
     items.length > 0 &&
     !hasInvalidStock &&
     Object.values(address).every((v) => v.trim().length > 0);
-
-  // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleAddressChange = (field: keyof ShippingAddress, value: string) =>
     setAddress((curr) => ({ ...curr, [field]: value }));
@@ -170,7 +179,6 @@ export default function CheckoutPage() {
                 <h2 className="mb-6 text-xl font-bold text-foreground">
                   Customer Information
                 </h2>
-
                 {/* Address fields */}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
@@ -251,8 +259,8 @@ export default function CheckoutPage() {
                       className="rounded-none"
                     />
                   </div>
-                  </div>  {/* ── end address fields grid ── */}
-
+                </div>{" "}
+                {/* ── end address fields grid ── */}
                 {/* ── Shipping Method ──────────────────────────────────────────── */}
                 <div className="mt-8 border-t border-border pt-8">
                   <h3 className="mb-4 text-lg font-bold text-foreground">
@@ -301,7 +309,6 @@ export default function CheckoutPage() {
                     })}
                   </div>
                 </div>
-
                 {/* ── Payment method ────────────────────────────────────────── */}
                 <div className="mt-8 border-t border-border pt-8">
                   <h3 className="mb-4 text-lg font-bold text-foreground">
@@ -354,7 +361,6 @@ export default function CheckoutPage() {
                     </button>
                   </div>
                 </div>
-
                 {/* ── Submit ────────────────────────────────────────────────── */}
                 <Button
                   type="submit"
@@ -369,7 +375,6 @@ export default function CheckoutPage() {
                       : "Pay Now"}
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
-
                 <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
                   <Lock className="size-3" />
                   Secure checkout — your information is encrypted
@@ -392,10 +397,7 @@ export default function CheckoutPage() {
                     const outOfStock = item.quantity > item.product.stock;
 
                     return (
-                      <div
-                        key={item._id}
-                        className="flex gap-3"
-                      >
+                      <div key={item._id} className="flex gap-3">
                         {/* Image */}
                         <Link
                           to={`/products/${item.product._id}`}
@@ -441,9 +443,7 @@ export default function CheckoutPage() {
                               type="button"
                               className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                               disabled={isRemoving}
-                              onClick={() =>
-                                removeCartItem(item.product._id)
-                              }
+                              onClick={() => removeCartItem(item.product._id)}
                               aria-label="Remove item"
                             >
                               <Trash2 className="size-3.5" />
@@ -465,7 +465,11 @@ export default function CheckoutPage() {
                       placeholder="Enter code"
                       className="flex-1 rounded-none"
                     />
-                    <Button type="button" variant="outline" className="shrink-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0"
+                    >
                       Apply
                     </Button>
                   </div>

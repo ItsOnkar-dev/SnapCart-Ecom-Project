@@ -1,14 +1,6 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product.types";
-import { Eye, EyeOff, PackageX, Pencil, Trash2 } from "lucide-react";
-
-interface AdminProductCardProps {
-  product: Product;
-  onEdit: (product: Product) => void;
-  onToggle: (product: Product) => void;
-  onDelete: (productId: string) => void;
-}
+import { Box, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -17,127 +9,96 @@ const formatPrice = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+interface AdminProductCardProps {
+  product: Product;
+  onEdit: (product: Product) => void;
+  onToggle: (id: string, isActive: boolean) => void;
+  onDelete: (id: string) => void;
+}
+
 export default function AdminProductCard({
   product,
   onEdit,
   onToggle,
   onDelete,
 }: AdminProductCardProps) {
-  const image = product.images?.[0];
-  const hasDiscount =
-    typeof product.discountPrice === "number" &&
-    product.discountPrice !== null &&
-    product.discountPrice < product.price;
-
-  const isLowStock = product.stock < 10;
-
-  const sellerName =
-    typeof product.seller === "object" ? product.seller.name : "Unknown";
-
   return (
     <div
       className={cn(
-        "group flex flex-col rounded-xl overflow-hidden border border-border bg-card",
-        "transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-card)]",
-        !product.isActive && "opacity-60",
+        "flex items-center justify-between p-4 bg-card rounded-xl border border-border/80 transition-all",
+        !product.isActive && "opacity-60 bg-muted/30 grayscale",
       )}
     >
-      {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {image ? (
-          <img
-            src={image}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center">
-            <PackageX className="h-8 w-8 text-muted-foreground/30" />
-          </div>
-        )}
-        <div className="absolute bottom-2 left-2">
-          <Badge
-            className={cn(
-              "text-[9px] px-1.5 py-0 font-semibold uppercase tracking-wide",
-              product.isActive
-                ? "bg-emerald-600/90 text-white"
-                : "bg-rose-600/90 text-white",
-            )}
-          >
-            {product.isActive ? "Active" : "Hidden"}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col gap-2 px-4 py-3">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70">
-          {product.category}
-        </p>
-        <h3 className="line-clamp-1 text-sm font-semibold text-foreground">
-          {product.name}
-        </h3>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-bold text-foreground">
-            {formatPrice(hasDiscount ? product.discountPrice! : product.price)}
-          </span>
-          {hasDiscount && (
-            <span className="text-xs text-muted-foreground line-through">
-              {formatPrice(product.price)}
-            </span>
-          )}
-        </div>
-
-        {/* Stock + Seller */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className={cn(
-              "text-[11px] font-medium",
-              isLowStock ? "text-rose-500" : "text-muted-foreground",
-            )}
-          >
-            {isLowStock ? `⚠ ${product.stock} left` : `Stock: ${product.stock}`}
-          </span>
-          <span className="text-muted-foreground/25 text-xs">·</span>
-          <span className="truncate text-[11px] text-muted-foreground max-w-[120px]">
-            {sellerName}
-          </span>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-2 px-4 pb-4 pt-2">
-        <button
-          onClick={() => onEdit(product)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
-          aria-label="Edit product"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </button>
-
-        <button
-          onClick={() => onToggle(product)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
-        >
-          {product.isActive ? (
-            <EyeOff className="h-3.5 w-3.5" />
+      {/* Product Information */}
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border border-border/40 overflow-hidden shrink-0">
+          {product.images?.[0] ? (
+            <img
+              src={product.images[0]}
+              alt={product.name}
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <Eye className="h-3.5 w-3.5" />
+            <Box className="h-5 w-5 text-muted-foreground" />
           )}
-          {product.isActive ? "Hide" : "Restore"}
-        </button>
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-medium text-foreground flex items-center gap-2">
+            <span className="truncate">{product.name}</span>
+            {!product.isActive && (
+              <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground shrink-0">
+                Hidden
+              </span>
+            )}
+          </h3>
+          <p className="text-xs text-muted-foreground capitalize">
+            {product.category} &middot; {formatPrice(product.price)}
+          </p>
+        </div>
+      </div>
 
-        <button
-          onClick={() => onDelete(product._id)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
-          aria-label="Delete product"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete
-        </button>
+      {/* Stock and Actions */}
+      <div className="flex items-center gap-6 shrink-0">
+        <span className="text-sm text-muted-foreground font-mono hidden sm:inline">
+          Stock: {product.stock}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(product)}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
+            aria-label={`Edit ${product.name}`}
+            title="Edit"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggle(product._id, !product.isActive)}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
+            aria-label={
+              product.isActive
+                ? `Hide ${product.name}`
+                : `Restore ${product.name}`
+            }
+            title={product.isActive ? "Hide" : "Restore"}
+          >
+            {product.isActive ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(product._id)}
+            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors cursor-pointer"
+            aria-label={`Delete ${product.name}`}
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
