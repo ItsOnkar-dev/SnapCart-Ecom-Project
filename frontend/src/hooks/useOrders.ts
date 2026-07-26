@@ -71,13 +71,13 @@ export function usePlaceOrder() {
 
 // PATCH /orders/:id/status → { status }
 // seller + admin only
-export function useUpdateOrderStatus(orderId: string) {
+export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (status: OrderStatus) => updateOrderStatusApi(orderId, status),
+    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
+      updateOrderStatusApi(orderId, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order status updated.");
     },

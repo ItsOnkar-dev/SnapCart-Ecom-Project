@@ -13,6 +13,8 @@ interface ApiError {
 
 // ── API functions ──────────────────────────────────────────────────────────────
 export const getSellerProductsApi = () => api.get("/seller/products");
+export const getSellerOrdersApi = (status?: string, page?: number) =>
+  api.get("/seller/orders", { params: { status, page } });
 export const createProductApi = (body: FormData) => api.post("/products", body);
 export const updateProductApi = (id: string, body: FormData) =>
   api.patch(`/products/${id}`, body);
@@ -20,6 +22,8 @@ export const deleteProductApi = (id: string) => api.delete(`/products/${id}`);
 
 export const sellerKeys = {
   products: ["seller", "products"] as const,
+  orders: (status?: string, page?: number) =>
+    ["seller", "orders", status ?? "all", page ?? 1] as const,
 };
 
 // Hook 1: Fetch items restricted to the active logged-in seller
@@ -83,5 +87,17 @@ export function useDeleteProduct() {
         err.response?.data?.message || "Purge request denied by core system.",
       );
     },
+  });
+}
+
+// Hook 5: Fetch orders containing seller's products
+export function useSellerOrders(status?: string, page: number = 1) {
+  return useQuery({
+    queryKey: sellerKeys.orders(status, page),
+    queryFn: async () => {
+      const res = await getSellerOrdersApi(status, page);
+      return res.data.data;
+    },
+    staleTime: 15 * 1000,
   });
 }

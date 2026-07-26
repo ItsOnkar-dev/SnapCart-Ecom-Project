@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   applyForSeller,
+  getSellerOrders,
   getSellerProducts,
 } from "../controllers/seller.controller";
 import {
@@ -20,13 +21,20 @@ router.post(
   applyForSeller,
 );
 // GET /api/seller/products
-// Protect with token, email verification, and strict seller role check
 router.get(
   "/products",
   verifyToken,
   requireVerifiedEmail,
   requireRole("seller"),
   getSellerProducts,
+);
+// GET /api/seller/orders
+router.get(
+  "/orders",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  getSellerOrders,
 );
 
 export default router;

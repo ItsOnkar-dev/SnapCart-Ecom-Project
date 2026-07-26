@@ -39,10 +39,9 @@ const Unauthorized = lazy(() => import("@/pages/error/Unauthorized"));
 const NotFound = lazy(() => import("@/pages/error/NotFound"));
 
 // ── seller pages ──────────────────────────────────────────────────────────────
-// const SellerDashboardPage = lazy(() => import("@/pages/seller/SellerDashboardPage"));
 const SellerApplyPage = lazy(() => import("@/pages/seller/SellerApplyPage"));
-const SellerProductsPage = lazy(
-  () => import("@/pages/seller/SellerProductsPage"),
+const SellerDashboardPage = lazy(
+  () => import("@/pages/seller/SellerDashboardPage"),
 );
 
 // ── admin pages ───────────────────────────────────────────────────────────────
@@ -143,7 +142,7 @@ const router = createBrowserRouter([
               {
                 element: <RoleRoute allowedRoles={["seller", "admin"]} />,
                 children: [
-                  { path: "/seller/products", element: <SellerProductsPage /> },
+                  { path: "/seller/products", element: <SellerDashboardPage /> },
                 ],
               },
 
