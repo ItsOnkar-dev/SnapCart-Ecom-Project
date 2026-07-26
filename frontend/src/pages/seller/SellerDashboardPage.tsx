@@ -23,7 +23,10 @@ type ActiveTab = "products" | "orders";
 
 export default function SellerDashboardPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("products");
-  const { data: products, isLoading } = useSellerProducts();
+  const [productPage, setProductPage] = useState(1);
+  const { data: productsData, isLoading } = useSellerProducts(productPage);
+  const products = productsData?.products ?? [];
+  const productPagination = productsData?.pagination;
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
@@ -138,6 +141,15 @@ export default function SellerDashboardPage() {
                 </div>
               ))}
             </div>
+
+            {/* Products pagination */}
+            {productPagination && productPagination.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <button disabled={!productPagination.hasPrevPage} onClick={() => setProductPage((p) => p - 1)} className="px-3 py-1.5 text-xs font-medium border border-border disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"><ChevronLeft className="size-4" /></button>
+                <span className="text-xs text-muted-foreground">Page {productPagination.page} of {productPagination.totalPages}</span>
+                <button disabled={!productPagination.hasNextPage} onClick={() => setProductPage((p) => p + 1)} className="px-3 py-1.5 text-xs font-medium border border-border disabled:opacity-40 hover:bg-muted/30 transition-colors disabled:cursor-not-allowed cursor-pointer"><ChevronRight className="size-4" /></button>
+              </div>
+            )}
           </>
         )}
 

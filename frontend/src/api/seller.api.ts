@@ -24,7 +24,8 @@ export const updateSellerStatusApi = (
 ) => api.patch(`/admin/sellers/${id}`, { status });
 
 // GET /api/seller/products — fetch the logged-in seller's inventory
-export const getSellerProductsApi = () => api.get("/seller/products");
+export const getSellerProductsApi = (page?: number) =>
+  api.get("/seller/products", { params: { page } });
 
 // GET /api/seller/orders — seller sees orders containing their products
 export const getSellerOrdersApi = (status?: string, page?: number) =>

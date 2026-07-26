@@ -12,7 +12,7 @@ interface ApiError {
 }
 
 // ── API functions ──────────────────────────────────────────────────────────────
-export const getSellerProductsApi = () => api.get("/seller/products");
+export const getSellerProductsApi = (page?: number) => api.get("/seller/products", { params: { page } });
 export const getSellerOrdersApi = (status?: string, page?: number) =>
   api.get("/seller/orders", { params: { status, page } });
 export const createProductApi = (body: FormData) => api.post("/products", body);
@@ -21,18 +21,19 @@ export const updateProductApi = (id: string, body: FormData) =>
 export const deleteProductApi = (id: string) => api.delete(`/products/${id}`);
 
 export const sellerKeys = {
-  products: ["seller", "products"] as const,
+  all: ["seller"] as const,
+  products: (page?: number) => ["seller", "products", page ?? 1] as const,
   orders: (status?: string, page?: number) =>
     ["seller", "orders", status ?? "all", page ?? 1] as const,
 };
 
 // Hook 1: Fetch items restricted to the active logged-in seller
-export function useSellerProducts() {
+export function useSellerProducts(page: number = 1) {
   return useQuery({
-    queryKey: sellerKeys.products,
+    queryKey: sellerKeys.products(page),
     queryFn: async () => {
-      const res = await getSellerProductsApi();
-      return res.data?.data?.products ?? res.data?.data ?? [];
+      const res = await getSellerProductsApi(page);
+      return res.data?.data ?? { products: [], pagination: null };
     },
     staleTime: 15 * 1000,
   });
@@ -44,7 +45,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: createProductApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: sellerKeys.products });
+      queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Product registered inside marketplace database.");
     },
     onError: (err: ApiError) => {
@@ -62,7 +63,7 @@ export function useUpdateProduct() {
     mutationFn: ({ id, body }: { id: string; body: FormData }) =>
       updateProductApi(id, body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: sellerKeys.products });
+      queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Product listing configurations optimized.");
     },
     onError: (err: ApiError) => {
@@ -79,7 +80,7 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: deleteProductApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: sellerKeys.products });
+      queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Listing removed from store indexes.");
     },
     onError: (err: ApiError) => {
