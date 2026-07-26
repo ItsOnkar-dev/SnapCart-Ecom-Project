@@ -15,10 +15,14 @@ const formatPrice = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-const getItemPrice = (item: CartItem) =>
-  item.product.discountPrice && item.product.discountPrice < item.product.price
+const getItemPrice = (item: CartItem) => {
+  if (!item.product) return 0;
+
+  return item.product.discountPrice &&
+    item.product.discountPrice < item.product.price
     ? item.product.discountPrice
     : item.product.price;
+};
 
 export default function CartDrawer() {
   const { isOpen, close } = useCartDrawerStore();
@@ -26,7 +30,11 @@ export default function CartDrawer() {
   const { mutate: updateCartItem, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
 
-  const items = useMemo(() => cart?.items ?? [], [cart?.items]);
+  const items = useMemo(() => {
+    return (cart?.items ?? []).filter(
+      (item: CartItem) => item.product !== null && item.product !== undefined,
+    );
+  }, [cart?.items]);
 
   const subtotal = useMemo(
     () =>
@@ -95,10 +103,7 @@ export default function CartDrawer() {
           {isLoading ? (
             <div className="space-y-4 animate-pulse">
               {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-24 rounded-xl bg-muted/30"
-                />
+                <div key={i} className="h-24 rounded-xl bg-muted/30" />
               ))}
             </div>
           ) : items.length === 0 ? (
@@ -208,9 +213,7 @@ export default function CartDrawer() {
                             type="button"
                             className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                             disabled={isRemoving}
-                            onClick={() =>
-                              removeCartItem(item.product._id)
-                            }
+                            onClick={() => removeCartItem(item.product._id)}
                             aria-label="Remove item"
                           >
                             <Trash2 className="size-3.5" />

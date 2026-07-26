@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateProduct, useDeleteProduct, useSellerOrders, useSellerProducts, useUpdateProduct } from "@/hooks/useSellerProducts";
 import { useUpdateOrderStatus } from "@/hooks/useOrders";
+import { PRODUCT_CATEGORY_OPTIONS, buildProductFormData, getProductFormState, initialProductFormState } from "@/lib/product-form";
 import type { Product } from "@/types/product.types";
 import type { Order } from "@/types/order.types";
 import { Box, ChevronLeft, ChevronRight, Pencil, Plus, RotateCcw, Trash2, Upload } from "lucide-react";
@@ -16,8 +17,6 @@ const cn = (...classes: (string | undefined | null | false)[]) => classes.filter
 const formatPrice = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 
 const STATUS_OPTIONS = ["pending", "confirmed", "shipped", "delivered", "cancelled"] as const;
-
-const initialFormState = { name: "", description: "", category: "electronics", price: "", stock: "", discountPrice: "" };
 
 type ActiveTab = "products" | "orders";
 
@@ -34,7 +33,7 @@ export default function SellerDashboardPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [formData, setFormData] = useState(initialFormState);
+  const [formData, setFormData] = useState(initialProductFormState);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "archived">("all");
@@ -51,20 +50,15 @@ export default function SellerDashboardPage() {
   const { mutate: updateOrderStatus } = useUpdateOrderStatus();
 
   const handleRestore = (product: Product) => {
-    const fd = new FormData();
-    fd.append("name", product.name);
-    fd.append("description", product.description);
-    fd.append("category", product.category);
-    fd.append("price", String(product.price));
-    fd.append("stock", String(product.stock));
+    const fd = buildProductFormData(getProductFormState(product));
     fd.append("isActive", "true");
     updateMutation.mutate({ id: product._id, body: fd });
   };
 
-  const openCreateModal = () => { setEditingId(null); setFormData(initialFormState); setImageFile(null); setIsOpen(true); };
+  const openCreateModal = () => { setEditingId(null); setFormData(initialProductFormState); setImageFile(null); setIsOpen(true); };
   const openEditModal = (product: Product) => {
     setEditingId(product._id);
-    setFormData({ name: product.name || "", description: product.description || "", category: product.category || "electronics", price: product.price ? String(product.price) : "", stock: product.stock ? String(product.stock) : "", discountPrice: product.discountPrice ? String(product.discountPrice) : "" });
+    setFormData(getProductFormState(product));
     setImageFile(null);
     setIsOpen(true);
   };
@@ -73,14 +67,7 @@ export default function SellerDashboardPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const fd = new FormData();
-    fd.append("name", formData.name.trim());
-    fd.append("description", formData.description.trim());
-    fd.append("category", formData.category);
-    fd.append("price", formData.price);
-    fd.append("stock", formData.stock);
-    if (formData.discountPrice) fd.append("discountPrice", formData.discountPrice);
-    if (imageFile) fd.append("image", imageFile);
+    const fd = buildProductFormData(formData, imageFile);
     if (editingId) { updateMutation.mutate({ id: editingId, body: fd }, { onSuccess: () => setIsOpen(false) }); }
     else { createMutation.mutate(fd, { onSuccess: () => setIsOpen(false) }); }
   };
@@ -224,7 +211,7 @@ export default function SellerDashboardPage() {
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
               <div><label className="text-xs font-medium text-muted-foreground block mb-1.5">Name</label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="bg-background border-border text-foreground h-10" required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1.5">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full h-10 bg-background border border-border rounded-lg text-foreground text-sm px-3 focus:outline-none"><option value="electronics">Electronics</option><option value="fashion">Fashion</option><option value="home">Home</option><option value="beauty">Beauty</option><option value="sports">Sports</option><option value="books">Books</option><option value="gaming">Gaming</option></select></div>
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1.5">Category</label><select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as typeof PRODUCT_CATEGORY_OPTIONS[number] })} className="w-full h-10 bg-background border border-border rounded-lg text-foreground text-sm px-3 focus:outline-none">{PRODUCT_CATEGORY_OPTIONS.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
                 <div><label className="text-xs font-medium text-muted-foreground block mb-1.5">Stock Quantity</label><Input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} className="bg-background border-border h-10" min="0" required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">

@@ -1,6 +1,3 @@
-// GET   /admin/sellers      — list pending seller applications
-// PATCH /admin/sellers/:id  — approve or reject
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,6 +5,8 @@ import {
   getAdminOrdersApi,
   getAdminProductsApi,
   getAdminProductsCountApi,
+  toggleAdminProductStatusApi,
+  updateAdminProductApi,
 } from "@/api/admin.api";
 import { getPendingSellersApi, updateSellerStatusApi } from "@/api/seller.api";
 import { getApiErrorMessage } from "@/types/api.types";
@@ -21,8 +20,6 @@ export const adminKeys = {
   productsCount: ["admin", "products", "count"] as const,
 };
 
-// GET /admin/sellers
-// Returns applicants with: _id, name, email, sellerStatus, createdAt
 export function useAdminSellers() {
   return useQuery({
     queryKey: adminKeys.sellers,
@@ -34,7 +31,6 @@ export function useAdminSellers() {
   });
 }
 
-// PATCH /admin/sellers/:id → { status: "approved" | "rejected" }
 export function useUpdateSellerStatus() {
   const queryClient = useQueryClient();
 
@@ -56,31 +52,30 @@ export function useUpdateSellerStatus() {
   });
 }
 
-// GET /admin/orders
-export function useAdminOrders(page: number = 1) {
+export function useAdminOrders(page: number = 1, enabled = true) {
   return useQuery({
     queryKey: [...adminKeys.orders, page],
     queryFn: async () => {
       const res = await getAdminOrdersApi(page);
       return res.data.data;
     },
+    enabled,
     staleTime: 30 * 1000,
   });
 }
 
-// GET /admin/products — paginated list of all products
-export function useAdminProducts(page: number = 1) {
+export function useAdminProducts(page: number = 1, enabled = true) {
   return useQuery({
     queryKey: [...adminKeys.products, page],
     queryFn: async () => {
       const res = await getAdminProductsApi(page);
       return res.data.data;
     },
+    enabled,
     staleTime: 30 * 1000,
   });
 }
 
-// GET /admin/products/count
 export function useAdminProductsCount() {
   return useQuery({
     queryKey: adminKeys.productsCount,
@@ -89,5 +84,38 @@ export function useAdminProductsCount() {
       return res.data.data.count;
     },
     staleTime: 60 * 1000,
+  });
+}
+
+export function useUpdateAdminProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: FormData }) =>
+      updateAdminProductApi(id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.products });
+      toast.success("Product updated successfully.");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Could not update product."));
+    },
+  });
+}
+
+export function useToggleAdminProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      toggleAdminProductStatusApi(id, isActive),
+    onSuccess: (_data, { isActive }) => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.products });
+      queryClient.invalidateQueries({ queryKey: adminKeys.productsCount });
+      toast.success(isActive ? "Product restored." : "Product removed.");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Could not update product."));
+    },
   });
 }

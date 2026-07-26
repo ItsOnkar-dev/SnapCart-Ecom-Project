@@ -1,10 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product.types";
-import { PackageX, Pencil, Trash2 } from "lucide-react";
+import { Eye, EyeOff, PackageX, Pencil, Trash2 } from "lucide-react";
 
 interface AdminProductCardProps {
   product: Product;
+  onEdit: (product: Product) => void;
+  onToggle: (product: Product) => void;
+  onDelete: (productId: string) => void;
 }
 
 const formatPrice = (value: number) =>
@@ -14,7 +17,12 @@ const formatPrice = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-export default function AdminProductCard({ product }: AdminProductCardProps) {
+export default function AdminProductCard({
+  product,
+  onEdit,
+  onToggle,
+  onDelete,
+}: AdminProductCardProps) {
   const image = product.images?.[0];
   const hasDiscount =
     typeof product.discountPrice === "number" &&
@@ -102,6 +110,7 @@ export default function AdminProductCard({ product }: AdminProductCardProps) {
       {/* Actions */}
       <div className="flex items-center gap-2 px-4 pb-4 pt-2">
         <button
+          onClick={() => onEdit(product)}
           className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
           aria-label="Edit product"
         >
@@ -110,6 +119,19 @@ export default function AdminProductCard({ product }: AdminProductCardProps) {
         </button>
 
         <button
+          onClick={() => onToggle(product)}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
+        >
+          {product.isActive ? (
+            <EyeOff className="h-3.5 w-3.5" />
+          ) : (
+            <Eye className="h-3.5 w-3.5" />
+          )}
+          {product.isActive ? "Hide" : "Restore"}
+        </button>
+
+        <button
+          onClick={() => onDelete(product._id)}
           className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground bg-transparent hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 cursor-pointer"
           aria-label="Delete product"
         >

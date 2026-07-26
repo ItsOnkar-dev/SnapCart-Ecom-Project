@@ -16,7 +16,7 @@ export interface Product {
   price: number;
   discountPrice?: number;
   category: ProductCategory;
-  images: string[]; // string[] not ProductImage[] — backend stores URLs directly
+  images: string[]; 
   averageRating: number;
   totalReviews: number;
   stock: number;
