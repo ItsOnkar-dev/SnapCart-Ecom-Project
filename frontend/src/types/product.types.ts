@@ -16,7 +16,7 @@ export interface Product {
   price: number;
   discountPrice?: number;
   category: ProductCategory;
-  images: string[]; 
+  images: string[];
   averageRating: number;
   totalReviews: number;
   stock: number;

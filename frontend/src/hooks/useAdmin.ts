@@ -8,8 +8,10 @@ import {
   toggleAdminProductStatusApi,
   updateAdminProductApi,
 } from "@/api/admin.api";
+import { updateOrderStatusApi } from "@/api/order.api";
 import { getPendingSellersApi, updateSellerStatusApi } from "@/api/seller.api";
 import { getApiErrorMessage } from "@/types/api.types";
+import type { OrderStatus } from "@/types/order.types";
 
 import type { SellerDecisionStatus } from "@/types/seller.types";
 
@@ -61,6 +63,22 @@ export function useAdminOrders(page: number = 1, enabled = true) {
     },
     enabled,
     staleTime: 30 * 1000,
+  });
+}
+
+export function useUpdateAdminOrderStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
+      updateOrderStatusApi(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.orders });
+      toast.success("Order status updated successfully.");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Could not update order status."));
+    },
   });
 }
 

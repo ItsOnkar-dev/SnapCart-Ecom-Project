@@ -1,3 +1,5 @@
+// Lets admin and seller use the same category list and FormData rules
+
 import type { Product, ProductCategory } from "@/types/product.types";
 
 export const PRODUCT_CATEGORY_OPTIONS: Exclude<
