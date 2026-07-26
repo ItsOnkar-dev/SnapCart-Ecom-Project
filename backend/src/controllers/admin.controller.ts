@@ -11,6 +11,7 @@ import {
   buildPaginationResult,
   getPaginationParams,
 } from "../utils/pagination";
+import { uploadToCloudinary } from "../utils/uploadToCloudinary";
 
 // GET /api/admin/sellers
 // Admin sees all users who have applied to become sellers
@@ -71,6 +72,57 @@ export const updateSellerStatus = asyncHandler(
         sellerStatus: user.sellerStatus,
       }),
     );
+  },
+);
+
+// PATCH /api/admin/products/:id — admin edits any product (no ownership check)
+export const updateAdminProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      throw new ApiError(404, "Product not found");
+    }
+
+    if (req.body.name) product.name = req.body.name;
+    if (req.body.description) product.description = req.body.description;
+    if (req.body.category) product.category = req.body.category;
+    if (req.body.price !== undefined) product.price = Number(req.body.price);
+    if (req.body.stock !== undefined) product.stock = Number(req.body.stock);
+    if (req.body.discountPrice !== undefined) {
+      product.discountPrice =
+        req.body.discountPrice === "" || req.body.discountPrice === "0"
+          ? undefined
+          : Number(req.body.discountPrice);
+    }
+
+    if (req.file) {
+      const uploaded = await uploadToCloudinary(req.file.buffer);
+      product.images[0] = uploaded.secure_url;
+    }
+
+    await product.save();
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Product updated successfully", product));
+  },
+);
+
+// DELETE /api/admin/products/:id — hard delete, permanent
+export const adminDeleteProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { $set: { isActive: false } },
+      { new: true, runValidators: true },
+    ).populate("seller", "name email");
+
+    if (!product) throw new ApiError(404, "Product not found");
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Product archived successfully", product));
   },
 );
 
