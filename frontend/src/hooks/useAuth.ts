@@ -1,8 +1,8 @@
 // All auth mutations + seller apply.
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import {
   changePasswordApi,
@@ -28,8 +28,7 @@ import type {
 import type { SellerApplicationInput } from "@/types/seller.types";
 
 // POST /auth/login → { email, password }
-// Server sets httpOnly cookies. Then we call initAuth()
-// to populate Zustand from /auth/me.
+// Server sets httpOnly cookies. Then we call initAuth() to populate Zustand from /auth/me.
 export function useLogin() {
   const initAuth = useAuthStore((s) => s.initAuth);
   const navigate = useNavigate();
@@ -84,8 +83,8 @@ export function useLogout() {
     onSuccess: () => {
       clearAuth();
       queryClient.clear();
-      toast.success("Logged out.");
-      navigate("/login");
+      toast.success("Logged out successfully.");
+      navigate("/");
     },
     onError: () => {
       // Server failed but still clear local state — stuck session is worse
