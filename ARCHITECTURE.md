@@ -81,38 +81,38 @@ SnapCart-Ecom Project/
 
 ### Backend
 
-| Layer              | Technology                                     |
-| ------------------ | ---------------------------------------------- |
-| Runtime            | Node.js 20+                                    |
-| Framework          | Express 5 (native async error handling)        |
-| Language           | TypeScript 6                                   |
-| Database           | MongoDB + Mongoose 9 (Atlas with transactions) |
-| Auth               | JWT (15m access) + bcrypt + httpOnly cookies   |
-| OAuth              | Google OAuth 2.0 via `google-auth-library`     |
-| Validation         | Zod 4 (schema-first)                           |
-| Email              | Resend (with demo-mode fallback)               |
-| Uploads            | Multer (memory stream) → Cloudinary            |
-| Payments           | Razorpay (order creation + HMAC webhook)       |
-| Security           | Helmet · CSRF double-submit · rate-limit · Zod |
-| Logging            | Morgan (HTTP) + custom structured logger       |
+| Layer      | Technology                                     |
+| ---------- | ---------------------------------------------- |
+| Runtime    | Node.js 20+                                    |
+| Framework  | Express 5 (native async error handling)        |
+| Language   | TypeScript 6                                   |
+| Database   | MongoDB + Mongoose 9 (Atlas with transactions) |
+| Auth       | JWT (15m access) + bcrypt + httpOnly cookies   |
+| OAuth      | Google OAuth 2.0 via `google-auth-library`     |
+| Validation | Zod 4 (schema-first)                           |
+| Email      | Resend (with demo-mode fallback)               |
+| Uploads    | Multer (memory stream) → Cloudinary            |
+| Payments   | Razorpay (order creation + HMAC webhook)       |
+| Security   | Helmet · CSRF double-submit · rate-limit · Zod |
+| Logging    | Morgan (HTTP) + custom structured logger       |
 
 ### Frontend
 
-| Layer              | Technology                                          |
-| ------------------ | --------------------------------------------------- |
-| Framework          | React 19 (concurrent, Suspense lazy loading)        |
-| Build Tool         | Vite 8                                              |
-| Language           | TypeScript 6                                        |
-| Styling            | Tailwind CSS v4 + shadcn/ui (Radix UI primitives)   |
-| Routing            | React Router v7 (nested, `createBrowserRouter`)     |
-| Server State       | TanStack React Query v5                             |
-| Client State       | Zustand v5 (auth store only)                        |
-| HTTP Client        | Axios v1 (CSRF injection + refresh interceptors)    |
-| Forms              | react-hook-form v7 + Zod                            |
-| Charts             | Recharts (admin analytics)                          |
-| Icons              | HugeIcons + Lucide React                            |
-| Notifications      | Sonner                                              |
-| Payments           | Razorpay Web SDK (dynamically loaded popup)         |
+| Layer         | Technology                                        |
+| ------------- | ------------------------------------------------- |
+| Framework     | React 19 (concurrent, Suspense lazy loading)      |
+| Build Tool    | Vite 8                                            |
+| Language      | TypeScript 6                                      |
+| Styling       | Tailwind CSS v4 + shadcn/ui (Radix UI primitives) |
+| Routing       | React Router v7 (nested, `createBrowserRouter`)   |
+| Server State  | TanStack React Query v5                           |
+| Client State  | Zustand v5 (auth store only)                      |
+| HTTP Client   | Axios v1 (CSRF injection + refresh interceptors)  |
+| Forms         | react-hook-form v7 + Zod                          |
+| Charts        | Recharts (admin analytics)                        |
+| Icons         | HugeIcons + Lucide React                          |
+| Notifications | Sonner                                            |
+| Payments      | Razorpay Web SDK (dynamically loaded popup)       |
 
 ---
 
@@ -282,12 +282,12 @@ The User model stores `passwordChangedAt` (timestamp). Each access token contain
 
 Permissions are **config-based** and derived from the user's role at runtime — never stored in the database. The mapping lives in `backend/src/config/permissions.ts`.
 
-| Role         | Guard Middleware                    | Capabilities                                                      |
-| ------------ | ----------------------------------- | ----------------------------------------------------------------- |
-| `customer`   | `requireRole("customer")`           | Browse, cart, checkout, orders, reviews, wishlist                 |
-| `seller`     | `requireRole("seller")`             | Customer capabilities + manage own products, update order status  |
-| `admin`      | `requireRole("admin")` + permission | Full access — dashboard, orders, approve sellers, manage products |
-| `demo_admin` | `requireRole("admin", "demo_admin")` + permission | View-only — dashboard and orders only           |
+| Role         | Guard Middleware                                  | Capabilities                                                      |
+| ------------ | ------------------------------------------------- | ----------------------------------------------------------------- |
+| `customer`   | `requireRole("customer")`                         | Browse, cart, checkout, orders, reviews, wishlist                 |
+| `seller`     | `requireRole("seller")`                           | Customer capabilities + manage own products, update order status  |
+| `admin`      | `requireRole("admin")` + permission               | Full access — dashboard, orders, approve sellers, manage products |
+| `demo_admin` | `requireRole("admin", "demo_admin")` + permission | View-only — dashboard and orders only                             |
 
 The `requirePermission` middleware checks the user's role against `ROLE_PERMISSIONS`:
 
@@ -296,7 +296,10 @@ export const requirePermission = (permission: Permission) => {
   return (req, res, next) => {
     const allowed = ROLE_PERMISSIONS[req.user!.role] ?? [];
     if (!allowed.includes(permission)) {
-      throw new ApiError(403, "You don't have permission to perform this action");
+      throw new ApiError(
+        403,
+        "You don't have permission to perform this action",
+      );
     }
     next();
   };
@@ -332,6 +335,7 @@ if approved → role updated to "seller", sellerStatus → "approved"
 ### Email Verification Gate
 
 Certain actions require verified email before proceeding:
+
 - Checkout (payment flow)
 - Product creation/update (seller routes)
 - Seller application
@@ -377,55 +381,55 @@ Review
 
 ### User Model
 
-| Field                     | Type                                    | Notes                                        |
-| ------------------------- | --------------------------------------- | -------------------------------------------- |
-| `name`                    | String (2-50 chars)                     | Required                                     |
-| `email`                   | String (lowercase, unique sparse index) | Required                                     |
-| `password`                | String (select: false)                  | bcrypt hashed, min 8 chars                   |
-| `role`                    | `"customer" \| "seller" \| "admin"`     | Default: `customer`                          |
-| `sellerStatus`            | `"none" \| "pending" \| "approved" \| "rejected"` | Tracks seller application         |
-| `sellerApplication`       | Embedded sub-doc                        | storeName, contactEmail, phone, taxId, etc.  |
-| `isEmailVerified`         | Boolean                                 | Default: `false`                             |
-| `googleId`                | String (unique sparse index)            | For Google OAuth linking                     |
-| `refreshToken`            | String (select: false)                  | HMAC-SHA256 hashed                           |
-| `emailVerificationToken`  | String (select: false)                  | SHA-256 hashed                               |
-| `emailVerificationTokenExpiry` | Date (select: false)               | 10-minute expiry                             |
-| `passwordResetToken`      | String (select: false)                  | Hashed                                       |
-| `passwordResetTokenExpiry` | Date (select: false)                   | 15-minute expiry                             |
-| `passwordChangedAt`       | Date (select: false)                    | Invalidates prior tokens                     |
-| `isActive`                | Boolean                                 | Default: `true` (deactivation flag)          |
+| Field                          | Type                                              | Notes                                       |
+| ------------------------------ | ------------------------------------------------- | ------------------------------------------- |
+| `name`                         | String (2-50 chars)                               | Required                                    |
+| `email`                        | String (lowercase, unique sparse index)           | Required                                    |
+| `password`                     | String (select: false)                            | bcrypt hashed, min 8 chars                  |
+| `role`                         | `"customer" \| "seller" \| "admin"`               | Default: `customer`                         |
+| `sellerStatus`                 | `"none" \| "pending" \| "approved" \| "rejected"` | Tracks seller application                   |
+| `sellerApplication`            | Embedded sub-doc                                  | storeName, contactEmail, phone, taxId, etc. |
+| `isEmailVerified`              | Boolean                                           | Default: `false`                            |
+| `googleId`                     | String (unique sparse index)                      | For Google OAuth linking                    |
+| `refreshToken`                 | String (select: false)                            | HMAC-SHA256 hashed                          |
+| `emailVerificationToken`       | String (select: false)                            | SHA-256 hashed                              |
+| `emailVerificationTokenExpiry` | Date (select: false)                              | 10-minute expiry                            |
+| `passwordResetToken`           | String (select: false)                            | Hashed                                      |
+| `passwordResetTokenExpiry`     | Date (select: false)                              | 15-minute expiry                            |
+| `passwordChangedAt`            | Date (select: false)                              | Invalidates prior tokens                    |
+| `isActive`                     | Boolean                                           | Default: `true` (deactivation flag)         |
 
 ### Product Model
 
-| Field           | Type                                | Notes                                    |
-| --------------- | ----------------------------------- | ---------------------------------------- |
-| `name`          | String (3-100 chars, text index)    | Required                                 |
-| `description`   | String (10-2000 chars, text index)  | Required                                 |
-| `price`         | Number (min 0)                      | Required                                 |
-| `discountPrice` | Number (optional, must be < price)  | Validated                                |
-| `category`      | Enum (9 values)                     | electronics, fashion, home, beauty, ...  |
-| `images`        | [String]                            | Cloudinary URLs                          |
-| `stock`         | Number (min 0)                      | Required                                 |
-| `seller`        | ObjectId → User                     | Required (links to seller user)          |
-| `averageRating` | Number (0-5)                        | Recalculated on review changes           |
-| `totalReviews`  | Number                              | Updated via aggregation                  |
-| `isActive`      | Boolean                             | Soft-delete flag                         |
+| Field           | Type                               | Notes                                   |
+| --------------- | ---------------------------------- | --------------------------------------- |
+| `name`          | String (3-100 chars, text index)   | Required                                |
+| `description`   | String (10-2000 chars, text index) | Required                                |
+| `price`         | Number (min 0)                     | Required                                |
+| `discountPrice` | Number (optional, must be < price) | Validated                               |
+| `category`      | Enum (9 values)                    | electronics, fashion, home, beauty, ... |
+| `images`        | [String]                           | Cloudinary URLs                         |
+| `stock`         | Number (min 0)                     | Required                                |
+| `seller`        | ObjectId → User                    | Required (links to seller user)         |
+| `averageRating` | Number (0-5)                       | Recalculated on review changes          |
+| `totalReviews`  | Number                             | Updated via aggregation                 |
+| `isActive`      | Boolean                            | Soft-delete flag                        |
 
 ### Order Model
 
-| Field             | Type                                                   | Notes                                  |
-| ----------------- | ------------------------------------------------------ | -------------------------------------- |
-| `user`            | ObjectId → User                                        | Required                               |
-| `items`           | [{ product, name, price, quantity, image }]            | Snapshot at purchase time (embedded)   |
-| `shippingAddress` | Embedded sub-doc                                       | fullName, phone, street, city, etc.    |
-| `subtotal`        | Number (min 0)                                         |                                        |
-| `shipping`        | Number (min 0)                                         | ₹0 if subtotal ≥ 500, else ₹49         |
-| `totalPrice`      | Number (min 0)                                         |                                        |
-| `status`          | `pending \| confirmed \| shipped \| delivered \| cancelled` | State machine                      |
-| `paymentStatus`   | `pending \| paid \| failed \| refund_pending \| refunded` |                                   |
-| `paymentMethod`   | `razorpay \| cod`                                      |                                        |
-| `razorpayOrderId` | String                                                  | Razorpay payment intent ID             |
-| `razorpayPaymentId` | String (unique sparse index)                         | For idempotency                        |
+| Field               | Type                                                        | Notes                                |
+| ------------------- | ----------------------------------------------------------- | ------------------------------------ |
+| `user`              | ObjectId → User                                             | Required                             |
+| `items`             | [{ product, name, price, quantity, image }]                 | Snapshot at purchase time (embedded) |
+| `shippingAddress`   | Embedded sub-doc                                            | fullName, phone, street, city, etc.  |
+| `subtotal`          | Number (min 0)                                              |                                      |
+| `shipping`          | Number (min 0)                                              | ₹0 if subtotal ≥ 500, else ₹49       |
+| `totalPrice`        | Number (min 0)                                              |                                      |
+| `status`            | `pending \| confirmed \| shipped \| delivered \| cancelled` | State machine                        |
+| `paymentStatus`     | `pending \| paid \| failed \| refund_pending \| refunded`   |                                      |
+| `paymentMethod`     | `razorpay \| cod`                                           |                                      |
+| `razorpayOrderId`   | String                                                      | Razorpay payment intent ID           |
+| `razorpayPaymentId` | String (unique sparse index)                                | For idempotency                      |
 
 ### Cart Model
 
@@ -451,10 +455,10 @@ Review
 
 ### Indexing Strategy
 
-| Collection | Indexes                                                           |
-| ---------- | ----------------------------------------------------------------- |
-| User       | `email` (unique sparse), `googleId` (unique sparse), `sellerStatus` |
-| Product    | `category`, `seller`, `{name, description}` (text), `isActive`+`category` |
+| Collection | Indexes                                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------------------------- |
+| User       | `email` (unique sparse), `googleId` (unique sparse), `sellerStatus`                                         |
+| Product    | `category`, `seller`, `{name, description}` (text), `isActive`+`category`                                   |
 | Order      | `user`, `status`, `paymentStatus`, `razorpayOrderId`, `razorpayPaymentId` (unique sparse), `createdAt` (-1) |
 
 ---
@@ -467,97 +471,103 @@ All endpoints are prefixed with `/api`.
 
 #### Auth — `/api/auth`
 
-| Method   | Path                | Auth            | Rate Limit     | Description                              |
-| -------- | ------------------- | --------------- | -------------- | ---------------------------------------- |
-| `GET`    | `/csrf-token`       | None            | General        | Returns CSRF token as cookie + JSON      |
-| `POST`   | `/register`         | None            | 20/10min       | Create account, send verification email  |
-| `GET`    | `/verify-email`     | None            | General        | Verify email with one-time token         |
-| `POST`   | `/resend-verification` | None          | 5/10min        | Resend verification email                |
-| `POST`   | `/login`            | None            | 20/10min       | Login, set httpOnly JWT cookies          |
-| `POST`   | `/refresh`          | Cookie          | 60/10min       | Rotate refresh token, issue new access   |
-| `GET`    | `/me`               | Cookie          | General        | Get current user                         |
-| `POST`   | `/logout`           | Auth + CSRF     | General        | Clear cookies, invalidate refresh token  |
-| `PATCH`  | `/change-password`  | Auth + CSRF     | General        | Change password, clear all sessions      |
-| `POST`   | `/forgot-password`  | None            | 5/10min        | Send password reset email                |
-| `POST`   | `/reset-password`   | None            | 5/10min        | Reset password using raw token           |
-| `GET`    | `/google`           | None            | General        | Redirect to Google OAuth consent screen  |
-| `GET`    | `/google/callback`  | None            | General        | Google OAuth callback                    |
+| Method  | Path                   | Auth        | Rate Limit | Description                             |
+| ------- | ---------------------- | ----------- | ---------- | --------------------------------------- |
+| `GET`   | `/csrf-token`          | None        | General    | Returns CSRF token as cookie + JSON     |
+| `POST`  | `/register`            | None        | 20/10min   | Create account, send verification email |
+| `GET`   | `/verify-email`        | None        | General    | Verify email with one-time token        |
+| `POST`  | `/resend-verification` | None        | 5/10min    | Resend verification email               |
+| `POST`  | `/login`               | None        | 20/10min   | Login, set httpOnly JWT cookies         |
+| `POST`  | `/refresh`             | Cookie      | 60/10min   | Rotate refresh token, issue new access  |
+| `GET`   | `/me`                  | Cookie      | General    | Get current user                        |
+| `POST`  | `/logout`              | Auth + CSRF | General    | Clear cookies, invalidate refresh token |
+| `PATCH` | `/change-password`     | Auth + CSRF | General    | Change password, clear all sessions     |
+| `POST`  | `/forgot-password`     | None        | 5/10min    | Send password reset email               |
+| `POST`  | `/reset-password`      | None        | 5/10min    | Reset password using raw token          |
+| `GET`   | `/google`              | None        | General    | Redirect to Google OAuth consent screen |
+| `GET`   | `/google/callback`     | None        | General    | Google OAuth callback                   |
+
+#### Health
+
+| Method | Path      | Auth | Description                                |  
+| GET    | `/health` | None | Liveness probe — server uptime and status  |
+| GET    | `/ready`  | None | Readiness probe — confirms DB is connected |
 
 #### Products — `/api/products`
 
-| Method   | Path                     | Auth          | Description                                        |
-| -------- | ------------------------ | ------------- | -------------------------------------------------- |
-| `GET`    | `/`                      | None          | Paginated catalog (search, filters, sort, paginate) |
-| `GET`    | `/recommendations`       | Optional      | AI recommendation engine (mode, productIds, limit) |
-| `GET`    | `/:id`                   | None          | Single product detail                              |
-| `POST`   | `/`                      | Seller        | Create product with image upload                   |
-| `PATCH`  | `/:id`                   | Seller        | Update own product                                 |
-| `DELETE` | `/:id`                   | Seller        | Soft-delete (isActive: false)                      |
+| Method   | Path               | Auth     | Description                                         |
+| -------- | ------------------ | -------- | --------------------------------------------------- |
+| `GET`    | `/`                | None     | Paginated catalog (search, filters, sort, paginate) |
+| `GET`    | `/recommendations` | Optional | AI recommendation engine (mode, productIds, limit)  |
+| `GET`    | `/:id`             | None     | Single product detail                               |
+| `POST`   | `/`                | Seller   | Create product with image upload                    |
+| `PATCH`  | `/:id`             | Seller   | Update own product                                  |
+| `DELETE` | `/:id`             | Seller   | Soft-delete (isActive: false)                       |
 
 #### Cart — `/api/cart`
 
-| Method   | Path             | Auth      | Description                  |
-| -------- | ---------------- | --------- | ---------------------------- |
-| `GET`    | `/`              | Auth      | Get current user's cart      |
-| `POST`   | `/add`           | Auth+CSRF | Add product to cart          |
-| `PATCH`  | `/:productId`    | Auth+CSRF | Update item quantity         |
-| `DELETE` | `/:productId`    | Auth+CSRF | Remove single item           |
-| `DELETE` | `/`              | Auth+CSRF | Clear entire cart            |
+| Method   | Path          | Auth      | Description             |
+| -------- | ------------- | --------- | ----------------------- |
+| `GET`    | `/`           | Auth      | Get current user's cart |
+| `POST`   | `/add`        | Auth+CSRF | Add product to cart     |
+| `PATCH`  | `/:productId` | Auth+CSRF | Update item quantity    |
+| `DELETE` | `/:productId` | Auth+CSRF | Remove single item      |
+| `DELETE` | `/`           | Auth+CSRF | Clear entire cart       |
 
 #### Orders — `/api/orders`
 
-| Method   | Path              | Auth              | Description                                        |
-| -------- | ----------------- | ----------------- | -------------------------------------------------- |
-| `POST`   | `/`               | Auth+Verified     | Place order (COD or admin)                         |
-| `GET`    | `/`               | Auth              | List user's orders (paginated, default 10, `?page=`)|
-| `GET`    | `/:id`            | Auth              | Single order (ownership-gated)                     |
-| `PATCH`  | `/:id/status`     | Admin/Seller+CSRF | Update order status (state machine)                |
+| Method  | Path          | Auth              | Description                                          |
+| ------- | ------------- | ----------------- | ---------------------------------------------------- |
+| `POST`  | `/`           | Auth+Verified     | Place order (COD or admin)                           |
+| `GET`   | `/`           | Auth              | List user's orders (paginated, default 10, `?page=`) |
+| `GET`   | `/:id`        | Auth              | Single order (ownership-gated)                       |
+| `PATCH` | `/:id/status` | Admin/Seller+CSRF | Update order status (state machine)                  |
 
 #### Payments — `/api/payments`
 
-| Method   | Path             | Auth      | Description                               |
-| -------- | ---------------- | --------- | ----------------------------------------- |
-| `POST`   | `/create-order`  | Auth      | Create Razorpay payment intent            |
-| `POST`   | `/verify`        | Auth      | Verify payment signature, create DB order |
-| `POST`   | `/webhook`       | None*     | Razorpay server-to-server webhook         |
+| Method | Path            | Auth   | Description                               |
+| ------ | --------------- | ------ | ----------------------------------------- |
+| `POST` | `/create-order` | Auth   | Create Razorpay payment intent            |
+| `POST` | `/verify`       | Auth   | Verify payment signature, create DB order |
+| `POST` | `/webhook`      | None\* | Razorpay server-to-server webhook         |
 
 \*Webhook uses raw-body parser and HMAC-SHA256 signature verification instead of CSRF.
 
 #### Reviews — `/api/reviews`
 
-| Method   | Path              | Auth      | Description                    |
-| -------- | ----------------- | --------- | ------------------------------ |
-| `GET`    | `/:productId`     | None      | All reviews for a product      |
-| `POST`   | `/:productId`     | Auth+CSRF | Create review (verified buyer) |
-| `DELETE` | `/:id`            | Auth+CSRF | Delete own review              |
+| Method   | Path          | Auth      | Description                    |
+| -------- | ------------- | --------- | ------------------------------ |
+| `GET`    | `/:productId` | None      | All reviews for a product      |
+| `POST`   | `/:productId` | Auth+CSRF | Create review (verified buyer) |
+| `DELETE` | `/:id`        | Auth+CSRF | Delete own review              |
 
 #### Wishlist — `/api/wishlist`
 
-| Method   | Path                   | Auth      | Description              |
-| -------- | ---------------------- | --------- | ------------------------ |
-| `GET`    | `/`                    | Auth      | Get wishlist (auto-create) |
-| `POST`   | `/add`                 | Auth      | Add product              |
-| `DELETE` | `/remove/:productId`   | Auth      | Remove product           |
-| `POST`   | `/move-to-cart`        | Auth+CSRF | Move all to cart         |
-| `PATCH`  | `/share`               | Auth+CSRF | Toggle public sharing    |
-| `GET`    | `/share/:shareId`      | None      | View public wishlist     |
-| `POST`   | `/email`               | Auth+CSRF | Email wishlist to recipient |
+| Method   | Path                 | Auth      | Description                 |
+| -------- | -------------------- | --------- | --------------------------- |
+| `GET`    | `/`                  | Auth      | Get wishlist (auto-create)  |
+| `POST`   | `/add`               | Auth      | Add product                 |
+| `DELETE` | `/remove/:productId` | Auth      | Remove product              |
+| `POST`   | `/move-to-cart`      | Auth+CSRF | Move all to cart            |
+| `PATCH`  | `/share`             | Auth+CSRF | Toggle public sharing       |
+| `GET`    | `/share/:shareId`    | None      | View public wishlist        |
+| `POST`   | `/email`             | Auth+CSRF | Email wishlist to recipient |
 
 #### Seller — `/api/seller`
 
-| Method | Path         | Auth              | Description                |
-| ------ | ------------ | ----------------- | -------------------------- |
-| `POST` | `/apply`     | Customer+Verified | Submit seller application  |
-| `GET`  | `/products`  | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
+| Method | Path        | Auth              | Description                                        |
+| ------ | ----------- | ----------------- | -------------------------------------------------- |
+| `POST` | `/apply`    | Customer+Verified | Submit seller application                          |
+| `GET`  | `/products` | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
 
 #### Admin — `/api/admin`
 
-| Method   | Path                | Auth    | Description                                     |
-| -------- | ------------------- | ------- | ----------------------------------------------- |
-| `GET`    | `/analytics`        | Admin   | KPIs, 14-day revenue, top products, categories  |
-| `GET`    | `/sellers`          | Admin   | List seller applications                        |
-| `PATCH`  | `/sellers/:id`      | Admin   | Approve/reject seller application               |
-| `GET`    | `/dashboard`        | Admin   | Dashboard metrics (revenue, orders, avg value)  |
+| Method  | Path           | Auth  | Description                                    |
+| ------- | -------------- | ----- | ---------------------------------------------- |
+| `GET`   | `/analytics`   | Admin | KPIs, 14-day revenue, top products, categories |
+| `GET`   | `/sellers`     | Admin | List seller applications                       |
+| `PATCH` | `/sellers/:id` | Admin | Approve/reject seller application              |
+| `GET`   | `/dashboard`   | Admin | Dashboard metrics (revenue, orders, avg value) |
 
 ### Response Shape
 
@@ -575,6 +585,7 @@ Every API response uses the `ApiResponse` class:
 ```
 
 Controllers return standard HTTP status codes:
+
 - `200` — Success
 - `201` — Created
 - `400` — Bad request / validation error
@@ -592,17 +603,17 @@ Controllers return standard HTTP status codes:
 
 All server data is managed via TanStack Query. Query keys follow a hierarchical pattern:
 
-| Domain            | Query Key Prefix                                        | Cache Strategy          |
-| ----------------- | ------------------------------------------------------- | ----------------------- |
-| Products          | `["products", "list", params]` / `["products", "detail", id]` | 2 min staleTime    |
-| Cart              | `["cart"]`                                              | 1 min staleTime         |
-| Orders            | `["orders", "list"]` / `["orders", "detail", id]`      | 1 min staleTime         |
-| Wishlist          | `["wishlist"]` / `["wishlist", "share", shareId]`      | 1 min staleTime         |
-| Reviews           | `["reviews", productId]`                                | 2 min staleTime         |
-| Seller Products   | `["seller", "products"]`                                | 15 sec staleTime        |
-| Admin Sellers     | `["admin", "sellers"]`                                  | 30 sec staleTime        |
-| Admin Analytics   | `["admin", "analytics"]`                                | 1 min staleTime         |
-| Recommendations   | `["recommendations", mode, productIds, limit]`          | 10 min staleTime        |
+| Domain          | Query Key Prefix                                              | Cache Strategy   |
+| --------------- | ------------------------------------------------------------- | ---------------- |
+| Products        | `["products", "list", params]` / `["products", "detail", id]` | 2 min staleTime  |
+| Cart            | `["cart"]`                                                    | 1 min staleTime  |
+| Orders          | `["orders", "list"]` / `["orders", "detail", id]`             | 1 min staleTime  |
+| Wishlist        | `["wishlist"]` / `["wishlist", "share", shareId]`             | 1 min staleTime  |
+| Reviews         | `["reviews", productId]`                                      | 2 min staleTime  |
+| Seller Products | `["seller", "products"]`                                      | 15 sec staleTime |
+| Admin Sellers   | `["admin", "sellers"]`                                        | 30 sec staleTime |
+| Admin Analytics | `["admin", "analytics"]`                                      | 1 min staleTime  |
+| Recommendations | `["recommendations", mode, productIds, limit]`                | 10 min staleTime |
 
 ### Hook Pattern
 
@@ -661,7 +672,7 @@ interface AuthState {
 
   setUser: (user: User) => void;
   clearAuth: () => void;
-  initAuth: () => Promise<void>;  // called once on app mount
+  initAuth: () => Promise<void>; // called once on app mount
 }
 ```
 
@@ -680,19 +691,19 @@ All other state (server data) lives in React Query caches. No Redux, no addition
 
 ### Layered Defense
 
-| Layer            | Implementation                                                 |
-| ---------------- | -------------------------------------------------------------- |
-| Transport        | HTTP-only cookies (inaccessible to JavaScript)                 |
-| Headers          | Helmet (XSS, clickjacking, MIME sniffing, HSTS)               |
-| CORS             | Strict origin whitelist with credential support                |
-| Body Size        | 10KB JSON limit                                                |
-| NoSQL Injection  | Custom `mongoSanitize` middleware strips `$` and `.` from keys |
+| Layer            | Implementation                                                                 |
+| ---------------- | ------------------------------------------------------------------------------ |
+| Transport        | HTTP-only cookies (inaccessible to JavaScript)                                 |
+| Headers          | Helmet (XSS, clickjacking, MIME sniffing, HSTS)                                |
+| CORS             | Strict origin whitelist with credential support                                |
+| Body Size        | 10KB JSON limit                                                                |
+| NoSQL Injection  | Custom `mongoSanitize` middleware strips `$` and `.` from keys                 |
 | Rate Limiting    | 4 tiers: general (100), auth (20), password-reset (5), refresh (60) per 10 min |
-| CSRF             | Double-submit cookie pattern with `crypto.timingSafeEqual`     |
-| Auth             | JWT from httpOnly cookie, verified on every request            |
-| Input Validation | Zod schema-first validation on all state-changing requests     |
-| File Uploads     | MIME validation, 5MB limit, memory-only storage (no disk)      |
-| Webhook          | HMAC-SHA256 signature verification on raw request body         |
+| CSRF             | Double-submit cookie pattern with `crypto.timingSafeEqual`                     |
+| Auth             | JWT from httpOnly cookie, verified on every request                            |
+| Input Validation | Zod schema-first validation on all state-changing requests                     |
+| File Uploads     | MIME validation, 5MB limit, memory-only storage (no disk)                      |
+| Webhook          | HMAC-SHA256 signature verification on raw request body                         |
 
 ### CSRF Protection (Double-Submit Cookie Pattern)
 
@@ -857,6 +868,7 @@ If any step fails (insufficient stock, product deactivated), `session.abortTrans
 ### Webhook Safety Net
 
 If the user closes the browser tab after payment but before `/verify` completes, Razorpay's server-to-server webhook (`payment.captured`) catches it. The webhook handler:
+
 1. Verifies HMAC-SHA256 signature on the raw request body
 2. Checks idempotency (skips if `/verify` already processed this payment)
 3. Finds the pending order by `razorpayOrderId` (saved in `createRazorpayOrder` with full shipping address)
@@ -956,14 +968,14 @@ app.use((err, req, res, next) => {
 
 **Error Categories:**
 
-| Error Type       | Where Thrown              | HTTP Status | Response Shape                          |
-| ---------------- | ------------------------- | ----------- | --------------------------------------- |
-| Validation       | `validate` middleware     | 400         | `{ success, message, errors[] }`        |
-| Authentication   | `verifyToken` middleware   | 401         | `{ success, message }`                  |
-| Authorization    | `requireRole`, ownership checks | 403    | `{ success, message }`                  |
-| Not Found        | Controllers               | 404         | `{ success, message }`                  |
-| Rate Limit       | Rate limiter              | 429         | `{ success, message }`                  |
-| Business Logic   | Services                  | 400         | `{ success, message }` (out of stock, etc.) |
+| Error Type     | Where Thrown                    | HTTP Status | Response Shape                              |
+| -------------- | ------------------------------- | ----------- | ------------------------------------------- |
+| Validation     | `validate` middleware           | 400         | `{ success, message, errors[] }`            |
+| Authentication | `verifyToken` middleware        | 401         | `{ success, message }`                      |
+| Authorization  | `requireRole`, ownership checks | 403         | `{ success, message }`                      |
+| Not Found      | Controllers                     | 404         | `{ success, message }`                      |
+| Rate Limit     | Rate limiter                    | 429         | `{ success, message }`                      |
+| Business Logic | Services                        | 400         | `{ success, message }` (out of stock, etc.) |
 
 ### Frontend
 
@@ -1024,10 +1036,15 @@ Security-event specific logging on top of the structured logger:
 
 ```typescript
 type AuditAction =
-  | "auth.login" | "auth.logout" | "auth.refresh"
-  | "auth.password_change" | "auth.password_reset_completed"
+  | "auth.login"
+  | "auth.logout"
+  | "auth.refresh"
+  | "auth.password_change"
+  | "auth.password_reset_completed"
   | "auth.email_verify"
-  | "seller.apply" | "seller.approve" | "seller.reject"
+  | "seller.apply"
+  | "seller.approve"
+  | "seller.reject"
   | "admin.access";
 
 auditLog("auth.login", userId, { ip: req.ip });
@@ -1038,6 +1055,7 @@ All audit events are logged at `warn` level (always visible in production).
 ### Frontend
 
 No structured logging on the frontend. Error visibility is through:
+
 - Sonner toast notifications for user-facing errors
 - React Query devtools in development
 - Browser console for Axios errors
@@ -1048,38 +1066,38 @@ No structured logging on the frontend. Error visibility is through:
 
 ### Backend (`backend/.env`)
 
-| Variable                     | Required | Purpose                                |
-| ---------------------------- | -------- | -------------------------------------- |
-| `PORT`                       | Yes      | Server port (default: 5000)            |
-| `NODE_ENV`                   | Yes      | `development` / `production`           |
-| `MONGO_URI`                  | Yes      | MongoDB Atlas connection string        |
-| `ACCESS_TOKEN_SECRET`        | Yes      | JWT signing (min 32 chars in prod)     |
-| `REFRESH_TOKEN_SECRET`       | Yes      | JWT refresh signing (min 32 chars)     |
-| `REFRESH_TOKEN_HASH_SECRET`  | Yes      | HMAC secret for hashing refresh tokens |
-| `FRONTEND_URL`               | Yes      | CORS origin + redirect URLs            |
-| `GOOGLE_CLIENT_ID`           | Yes      | Google OAuth client ID                 |
-| `GOOGLE_CLIENT_SECRET`       | Yes      | Google OAuth client secret             |
-| `GOOGLE_CALLBACK_URL`        | Yes      | OAuth redirect URI                     |
-| `CLOUDINARY_CLOUD_NAME`      | Yes      | Cloudinary cloud name                  |
-| `CLOUDINARY_API_KEY`         | Yes      | Cloudinary API key                     |
-| `CLOUDINARY_API_SECRET`      | Yes      | Cloudinary API secret                  |
-| `RESEND_API_KEY`             | No       | Transactional emails                   |
-| `RESEND_FROM_EMAIL`          | No       | Verified sender email                  |
-| `RESEND_EMAIL`               | No       | Seller application notifications       |
-| `ADMIN_EMAIL`                | No       | Bootstrap script — primary admin email |
-| `ADMIN_PASSWORD`             | No       | Bootstrap script — primary admin password |
-| `RAZORPAY_KEY_ID`            | No       | Razorpay payment API key               |
-| `RAZORPAY_KEY_SECRET`        | No       | Razorpay payment API secret            |
-| `RAZORPAY_WEBHOOK_SECRET`    | No       | Webhook signature secret               |
-| `EMAIL_VERIFICATION_DEMO_MODE` | No     | `true` returns demo URL in API response |
+| Variable                       | Required | Purpose                                   |
+| ------------------------------ | -------- | ----------------------------------------- |
+| `PORT`                         | Yes      | Server port (default: 5000)               |
+| `NODE_ENV`                     | Yes      | `development` / `production`              |
+| `MONGO_URI`                    | Yes      | MongoDB Atlas connection string           |
+| `ACCESS_TOKEN_SECRET`          | Yes      | JWT signing (min 32 chars in prod)        |
+| `REFRESH_TOKEN_SECRET`         | Yes      | JWT refresh signing (min 32 chars)        |
+| `REFRESH_TOKEN_HASH_SECRET`    | Yes      | HMAC secret for hashing refresh tokens    |
+| `FRONTEND_URL`                 | Yes      | CORS origin + redirect URLs               |
+| `GOOGLE_CLIENT_ID`             | Yes      | Google OAuth client ID                    |
+| `GOOGLE_CLIENT_SECRET`         | Yes      | Google OAuth client secret                |
+| `GOOGLE_CALLBACK_URL`          | Yes      | OAuth redirect URI                        |
+| `CLOUDINARY_CLOUD_NAME`        | Yes      | Cloudinary cloud name                     |
+| `CLOUDINARY_API_KEY`           | Yes      | Cloudinary API key                        |
+| `CLOUDINARY_API_SECRET`        | Yes      | Cloudinary API secret                     |
+| `RESEND_API_KEY`               | No       | Transactional emails                      |
+| `RESEND_FROM_EMAIL`            | No       | Verified sender email                     |
+| `RESEND_EMAIL`                 | No       | Seller application notifications          |
+| `ADMIN_EMAIL`                  | No       | Bootstrap script — primary admin email    |
+| `ADMIN_PASSWORD`               | No       | Bootstrap script — primary admin password |
+| `RAZORPAY_KEY_ID`              | No       | Razorpay payment API key                  |
+| `RAZORPAY_KEY_SECRET`          | No       | Razorpay payment API secret               |
+| `RAZORPAY_WEBHOOK_SECRET`      | No       | Webhook signature secret                  |
+| `EMAIL_VERIFICATION_DEMO_MODE` | No       | `true` returns demo URL in API response   |
 
 Env validation (`config/validateEnv.ts`) checks for required variables on startup and exits with an error message if any are missing. In production, it additionally enforces JWT secrets ≥ 32 characters.
 
 ### Frontend (`frontend/.env`)
 
-| Variable         | Purpose                       |
-| ---------------- | ----------------------------- |
-| `VITE_API_URL`   | Backend API base URL          |
+| Variable       | Purpose              |
+| -------------- | -------------------- |
+| `VITE_API_URL` | Backend API base URL |
 
 ---
 
@@ -1087,30 +1105,30 @@ Env validation (`config/validateEnv.ts`) checks for required variables on startu
 
 ### Current Status
 
-- **Frontend**: Deployed on Vercel (`snapcart-now.vercel.app`)
-- **Backend**: Deployed on Railway (`snapcart-production.up.railway.app`)
+- **Frontend**: Deployed on Vercel
+- **Backend**: Deployed on Render
 
 ### Deploy Scripts
 
 **Backend (`backend/package.json`):**
 
-| Script           | Command                                      | Purpose                |
-| ---------------- | -------------------------------------------- | ---------------------- |
-| `dev`            | `ts-node-dev --respawn --transpile-only src/server.ts` | Development server |
-| `build`          | `tsc`                                        | TypeScript compilation |
-| `start`          | `node dist/server.js`                        | Production start       |
-| `db:seed:dev`    | `ts-node src/scripts/seed.dev.ts`            | Seed test data         |
-| `lint`           | `eslint src`                                 | Linting                |
-| `type-check`     | `tsc --noEmit`                               | Type checking          |
+| Script        | Command                                                | Purpose                |
+| ------------- | ------------------------------------------------------ | ---------------------- |
+| `dev`         | `ts-node-dev --respawn --transpile-only src/server.ts` | Development server     |
+| `build`       | `tsc`                                                  | TypeScript compilation |
+| `start`       | `node dist/server.js`                                  | Production start       |
+| `db:seed:dev` | `ts-node src/scripts/seed.dev.ts`                      | Seed test data         |
+| `lint`        | `eslint src`                                           | Linting                |
+| `type-check`  | `tsc --noEmit`                                         | Type checking          |
 
 **Frontend (`frontend/package.json`):**
 
-| Script     | Command              | Purpose              |
-| ---------- | -------------------- | -------------------- |
-| `dev`      | `vite`               | Development server   |
-| `build`    | `tsc -b && vite build` | Production build   |
-| `preview`  | `vite preview`       | Preview production   |
-| `lint`     | `eslint .`           | Linting              |
+| Script    | Command                | Purpose            |
+| --------- | ---------------------- | ------------------ |
+| `dev`     | `vite`                 | Development server |
+| `build`   | `tsc -b && vite build` | Production build   |
+| `preview` | `vite preview`         | Preview production |
+| `lint`    | `eslint .`             | Linting            |
 
 ### Seed Data
 
@@ -1178,6 +1196,12 @@ COD (Cash on Delivery) is fully implemented and available to all verified users 
 ### 4. No Automated Tests
 
 Both `package.json` files have placeholder test scripts:
+e to all verified users via the order creation endpoint. Customers can choose between Razorpay online payment or COD at checkout.
+
+### 4. No Automated Tests
+
+Both `package.json` files have placeholder test scripts:
+
 - Backend: `"test": "echo \"Error: no test specified\" && exit 1"`
 - Frontend: No test script at all (no test dependencies installed)
 
@@ -1195,13 +1219,13 @@ Shared validation constants (min lengths, enums, etc.) are centralized in `backe
 
 ### Medium Priority
 
-2. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
-3. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
-4. **Error monitoring** — Integrate Sentry or similar for production error tracking.
-5. **Add test suites** — Unit tests for services, integration tests for API endpoints, E2E tests for critical flows.
+1. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
+2. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
+3. **Error monitoring** — Integrate Sentry or similar for production error tracking.
+4. **Add test suites** — Unit tests for services, integration tests for API endpoints, E2E tests for critical flows.
 
 ### Nice-to-Have
 
-6. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
-7. **WebSocket notifications** — Real-time order status updates for buyers.
-8. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.
+1. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
+2. **WebSocket notifications** — Real-time order status updates for buyers.
+3. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.

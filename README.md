@@ -27,7 +27,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
 ## 📋 Table of Contents
 
 - [🛒 SnapCart](#-snapcart)
-    - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
+  - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [🧩 About the Project](#-about-the-project)
   - [💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further](#-most-e-commerce-portfolio-projects-stop-at-add-to-cart-snapcart-goes-further)
@@ -46,14 +46,16 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
   - [🚀 Quick Start](#-quick-start)
     - [Prerequisites](#prerequisites)
     - [Clone and Install](#clone-and-install)
+    - [Seed Demo Accounts (Development Only)](#seed-demo-accounts-development-only)
+    - [Create Your Primary Admin (Run Once)](#create-your-primary-admin-run-once)
     - [Run in Development](#run-in-development)
     - [Production Build](#production-build)
   - [⚙️ Environment Variables](#️-environment-variables)
   - [📡 API at a Glance](#-api-at-a-glance)
-  - [🔐 Security Highlights](#-security-highlights)
-  - [🚧 Work in Progress](#-work-in-progress)
-  - [✅ Recently Completed](#-recently-completed)
-  - [🗓 Roadmap](#-roadmap)
+  - [🛡 Security Highlights](#-security-highlights)
+    - [CSRF Protection — Double-Submit Cookie Pattern](#csrf-protection--double-submit-cookie-pattern)
+  - [🗳️ What's Next](#️-whats-next)
+  - [🛡️ Live Demo Notice](#️-live-demo-notice)
   - [📚 Documentation](#-documentation)
   - [🤝 Contributing](#-contributing)
   - [🙏 Acknowledgements](#-acknowledgements)
@@ -159,7 +161,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
   </tr>
   <tr>
     <td>Deployment</td>
-    <td>Railway</td>
+    <td>Render</td>
     <td>Zero-config deploys, ephemeral filesystem handled by Cloudinary</td>
   </tr>
 </table>
@@ -237,18 +239,18 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🛍️ Buyer Features
 
-| Feature            | Details                                                                          |
-| ------------------ | -------------------------------------------------------------------------------- |
-| Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
-| Product Detail     | Image gallery, description, stock indicator, related product rails               |
-| Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
-| Checkout           | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
-| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                     |
-| Order History      | Full order list with per-order detail view                                       |
-| Reviews            | Write a review only after receiving a delivered order                            |
-| Wishlist           | Heart-toggle from any product card; move all items to cart in one click          |
-| Wishlist Sharing   | Generate a public share link or email it to anyone                               |
-| Recommendations    | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
+| Feature          | Details                                                                          |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Product Catalog  | Paginated grid with live text search, category & price filters, and sort options |
+| Product Detail   | Image gallery, description, stock indicator, related product rails               |
+| Cart             | Persistent server-side cart; add, update quantity, remove, clear                 |
+| Checkout         | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
+| Order Tracking   | Status timeline: `pending → confirmed → shipped → delivered`                     |
+| Order History    | Full order list with per-order detail view                                       |
+| Reviews          | Write a review only after receiving a delivered order                            |
+| Wishlist         | Heart-toggle from any product card; move all items to cart in one click          |
+| Wishlist Sharing | Generate a public share link or email it to anyone                               |
+| Recommendations  | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
 
 ### 🏪 Seller Features
 
@@ -278,8 +280,8 @@ Log In → Review Seller Applications → Approve / Reject
 | Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
 | CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality                                                     |
 | Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
-| RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config |
-| Audit Logging                 | Login, logout, refresh, verification, password, and seller events                           |
+| RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config                                       |
+| Audit Logging                 | Login, logout, refresh, verification, password, and seller events                                                           |
 
 ---
 
@@ -351,11 +353,11 @@ npm run db:seed:dev
 
 This creates three demo accounts with fixed credentials:
 
-| Account   | Email                          | Password   |
-| --------- | ------------------------------ | ---------- |
-| Admin     | `demo_admin@snapcart.dev`      | `Demo@1234` |
-| Seller    | `demo_seller@snapcart.dev`     | `Demo@1234` |
-| Customer  | `demo_customer@snapcart.dev`   | `Demo@1234` |
+| Account  | Email                        | Password    |
+| -------- | ---------------------------- | ----------- |
+| Admin    | `demo_admin@snapcart.dev`    | `Demo@1234` |
+| Seller   | `demo_seller@snapcart.dev`   | `Demo@1234` |
+| Customer | `demo_customer@snapcart.dev` | `Demo@1234` |
 
 > The demo admin has **view-only** permissions — it can browse the dashboard and orders but cannot perform destructive actions like approving sellers or managing products.
 
@@ -367,6 +369,7 @@ npm run bootstrap:admin
 ```
 
 The bootstrap script requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables. It is **idempotent** — safe to run multiple times. It will:
+
 - Check if a primary admin already exists → if yes, exit safely
 - If the email exists → promote that user to admin with full permissions
 - If not → create a new admin account
@@ -474,6 +477,9 @@ Auth          GET  /api/auth/csrf-token
               GET  /api/auth/google
               GET  /api/auth/google/callback
 
+Health        GET  /api/v1/health
+              GET  /api/v1/ready
+
 Products      GET  /api/products                    (public, paginated + filters)
               GET  /api/products/recommendations    (?type=personalized|related|frequently-bought)
               GET  /api/products/:id
@@ -541,70 +547,76 @@ For the full reference including request/response shapes, see [`backend/README.m
 **How the fix works:**
 
 1. **Token injection (non-httpOnly cookie):**
-    - On page load, the frontend calls `GET /api/auth/csrf-token`
-    - The backend responds with `Set-Cookie: csrfToken=<64-hex-char-token>` — **`httpOnly: false`** by design
-    - `httpOnly: false` is required — the frontend JavaScript reads the cookie via `document.cookie` and sends it as the `x-csrf-token` header on every state-changing request
+   - On page load, the frontend calls `GET /api/auth/csrf-token`
+   - The backend responds with `Set-Cookie: csrfToken=<64-hex-char-token>` — **`httpOnly: false`** by design
+   - `httpOnly: false` is required — the frontend JavaScript reads the cookie via `document.cookie` and sends it as the `x-csrf-token` header on every state-changing request
 
 2. **Why `httpOnly: false` isn't a security problem:**
-    - The CSRF token is **not** a secret in the traditional sense — it's a session-bound value that the server echoes back
-    - If an attacker had XSS access to read `document.cookie`, they'd already own the session (they could read the **real** secrets: `accessToken` and `refreshToken` in httpOnly cookies)
-    - The CSRF token's job is specifically to defeat **cross-origin** requests — requests that come without the attacker having any ability to read the cookie
+   - The CSRF token is **not** a secret in the traditional sense — it's a session-bound value that the server echoes back
+   - If an attacker had XSS access to read `document.cookie`, they'd already own the session (they could read the **real** secrets: `accessToken` and `refreshToken` in httpOnly cookies)
+   - The CSRF token's job is specifically to defeat **cross-origin** requests — requests that come without the attacker having any ability to read the cookie
 
 3. **Frontend attachment (axios interceptor):**
-    ```typescript
-    api.interceptors.request.use(async (config) => {
-      if (method !== "GET") {
-        const token = readCookie("csrfToken");
-        if (token) config.headers.set("x-csrf-token", token);
-      }
-      return config;
-    });
-    ```
-    - Every `POST`/`PATCH`/`DELETE`/`PUT` request automatically gets `x-csrf-token` header
-    - Token is cached in memory and refreshed when the cookie expires (1 hour)
+
+   ```typescript
+   api.interceptors.request.use(async (config) => {
+     if (method !== "GET") {
+       const token = readCookie("csrfToken");
+       if (token) config.headers.set("x-csrf-token", token);
+     }
+     return config;
+   });
+   ```
+
+   - Every `POST`/`PATCH`/`DELETE`/`PUT` request automatically gets `x-csrf-token` header
+   - Token is cached in memory and refreshed when the cookie expires (1 hour)
 
 4. **Backend validation (timing-safe comparison):**
-    ```typescript
-    const cookieToken = req.cookies?.csrfToken;
-    const headerToken = req.get("x-csrf-token");
-    crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(cookieToken));
-    ```
-    - `crypto.timingSafeEqual` prevents timing attacks — attacker cannot brute-force the token character-by-character
-    - Length pre-check prevents unnecessary comparison on mismatched-length inputs
+
+   ```typescript
+   const cookieToken = req.cookies?.csrfToken;
+   const headerToken = req.get("x-csrf-token");
+   crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(cookieToken));
+   ```
+
+   - `crypto.timingSafeEqual` prevents timing attacks — attacker cannot brute-force the token character-by-character
+   - Length pre-check prevents unnecessary comparison on mismatched-length inputs
 
 5. **Global enforcement — single point of control:**
-    ```typescript
-    app.use("/api", (req, res, next) => {
-      if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-      if (req.path === "/payments/webhook") return next();  // server-to-server, uses HMAC-SHA256
-      return csrfProtection(req, res, next);
-    });
-    ```
-    - The CSRF check runs **before** any route handler — a single middleware protects **every** mutation across auth, cart, orders, products, reviews, wishlist, payments, seller, and admin routes
-    - New routes automatically get CSRF protection — no per-route imports needed
-    - The Razorpay webhook is exempted (Razorpay signs with HMAC-SHA256 on the raw request body, which is a stronger guarantee than any cookie-based CSRF token)
+
+   ```typescript
+   app.use("/api", (req, res, next) => {
+     if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+     if (req.path === "/payments/webhook") return next(); // server-to-server, uses HMAC-SHA256
+     return csrfProtection(req, res, next);
+   });
+   ```
+
+   - The CSRF check runs **before** any route handler — a single middleware protects **every** mutation across auth, cart, orders, products, reviews, wishlist, payments, seller, and admin routes
+   - New routes automatically get CSRF protection — no per-route imports needed
+   - The Razorpay webhook is exempted (Razorpay signs with HMAC-SHA256 on the raw request body, which is a stronger guarantee than any cookie-based CSRF token)
 
 6. **Why the attacker can't bypass:**
-    - The malicious site can trigger a `POST /api/wishlist/add` from the victim's browser
-    - Cookies are automatically attached — that part works for the attacker
-    - But the attacker **cannot read** the `csrfToken` cookie value (blocked by **Same-Origin Policy** — the attacker's `evil.com` JavaScript cannot read `snapcart.com`'s cookies)
-    - So the attacker cannot set the `x-csrf-token` header to the correct value
-    - The server sees valid cookies + missing/wrong `x-csrf-token` → **403 Invalid CSRF token** → request rejected
+   - The malicious site can trigger a `POST /api/wishlist/add` from the victim's browser
+   - Cookies are automatically attached — that part works for the attacker
+   - But the attacker **cannot read** the `csrfToken` cookie value (blocked by **Same-Origin Policy** — the attacker's `evil.com` JavaScript cannot read `snapcart.com`'s cookies)
+   - So the attacker cannot set the `x-csrf-token` header to the correct value
+   - The server sees valid cookies + missing/wrong `x-csrf-token` → **403 Invalid CSRF token** → request rejected
 
 **Coverage — all state-changing routes are protected:**
 
-| Route Group   | Endpoints                                                                 |
-|---------------|---------------------------------------------------------------------------|
-| Auth          | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `POST /auth/resend-verification` |
-| Cart          | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`  |
-| Orders        | `POST /orders`, `PATCH /orders/:id/status`                                |
-| Products      | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`           |
-| Reviews       | `POST /reviews/:productId`, `DELETE /reviews/:id`                         |
-| Wishlist      | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email` |
-| Payments      | `POST /payments/create-order`, `POST /payments/verify`                     |
-| Seller        | `POST /seller/apply`                                                       |
-| Admin         | `PATCH /admin/sellers/:id`                                                 |
-| **Exempted**  | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                  |
+| Route Group  | Endpoints                                                                                                                                                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth         | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `POST /auth/resend-verification` |
+| Cart         | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`                                                                                                                                          |
+| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                       |
+| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                                  |
+| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                                |
+| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                       |
+| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                           |
+| Seller       | `POST /seller/apply`                                                                                                                                                                                             |
+| Admin        | `PATCH /admin/sellers/:id`                                                                                                                                                                                       |
+| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                         |
 
 ---
 
@@ -678,11 +690,18 @@ For significant changes (new routes, schema changes, auth flow modifications), p
 - [Resend](https://resend.com/) — developer-first transactional email
 - [Cloudinary](https://cloudinary.com/) — effortless image storage and transformation
 - [Razorpay](https://razorpay.com/) — payment gateway with a great developer experience
-- [Railway](https://railway.app/) — zero-friction backend deployment
+- [Render](https://render.com/) — zero-friction backend deployment
 - [MongoDB Atlas](https://www.mongodb.com/atlas) — fully managed cloud database with free tier
 
 ---
 
+<div align="center">
+
+Made with ❤️ by [Onkar](https://github.com/ItsOnkar-dev)
+
+⭐ **Star this repo** if you found it useful or learned something from it!
+
+</div>
 <div align="center">
 
 Made with ❤️ by [Onkar](https://github.com/ItsOnkar-dev)
