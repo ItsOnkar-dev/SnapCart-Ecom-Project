@@ -9,6 +9,7 @@ import { mongoSanitize } from "./middleware/sanitize";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
+import healthRoutes from "./routes/health.routes";
 import orderRoutes from "./routes/order.routes";
 import paymentRoutes from "./routes/payment.routes";
 import productRoutes from "./routes/product.routes";
@@ -32,9 +33,7 @@ const webhookLimiter = rateLimit({
   message: "Too many webhook requests",
 });
 
-//  Raw body parser for Razorpay webhook. This middleware ONLY applies to /api/payments/webhook. Razorpay computes its webhook signature on the raw request body. If express.json() runs first, req.body becomes a parsed JS object and
-// JSON.stringify() on it may produce a different string (key order, whitespace),
-// breaking signature verification. Raw Buffer is the only safe option.
+//  Raw body parser for Razorpay webhook. This middleware ONLY applies to /api/payments/webhook. Razorpay computes its webhook signature on the raw request body. If express.json() runs first, req.body becomes a parsed JS object.
 app.use(
   "/api/payments/webhook",
   webhookLimiter,
@@ -58,7 +57,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (mobile apps, Postman, curl)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -72,9 +70,12 @@ app.use(
   }),
 );
 
+// Health checks must work even if rate limits are hit and they have no CSRF token
+app.use("/api/v1", healthRoutes);
+
 // General limiter — all routes
 const generalLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
+  windowMs: 10 * 60 * 1000,
   max: 100, // max 100 requests per IP per 10 min
   message: {
     success: false,
@@ -87,8 +88,8 @@ const generalLimiter = rateLimit({
 // Strict limiter — auth routes only
 // NOTE: Route-level limiters in auth.routes.ts are the authoritative source.
 const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 20, // max 20 login attempts per IP per 10 min
+  windowMs: 10 * 60 * 1000,
+  max: 20,
   message: {
     success: false,
     message: "Too many auth requests, please try again later",
@@ -103,19 +104,6 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
 // ── CSRF — single enforcement point ────────────────────────────────────────────
-// This global middleware is the ONLY CSRF enforcement in the application.
-// Every state-changing request under /api (POST, PATCH, DELETE, PUT) is checked
-// against the double-submit cookie pattern — no exceptions except the Razorpay
-// webhook, which uses HMAC-SHA256 signature verification instead.
-//
-// Route files do NOT need to import or call csrfProtection individually.
-// If you add a new route file, CSRF is automatically applied by this middleware.
-//
-// The following routes are excluded because they are public entry points that
-// cannot have a CSRF token before authentication:
-//   - /auth/login, /auth/register — no session yet
-//   - /auth/forgot-password, /auth/reset-password — one-time token from email
-//
 // Webhook is server-to-server from Razorpay — no CSRF token possible.
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
@@ -125,7 +113,8 @@ app.use("/api", (req, res, next) => {
     req.path === "/auth/register" ||
     req.path === "/auth/forgot-password" ||
     req.path === "/auth/reset-password"
-  ) return next();
+  )
+    return next();
   return csrfProtection(req, res, next);
 });
 

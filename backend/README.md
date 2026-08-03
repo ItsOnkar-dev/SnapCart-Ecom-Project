@@ -17,7 +17,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 
 <br/>
 
-[**🌐 Live API**](https://snapcart-production.up.railway.app/api) · [**◀ Back to Root**](../README.md) · [**🎨 Frontend Docs**](../frontend/README.md) · [**🐛 Report Bug**](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
+[**🌐 Live API**](https://snapcart-production-up.render.app/api) · [**◀ Back to Root**](../README.md) · [**🎨 Frontend Docs**](../frontend/README.md) · [**🐛 Report Bug**](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/issues)
 
 </div>
 
@@ -221,29 +221,29 @@ backend/
 cp .env.example .env
 ```
 
-| Variable                       | Required | Description                                           |
-| ------------------------------ | -------- | ----------------------------------------------------- |
-| `NODE_ENV`                     | ✅       | `development` or `production`                         |
-| `PORT`                         | ✅       | Port the server listens on (default: `5000`)          |
-| `MONGO_URI`                    | ✅       | MongoDB Atlas connection string                       |
-| `ACCESS_TOKEN_SECRET`          | ✅       | Random string, 32+ chars in production                |
-| `REFRESH_TOKEN_SECRET`         | ✅       | Random string, 32+ chars in production                |
-| `REFRESH_TOKEN_HASH_SECRET`    | ✅       | Random string for hashing stored refresh tokens       |
-| `FRONTEND_URL`                 | ✅       | CORS origin, e.g. `http://localhost:5173`             |
-| `GOOGLE_CLIENT_ID`             | ✅       | From Google Cloud Console                             |
-| `GOOGLE_CLIENT_SECRET`         | ✅       | From Google Cloud Console                             |
-| `GOOGLE_CALLBACK_URL`          | ✅       | e.g. `http://localhost:5000/api/auth/google/callback` |
-| `CLOUDINARY_CLOUD_NAME`        | ✅       | From Cloudinary dashboard                             |
-| `CLOUDINARY_API_KEY`           | ✅       | From Cloudinary dashboard                             |
-| `CLOUDINARY_API_SECRET`        | ✅       | From Cloudinary dashboard                             |
-| `EMAIL_VERIFICATION_DEMO_MODE` | Optional | `true` → returns verification URL in response         |
-| `RESEND_API_KEY`               | Optional | From resend.com — required for real email delivery    |
-| `RESEND_FROM_EMAIL`            | Optional | Verified sender address on your Resend domain         |
-| `RESEND_EMAIL`                 | Optional | Receives seller application notification emails       |
-| `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin |
+| Variable                       | Required | Description                                              |
+| ------------------------------ | -------- | -------------------------------------------------------- |
+| `NODE_ENV`                     | ✅       | `development` or `production`                            |
+| `PORT`                         | ✅       | Port the server listens on (default: `5000`)             |
+| `MONGO_URI`                    | ✅       | MongoDB Atlas connection string                          |
+| `ACCESS_TOKEN_SECRET`          | ✅       | Random string, 32+ chars in production                   |
+| `REFRESH_TOKEN_SECRET`         | ✅       | Random string, 32+ chars in production                   |
+| `REFRESH_TOKEN_HASH_SECRET`    | ✅       | Random string for hashing stored refresh tokens          |
+| `FRONTEND_URL`                 | ✅       | CORS origin, e.g. `http://localhost:5173`                |
+| `GOOGLE_CLIENT_ID`             | ✅       | From Google Cloud Console                                |
+| `GOOGLE_CLIENT_SECRET`         | ✅       | From Google Cloud Console                                |
+| `GOOGLE_CALLBACK_URL`          | ✅       | e.g. `http://localhost:5000/api/auth/google/callback`    |
+| `CLOUDINARY_CLOUD_NAME`        | ✅       | From Cloudinary dashboard                                |
+| `CLOUDINARY_API_KEY`           | ✅       | From Cloudinary dashboard                                |
+| `CLOUDINARY_API_SECRET`        | ✅       | From Cloudinary dashboard                                |
+| `EMAIL_VERIFICATION_DEMO_MODE` | Optional | `true` → returns verification URL in response            |
+| `RESEND_API_KEY`               | Optional | From resend.com — required for real email delivery       |
+| `RESEND_FROM_EMAIL`            | Optional | Verified sender address on your Resend domain            |
+| `RESEND_EMAIL`                 | Optional | Receives seller application notification emails          |
+| `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin    |
 | `ADMIN_PASSWORD`               | Optional | Used by bootstrap script — password of the primary admin |
-| `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                               |
-| `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                               |
+| `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                                  |
+| `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                                  |
 
 > 💡 **For local / portfolio deployments:** Set `EMAIL_VERIFICATION_DEMO_MODE=true`. The server returns the verification URL in the register response so you can verify accounts without a paid Resend sender domain. The full token → hash → expiry → clear flow still runs.
 
@@ -259,15 +259,15 @@ npm run dev     # starts on http://localhost:5000 with hot reload
 
 ## 📜 Scripts
 
-| Command               | Description                                                |
-| --------------------- | ---------------------------------------------------------- |
-| `npm run dev`         | Start development server with hot reload (`ts-node-dev`)   |
-| `npm run build`       | Compile TypeScript to `dist/`                              |
-| `npm start`           | Run the compiled production server (`node dist/server.js`) |
-| `npm run lint`        | Run ESLint across `src/`                                   |
-| `npm run type-check`  | Type-check without emitting files                          |
-| `npm run db:seed:dev` | Seed the database with development demo accounts           |
-| `npm run bootstrap:admin` | Create or promote the primary admin account (idempotent) |
+| Command                   | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| `npm run dev`             | Start development server with hot reload (`ts-node-dev`)   |
+| `npm run build`           | Compile TypeScript to `dist/`                              |
+| `npm start`               | Run the compiled production server (`node dist/server.js`) |
+| `npm run lint`            | Run ESLint across `src/`                                   |
+| `npm run type-check`      | Type-check without emitting files                          |
+| `npm run db:seed:dev`     | Seed the database with development demo accounts           |
+| `npm run bootstrap:admin` | Create or promote the primary admin account (idempotent)   |
 
 ---
 
@@ -292,6 +292,12 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | POST   | `/auth/reset-password`      | None   | Reset password with raw token                   |
 | GET    | `/auth/google`              | None   | Redirect to Google OAuth consent screen         |
 | GET    | `/auth/google/callback`     | None   | Handle Google OAuth callback                    |
+
+### Health
+
+| Method | Path      | Auth | Description                                |
+| GET    | `/health` | None | Liveness probe — server uptime and status  |
+| GET    | `/ready`  | None | Readiness probe — confirms DB is connected |
 
 ### Products and Recommendations
 
@@ -318,20 +324,20 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 ### Orders
 
-| Method | Path                 | Auth         | Description                           |
-| ------ | -------------------- | ------------ | ------------------------------------- |
-| POST   | `/orders`            | Auth         | Checkout — atomic MongoDB transaction |
+| Method | Path                 | Auth         | Description                                                                 |
+| ------ | -------------------- | ------------ | --------------------------------------------------------------------------- |
+| POST   | `/orders`            | Auth         | Checkout — atomic MongoDB transaction                                       |
 | GET    | `/orders`            | Auth         | Paginated list of the current user's orders (default 10, supports `?page=`) |
-| GET    | `/orders/:id`        | Auth         | Order detail                          |
-| PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                   |
+| GET    | `/orders/:id`        | Auth         | Order detail                                                                |
+| PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                                                         |
 
 ### Reviews
 
-| Method | Path                  | Auth | Description                              |
-| ------ | --------------------- | ---- | ---------------------------------------- |
+| Method | Path                  | Auth | Description                                       |
+| ------ | --------------------- | ---- | ------------------------------------------------- |
 | GET    | `/reviews/:productId` | None | Paginated reviews (default 20, supports `?page=`) |
-| POST   | `/reviews/:productId` | Auth | Submit review (verified purchasers only) |
-| DELETE | `/reviews/:id`        | Auth | Delete own review                        |
+| POST   | `/reviews/:productId` | Auth | Submit review (verified purchasers only)          |
+| DELETE | `/reviews/:id`        | Auth | Delete own review                                 |
 
 ### Wishlist
 
@@ -529,26 +535,26 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 
 ## 🛡 Security Measures
 
-| Measure                   | Implementation                                                          |
-| ------------------------- | ----------------------------------------------------------------------- |
-| HTTP headers              | Helmet                                                                  |
-| CORS                      | Credentials enabled, strict `FRONTEND_URL` origin                       |
-| Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                 |
-| CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual` |
+| Measure                   | Implementation                                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP headers              | Helmet                                                                                                                                |
+| CORS                      | Credentials enabled, strict `FRONTEND_URL` origin                                                                                     |
+| Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                                                                               |
+| CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual`   |
 | CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (auth routes excluded; webhook uses HMAC-SHA256) |
-| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Railway) |
-| Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook |
-| Request size              | `express.json({ limit: "10kb" })`                                       |
-| Validation                | Zod schemas at route boundary                                           |
-| NoSQL injection           | Custom `mongoSanitize` middleware strips `$` and `.` from keys          |
-| Password storage          | bcrypt hashes only                                                      |
-| Verification/reset tokens | Raw token delivered, SHA-256 hash stored (raw never persisted)          |
-| Refresh tokens            | HMAC-SHA256 hashed, rotated on refresh, reuse detection                 |
-| RBAC                      | `requireRole` + `requirePermission` — roles and permissions defined in `config/permissions.ts`, never stored per-user |
-| Verified email guard      | `requireVerifiedEmail` on sensitive operations                          |
-| Upload safety             | MIME validation + 5MB limit + memory-only storage (no disk writes)      |
-| Audit logging             | Login, logout, refresh, verification, password, and seller events       |
-| Webhook integrity         | Raw body preserved for Razorpay HMAC-SHA256 signature verification      |
+| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Railway)                                                         |
+| Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook         |
+| Request size              | `express.json({ limit: "10kb" })`                                                                                                     |
+| Validation                | Zod schemas at route boundary                                                                                                         |
+| NoSQL injection           | Custom `mongoSanitize` middleware strips `$` and `.` from keys                                                                        |
+| Password storage          | bcrypt hashes only                                                                                                                    |
+| Verification/reset tokens | Raw token delivered, SHA-256 hash stored (raw never persisted)                                                                        |
+| Refresh tokens            | HMAC-SHA256 hashed, rotated on refresh, reuse detection                                                                               |
+| RBAC                      | `requireRole` + `requirePermission` — roles and permissions defined in `config/permissions.ts`, never stored per-user                 |
+| Verified email guard      | `requireVerifiedEmail` on sensitive operations                                                                                        |
+| Upload safety             | MIME validation + 5MB limit + memory-only storage (no disk writes)                                                                    |
+| Audit logging             | Login, logout, refresh, verification, password, and seller events                                                                     |
+| Webhook integrity         | Raw body preserved for Razorpay HMAC-SHA256 signature verification                                                                    |
 
 ---
 
