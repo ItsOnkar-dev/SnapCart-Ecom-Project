@@ -489,9 +489,10 @@ All endpoints are prefixed with `/api`.
 
 #### Health
 
-| Method | Path      | Auth | Description                                |  
-| GET    | `/health` | None | Liveness probe — server uptime and status  |
-| GET    | `/ready`  | None | Readiness probe — confirms DB is connected |
+| Method | Path      | Auth | Description                                |
+| ------ | --------- | ---- | ------------------------------------------ |
+| `GET`  | `/health` | None | Liveness probe — server uptime and status  |
+| `GET`  | `/ready`  | None | Readiness probe — confirms DB is connected |
 
 #### Products — `/api/products`
 
