@@ -296,8 +296,9 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 ### Health
 
 | Method | Path      | Auth | Description                                |
-| GET    | `/health` | None | Liveness probe — server uptime and status  |
-| GET    | `/ready`  | None | Readiness probe — confirms DB is connected |
+| ------ | --------- | ---- | ------------------------------------------ |
+| `GET`  | `/health` | None | Liveness probe — server uptime and status  |
+| `GET`  | `/ready`  | None | Readiness probe — confirms DB is connected |
 
 ### Products and Recommendations
 
