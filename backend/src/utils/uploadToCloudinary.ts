@@ -12,7 +12,10 @@ export const uploadToCloudinary = (
       {
         folder,
         resource_type: "image",
-        transformation: [{ width: 1000, height: 1000, crop: "limit" }], // cap dimensions
+        transformation: [
+          { width: 1200, height: 1200, crop: "limit" },
+          { quality: "auto", fetch_format: "auto" },
+        ],
       },
       (error, result) => {
         if (error || !result) return reject(error);
@@ -20,6 +23,6 @@ export const uploadToCloudinary = (
       },
     );
 
-    stream.end(buffer); // push the buffer into the stream — triggers upload
+    stream.end(buffer);
   });
 };
