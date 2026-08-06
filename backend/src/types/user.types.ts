@@ -28,6 +28,8 @@ export interface IUser extends Document {
   passwordResetTokenExpiry?: Date;
   passwordChangedAt?: Date;
   isActive: boolean;
+  failedLoginAttempts: number;
+  lockedUntil?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -118,24 +118,47 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   // Step 3 — Find user by email
   // .select("+password") because password has select:false in schema — mongoose hides it by default
   const user = await User.findOne({ email: email.toLowerCase().trim() }).select(
-    "+password",
+    "+password +failedLoginAttempts +lockedUntil",
   );
 
   if (!user) {
     throw new ApiError(401, "Invalid email or password");
-    // deliberately vague — don't tell attackers which emails exist in your DB
   }
 
-  // Step 4 — Check account is active
   if (!user.isActive) {
     throw new ApiError(403, "Your account has been deactivated");
   }
 
-  // Step 5 — Compare password they sent vs hashed one stored in DB
+  // ── Account lockout check ────────────────────────────────────────────────
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const mins = Math.ceil(
+      (user.lockedUntil.getTime() - Date.now()) / 60000,
+    );
+    throw new ApiError(
+      423,
+      `Account is temporarily locked. Please try again in ${mins} minute${mins > 1 ? "s" : ""}.`,
+    );
+  }
+
   const isPasswordCorrect = await bcrypt.compare(password, user.password!);
 
   if (!isPasswordCorrect) {
+    user.failedLoginAttempts = (user.failedLoginAttempts ?? 0) + 1;
+    if (user.failedLoginAttempts >= 5) {
+      user.lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15-minute lockout
+      user.failedLoginAttempts = 0; // reset counter after lockout
+      await user.save({ validateBeforeSave: false });
+    } else {
+      await user.save({ validateBeforeSave: false });
+    }
     throw new ApiError(401, "Invalid email or password");
+  }
+
+  // Reset on successful login
+  if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+    user.failedLoginAttempts = 0;
+    user.lockedUntil = undefined;
+    await user.save({ validateBeforeSave: false });
   }
 
   // Step 6 — Generate both tokens using your existing generateTokens.ts

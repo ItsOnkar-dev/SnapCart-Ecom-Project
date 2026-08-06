@@ -78,6 +78,16 @@ const userSchema = new Schema<IUser>( // This schema is for User documents OR Cr
       type: Boolean,
       default: true,
     },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    lockedUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   { timestamps: true },
 );
