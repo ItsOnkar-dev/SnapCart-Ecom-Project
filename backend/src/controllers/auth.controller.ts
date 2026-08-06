@@ -3,6 +3,9 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
+import { Cart } from "../models/cart.model";
+import { Order } from "../models/order.model";
+import { Wishlist } from "../models/wishlist.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { auditLog } from "../utils/auditLogger";
@@ -541,6 +544,41 @@ export const forgotPassword = asyncHandler(
         ),
       );
     return;
+  },
+);
+
+// DELETE /api/auth/account
+export const deleteAccount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user!._id;
+
+    await Promise.all([
+      Cart.deleteMany({ user: userId }),
+      Wishlist.deleteMany({ user: userId }),
+      Order.updateMany(
+        { user: userId },
+        { $set: { user: null } },
+      ),
+    ]);
+
+    await User.findByIdAndDelete(userId);
+
+    const isProduction = process.env.NODE_ENV === "production";
+    res
+      .status(200)
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        path: "/",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        path: "/api/auth",
+      })
+      .json(new ApiResponse(200, "Account deleted successfully"));
   },
 );
 

@@ -12,6 +12,12 @@ export const shippingAddressSchema = z.object({
 
 export const placeOrderSchema = z.object({
   shippingAddress: shippingAddressSchema,
+  couponCode: z
+    .string()
+    .trim()
+    .min(1, "Coupon code must be at least 1 character")
+    .max(20)
+    .optional(),
 });
 
 export const updateOrderStatusSchema = z.object({

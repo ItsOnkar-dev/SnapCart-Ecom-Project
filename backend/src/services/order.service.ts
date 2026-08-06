@@ -7,6 +7,7 @@ import { IShippingAddress } from "../types/order.types";
 import { invalidateAnalyticsCache } from "../utils/analyticsCache";
 import { ApiError } from "../utils/ApiResponse";
 import { Logger } from "../utils/logger";
+import { incrementCouponUsage, validateCoupon } from "./coupon.service";
 
 export interface PlaceOrderPaymentInfo {
   paymentMethod?: "razorpay" | "cod";
@@ -17,6 +18,7 @@ export interface PlaceOrderPaymentInfo {
   subtotal?: number;
   shipping?: number;
   total?: number;
+  couponCode?: string;
 }
 
 export const placeOrderService = async (
@@ -43,7 +45,17 @@ export const placeOrderService = async (
     calculatedSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const subtotal = paymentInfo.subtotal ?? calculatedSubtotal;
   const shipping = paymentInfo.shipping ?? calculatedShipping;
-  const totalPrice = paymentInfo.total ?? subtotal + shipping;
+
+  let discount = 0;
+  if (paymentInfo.couponCode) {
+    const couponResult = await validateCoupon(
+      paymentInfo.couponCode,
+      calculatedSubtotal,
+    );
+    discount = couponResult.discount;
+  }
+
+  const totalPrice = paymentInfo.total ?? subtotal + shipping - discount;
 
   // Sequential operations — no MongoDB transaction.
   // Atlas M0 free tier does not support transactions. Each operation is atomic
@@ -51,10 +63,7 @@ export const placeOrderService = async (
   // For payment flows the Razorpay verify/webhook handles recovery.
   for (const item of items) {
     if (!item.product || !item.product.isActive) {
-      throw new ApiError(
-        400,
-        `A product in your cart is no longer available`,
-      );
+      throw new ApiError(400, `A product in your cart is no longer available`);
     }
 
     const updated = await Product.findOneAndUpdate(
@@ -92,6 +101,8 @@ export const placeOrderService = async (
       shippingAddress,
       subtotal,
       shipping,
+      discount,
+      couponCode: paymentInfo.couponCode ?? null,
       totalPrice,
       status: paymentInfo.status ?? "pending",
       paymentMethod: paymentInfo.paymentMethod ?? "razorpay",
@@ -100,6 +111,10 @@ export const placeOrderService = async (
       razorpayPaymentId: paymentInfo.razorpayPaymentId ?? undefined,
     },
   ]);
+
+  if (paymentInfo.couponCode) {
+    await incrementCouponUsage(paymentInfo.couponCode);
+  }
 
   cart.items = [] as typeof cart.items;
   cart.totalPrice = 0;

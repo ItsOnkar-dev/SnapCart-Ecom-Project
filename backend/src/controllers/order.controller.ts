@@ -5,14 +5,17 @@ import {
   placeOrderService,
   restoreStockService,
 } from "../services/order.service";
+import { invalidateAnalyticsCache } from "../utils/analyticsCache";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import { invalidateAnalyticsCache } from "../utils/analyticsCache";
-import { buildPaginationResult, getPaginationParams } from "../utils/pagination";
+import {
+  buildPaginationResult,
+  getPaginationParams,
+} from "../utils/pagination";
 
 // POST /api/orders
 export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
-  const { shippingAddress } = req.body;
+  const { shippingAddress, couponCode } = req.body;
 
   if (
     !shippingAddress?.fullName ||
@@ -29,6 +32,7 @@ export const placeOrder = asyncHandler(async (req: Request, res: Response) => {
     paymentMethod: "cod",
     paymentStatus: "pending",
     status: "pending",
+    couponCode,
   });
   res
     .status(201)
@@ -52,7 +56,12 @@ export const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
   ]);
 
   if (orders.length === 0) {
-    res.status(200).json(new ApiResponse(200, "You have no orders yet", { orders: [], pagination: buildPaginationResult(0, { page, limit, skip }) }));
+    res.status(200).json(
+      new ApiResponse(200, "You have no orders yet", {
+        orders: [],
+        pagination: buildPaginationResult(0, { page, limit, skip }),
+      }),
+    );
     return;
   }
 

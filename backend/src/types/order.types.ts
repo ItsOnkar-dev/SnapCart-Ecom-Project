@@ -41,6 +41,8 @@ export interface IOrder extends Document {
   razorpayOrderId?: string | null;
   razorpayPaymentId?: string | null;
   paymentStatus: paymentStatus;
+  couponCode?: string | null;
+  discount?: number;
   paymentMethod: PaymentMethod;
   createdAt: Date;
   updatedAt: Date;

@@ -79,7 +79,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 | Payments   | Razorpay                           | Order creation + webhook with raw-body signature check  |
 | Security   | Helmet · express-rate-limit · CSRF | Defence in depth across all routes                      |
 | Logging    | morgan + custom logger             | HTTP logs + structured audit events                     |
-| Deployment | Render                              | Zero-config, ephemeral filesystem handled by Cloudinary |
+| Deployment | Render                             | Zero-config, ephemeral filesystem handled by Cloudinary |
 
 ---
 
@@ -476,6 +476,11 @@ The payment flow uses two server endpoints plus a webhook safety net:
    - Idempotent — skips if /verify already processed
 ```
 
+### Coupons
+
+- Admin coupon CRUD with expiry, minimum order, usage limit, and active/inactive toggles
+- `POST /api/coupons/apply` validates coupon codes during checkout and enforces all coupon rules
+
 Status flow: `pending` → `confirmed` → `shipped` → `delivered` / `cancelled`
 Cancellation **restores stock** through the service layer.
 
@@ -543,7 +548,7 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                                                                               |
 | CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual`   |
 | CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (auth routes excluded; webhook uses HMAC-SHA256) |
-| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Render)                                                         |
+| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Render)                                                          |
 | Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook         |
 | Request size              | `express.json({ limit: "10kb" })`                                                                                                     |
 | Validation                | Zod schemas at route boundary                                                                                                         |

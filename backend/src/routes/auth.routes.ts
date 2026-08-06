@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { deleteAccount } from "../controllers/auth.controller";
 import {
   changePassword,
   forgotPassword,
@@ -98,5 +99,6 @@ router.post(
 );
 router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
+router.delete("/account", verifyToken, deleteAccount);
 
 export default router;

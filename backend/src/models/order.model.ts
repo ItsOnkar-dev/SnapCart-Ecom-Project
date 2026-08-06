@@ -54,6 +54,17 @@ const orderSchema = new Schema<IOrder>(
       required: true,
       min: [0, "Total price cannot be negative"],
     },
+    couponCode: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: null,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount cannot be negative"],
+    },
 
     status: {
       type: String,

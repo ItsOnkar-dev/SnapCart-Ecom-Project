@@ -4,6 +4,10 @@ import Razorpay from "razorpay";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
+import {
+  incrementCouponUsage,
+  validateCoupon,
+} from "../services/coupon.service";
 import type { IProduct } from "../types/product.types";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -25,7 +29,7 @@ export const createRazorpayOrder = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!._id;
 
-    const { shippingAddress } = req.body;
+    const { shippingAddress, couponCode } = req.body;
 
     if (
       !shippingAddress?.fullName ||
@@ -81,7 +85,14 @@ export const createRazorpayOrder = asyncHandler(
     }
 
     const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-    const total = subtotal + shipping;
+
+    let discount = 0;
+    if (couponCode) {
+      const couponResult = await validateCoupon(couponCode, subtotal);
+      discount = couponResult.discount;
+    }
+
+    const total = subtotal + shipping - discount;
 
     // Razorpay amounts are in the smallest currency unit (INR: paise)
     const amountInPaise = Math.round(total * 100);
@@ -105,6 +116,8 @@ export const createRazorpayOrder = asyncHandler(
       shippingAddress,
       subtotal,
       shipping,
+      discount,
+      couponCode: couponCode ?? null,
       totalPrice: total,
       paymentMethod: "razorpay",
       paymentStatus: "pending", // ← will be updated to "paid" by /verify or webhook
@@ -192,6 +205,10 @@ export const verifyPayment = asyncHandler(
         userId: req.user!._id.toString(),
       });
       throw new ApiError(404, "Order not found. Please contact support.");
+    }
+
+    if (order.couponCode) {
+      await incrementCouponUsage(order.couponCode);
     }
 
     // ── Decrement stock atomically ─────────────────────────────────────────
