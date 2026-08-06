@@ -86,6 +86,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 - **Refresh-token reuse detection** — if a stolen refresh token is replayed, the backend detects it, clears all tokens, and forces re-login. Most tutorials skip this entirely.
 - **Atomic checkout** — placing an order is a single MongoDB transaction. Stock decrement, order creation, and cart clearing either all succeed or all roll back together.
 - **Demo email mode** — real verification architecture (hash stored, raw token emailed, 10-minute expiry) with a fallback that returns the link in the API response. Portfolio-ready without a paid Resend domain.
+- **Coupon management** — admin coupon CRUD with expiry, minimum order, usage limit, and demo-admin view-only restrictions.
 - **Heuristic recommendation engine** — related, frequently-bought-together, and personalized recommendations built from order co-occurrence and user signals. No paid ML service. Fully explainable.
 - **Seller workflow** — not just a product CRUD. Sellers apply, wait for admin approval, and can only manage their own products. Ownership checks are enforced at the service layer.
 
@@ -263,12 +264,13 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🔐 Admin Features
 
-| Feature             | Details                                                           |
-| ------------------- | ----------------------------------------------------------------- |
-| Seller Moderation   | Review pending applications; approve or reject with one action    |
-| Analytics Dashboard | Revenue, order volume, average order value, top-selling products  |
-| Category Breakdown  | Revenue split by category rendered as interactive Recharts charts |
-| 14-Day History      | Daily revenue and order count for the past two weeks              |
+| Feature             | Details                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| Seller Moderation   | Review pending applications; approve or reject with one action        |
+| Analytics Dashboard | Revenue, order volume, average order value, top-selling products      |
+| Coupon Management   | Create, edit, and deactivate coupon codes with expiry and usage rules |
+| Category Breakdown  | Revenue split by category rendered as interactive Recharts charts     |
+| 14-Day History      | Daily revenue and order count for the past two weeks                  |
 
 ### 🔒 Security Features
 
@@ -486,6 +488,13 @@ Products      GET  /api/products                    (public, paginated + filters
               POST /api/products                    (seller/admin)
               PATCH/DELETE /api/products/:id        (seller/admin, ownership-checked)
 
+Coupons       POST /api/coupons/apply              (auth) Apply coupon during checkout
+              GET  /api/coupons                    (admin/demo_admin) List coupons
+              GET  /api/coupons/:id               (admin/demo_admin) Get coupon detail
+              POST /api/coupons                   (admin) Create coupon
+              PATCH /api/coupons/:id              (admin) Update coupon
+              DELETE /api/coupons/:id             (admin) Delete coupon
+
 Cart          GET/POST/PATCH/DELETE /api/cart
 
 Orders        POST /api/orders                      (atomic checkout transaction)
@@ -627,7 +636,6 @@ SnapCart is feature-complete for its current scope. Planned enhancements include
 - **Admin product/order management UI** — full CRUD actions for the admin panel
 - **Seller dashboard** — order analytics and performance metrics for sellers
 - **WebSocket notifications** — real-time order status updates
-- **Coupon/discount system** — promo codes with expiry and category rules
 - **Full-text search** — MongoDB Atlas Search for better relevance
 
 ---

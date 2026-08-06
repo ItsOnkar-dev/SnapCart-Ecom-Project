@@ -287,7 +287,7 @@ Permissions are **config-based** and derived from the user's role at runtime —
 | `customer`   | `requireRole("customer")`                         | Browse, cart, checkout, orders, reviews, wishlist                 |
 | `seller`     | `requireRole("seller")`                           | Customer capabilities + manage own products, update order status  |
 | `admin`      | `requireRole("admin")` + permission               | Full access — dashboard, orders, approve sellers, manage products |
-| `demo_admin` | `requireRole("admin", "demo_admin")` + permission | View-only — dashboard and orders only                             |
+| `demo_admin` | `requireRole("admin", "demo_admin")` + permission | View-only — dashboard, orders, and coupon browsing only           |
 
 The `requirePermission` middleware checks the user's role against `ROLE_PERMISSIONS`:
 
@@ -503,7 +503,18 @@ All endpoints are prefixed with `/api`.
 | `GET`    | `/:id`             | None     | Single product detail                               |
 | `POST`   | `/`                | Seller   | Create product with image upload                    |
 | `PATCH`  | `/:id`             | Seller   | Update own product                                  |
-| `DELETE` | `/:id`             | Seller   | Soft-delete (isActive: false)                       |
+| `DELETE` | `/ :id`            | Seller   | Soft-delete (isActive: false)                       |
+
+#### Coupons — `/api/coupons`
+
+| Method   | Path     | Auth               | Description                    |
+| -------- | -------- | ------------------ | ------------------------------ |
+| `POST`   | `/apply` | Auth               | Apply a coupon during checkout |
+| `GET`    | `/`      | Admin / Demo Admin | Fetch all coupons              |
+| `GET`    | `/:id`   | Admin / Demo Admin | Fetch coupon details           |
+| `POST`   | `/`      | Admin              | Create a coupon                |
+| `PATCH`  | `/:id`   | Admin              | Update a coupon                |
+| `DELETE` | `/:id`   | Admin              | Delete a coupon                |
 
 #### Cart — `/api/cart`
 
@@ -781,14 +792,14 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │                          │  Validate stock             │
    │                             │                          │  Create Razorpay order      │
    │                             │                          │────────────────────────────►│
-   │                             │                          │◄── { order_id, amount }    │
+   │                             │                          │◄── { order_id, amount }     │
    │                             │                          │                             │
    │                             │                          │  Save pending Order to DB   │
    │                             │                          │  (with shippingAddress,     │
    │                             │                          │   status: "pending",        │
    │                             │                          │   paymentStatus: "pending") │
    │                             │                          │                             │
-   │                             │◄── { orderId, keyId,    │                             │
+   │                             │◄── { orderId, keyId,     │                             │
    │                             │      subtotal, shipping, │                             │
    │                             │      total }             │                             │
    │                             │                          │                             │
@@ -805,7 +816,7 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │    razorpayPaymentId,    │                             │
    │                             │    razorpaySignature }   │                             │
    │                             │─────────────────────────►│                             │
-   │                             │                          │  Wait 10s (anti-race)      │
+   │                             │                          │  Wait 10s (anti-race)       │
    │                             │                          │  Verify HMAC-SHA256 sig     │
    │                             │                          │  Check idempotency          │
    │                             │                          │  Find + confirm pending     │
@@ -815,7 +826,7 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │                          │                             │
    │                             │◄── { orderId }           │                             │
    │                             │                          │                             │
-   │  Redirect to /payment-success                           │                             │
+   │  Redirect to /payment-success                          │                            │
    │◄────────────────────────────│                          │                             │
 ```
 
@@ -1179,26 +1190,3 @@ Products: 12 products across 6 categories
 - Shared validation logic via Zod schemas in `schemas/` (frontend) and `validators/` (backend) — schemas are duplicated, not shared via a package.
 
 ---
-
-## Known Technical Debt
-
-### 1. StatusBar Component
-
-The rotating USP bar (`StatusBar`) is imported in `Header.tsx` but commented out — not rendered.
-
-### 2. No Automated Tests
-
-Both `package.json` files have placeholder test scripts. Per project policy, automated tests are intentionally omitted for this portfolio project.
-
----
-
-## Suggested Improvements
-
-### Medium Priority
-
-1. **Enable StatusBar** — Restore the rotating USP promotions bar in the header.
-2. **Error monitoring** — Integrate Sentry or similar for production error tracking.
-
-### Nice-to-Have
-
-1. **WebSocket notifications** — Real-time order status updates for buyers.
