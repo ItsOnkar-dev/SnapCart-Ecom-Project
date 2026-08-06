@@ -35,15 +35,13 @@ export const applyCoupon = async (
     return;
   }
 
-  let discount = 0;
-  if (coupon.discountType === "percentage") {
-    discount = Math.round((subtotal * coupon.discountValue) / 100);
-    if (coupon.maxDiscount > 0) {
-      discount = Math.min(discount, coupon.maxDiscount);
-    }
-  } else {
-    discount = Math.min(coupon.discountValue, subtotal);
-  }
+  const discount =
+    coupon.discountType === "percentage"
+      ? Math.min(
+          Math.round((subtotal * coupon.discountValue) / 100),
+          coupon.maxDiscount > 0 ? coupon.maxDiscount : Infinity,
+        )
+      : Math.min(coupon.discountValue, subtotal);
 
   const finalTotal = subtotal - discount;
 
