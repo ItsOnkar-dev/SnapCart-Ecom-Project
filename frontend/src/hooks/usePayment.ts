@@ -66,12 +66,18 @@ const loadRazorpayScript = (): Promise<boolean> => {
 //  4. On payment success → send proof to backend for verification
 //  5. On verified → invalidate cart + orders cache → navigate to success page
 
+export interface CreatePaymentPayload {
+  shippingAddress: ShippingAddress;
+  couponCode?: string;
+}
+
 export function usePayment() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { mutate: initiatePayment, isPending } = useMutation({
-    mutationFn: async (shippingAddress: ShippingAddress) => {
+    mutationFn: async (payload: CreatePaymentPayload) => {
+      const { shippingAddress, couponCode } = payload;
       // Step 1 — load the Razorpay checkout script
       const loaded = await loadRazorpayScript();
       if (!loaded) {
@@ -81,7 +87,7 @@ export function usePayment() {
       }
 
       // Step 2 — create Razorpay order from backend
-      const res = await createRazorpayOrderApi(shippingAddress);
+      const res = await createRazorpayOrderApi(shippingAddress, couponCode);
       const { orderId, amount, currency, keyId } = res.data.data;
 
       // Step 3 — open Razorpay popup

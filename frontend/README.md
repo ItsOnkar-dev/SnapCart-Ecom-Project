@@ -212,6 +212,7 @@ frontend/
 │   │   ├── cart.api.ts      # Get, add, update, remove, clear
 │   │   ├── order.api.ts     # Place, list, detail, status update
 │   │   ├── product.api.ts   # List (with params), get, create, update, delete
+│   │   ├── coupon.api.ts    # Apply + admin coupon CRUD
 │   │   ├── wishlist.api.ts  # CRUD + share + email
 │   │   ├── payment.api.ts   # Razorpay integration
 │   │   ├── review.api.ts    # List + submit + delete
@@ -247,6 +248,7 @@ frontend/
 │   │   ├── useCart.ts       # Cart queries and mutations
 │   │   ├── useOrders.ts     # Order list, detail, status
 │   │   ├── useProducts.ts   # Catalog query, product detail
+│   │   ├── useCoupons.ts    # Admin coupon list + mutations
 │   │   ├── useWishlist.ts   # Wishlist CRUD + share
 │   │   ├── useReviews.ts    # Reviews list + submit
 │   │   ├── useRecommendations.ts
@@ -310,29 +312,29 @@ All routes are defined in `src/App.tsx`. The app uses two primary layouts:
 
 ### Route Table
 
-| Path                       | Access         | Page                    |
-| -------------------------- | -------------- | ----------------------- |
-| `/`                        | Public         | HomePage                |
-| `/products`                | Public         | ProductsPage            |
-| `/products/:id`            | Public         | ProductDetailPage       |
-| `/wishlist/share/:shareId` | Public         | WishlistSharePage       |
-| `/unauthorized`            | Public         | Unauthorized            |
-| `/login`                   | Guest only     | LoginPage               |
-| `/register`                | Guest only     | RegisterPage            |
-| `/forgot-password`         | Guest only     | ForgotPasswordPage      |
-| `/verify-email`            | Guest only     | VerifyEmailPage         |
-| `/reset-password`          | Guest only     | ResetPasswordPage       |
-| `/cart`                    | Auth required  | CartPage                |
-| `/orders`                  | Auth required  | OrdersPage (paginated, 10 per page) |
-| `/orders/:id`              | Auth required  | OrderDetailPage         |
-| `/profile`                 | Auth required  | ProfilePage             |
-| `/wishlist`                | Auth required  | WishlistPage            |
-| `/checkout`                | Auth required  | CheckoutPage            |
-| `/payment-success`         | Auth required  | PaymentSuccess          |
-| `/seller/apply`            | Auth required  | SellerApplyPage         |
-| `/seller/dashboard`        | Seller / Admin | SellerDashboardPage     |
-| `/admin/dashboard`         | Admin / Demo Admin | AdminDashboardPage  |
-| `/admin/analytics`         | Admin / Demo Admin | AdminAnalyticsDashboard |
+| Path                       | Access             | Page                                |
+| -------------------------- | ------------------ | ----------------------------------- |
+| `/`                        | Public             | HomePage                            |
+| `/products`                | Public             | ProductsPage                        |
+| `/products/:id`            | Public             | ProductDetailPage                   |
+| `/wishlist/share/:shareId` | Public             | WishlistSharePage                   |
+| `/unauthorized`            | Public             | Unauthorized                        |
+| `/login`                   | Guest only         | LoginPage                           |
+| `/register`                | Guest only         | RegisterPage                        |
+| `/forgot-password`         | Guest only         | ForgotPasswordPage                  |
+| `/verify-email`            | Guest only         | VerifyEmailPage                     |
+| `/reset-password`          | Guest only         | ResetPasswordPage                   |
+| `/cart`                    | Auth required      | CartPage                            |
+| `/orders`                  | Auth required      | OrdersPage (paginated, 10 per page) |
+| `/orders/:id`              | Auth required      | OrderDetailPage                     |
+| `/profile`                 | Auth required      | ProfilePage                         |
+| `/wishlist`                | Auth required      | WishlistPage                        |
+| `/checkout`                | Auth required      | CheckoutPage                        |
+| `/payment-success`         | Auth required      | PaymentSuccess                      |
+| `/seller/apply`            | Auth required      | SellerApplyPage                     |
+| `/seller/dashboard`        | Seller / Admin     | SellerDashboardPage                 |
+| `/admin/dashboard`         | Admin / Demo Admin | AdminDashboardPage                  |
+| `/admin/analytics`         | Admin / Demo Admin | AdminAnalyticsDashboard             |
 
 **Route guards:**
 
@@ -364,14 +366,14 @@ Everything else (products, cart, orders, wishlist, etc.) is **server state** man
 
 `src/lib/axios.ts` exports a single Axios instance used by every API module:
 
-| Concern       | Implementation                                                                                          |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| Base URL      | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                             |
-| Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                        |
-| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility |
-| CSRF header   | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT |
+| Concern       | Implementation                                                                                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base URL      | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                                                                                       |
+| Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                                                                                  |
+| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility                             |
+| CSRF header   | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT                                                                                       |
 | Token refresh | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
-| Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                       |
+| Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                                                                                 |
 
 Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks/` wrap them with `useQuery` or `useMutation`.
 
@@ -416,6 +418,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 
 - Review and approve or reject pending seller applications
 - Analytics dashboard: total revenue, order volume, average order value
+- Coupon management: create, edit, and deactivate promo codes from the dashboard
 - Top-selling products and category revenue breakdown — all rendered with Recharts
 
 ---
@@ -435,11 +438,11 @@ For SPA routing to work, configure your host to redirect all `404`s to `index.ht
 
 **Hosting recommendations:**
 
-| Host         | SPA redirect config                     |
-| ------------ | --------------------------------------- |
-| Vercel       | Automatic                               |
-| Netlify      | `_redirects` file: `/* /index.html 200` |
-| Render       | Automatic                               |
+| Host    | SPA redirect config                     |
+| ------- | --------------------------------------- |
+| Vercel  | Automatic                               |
+| Netlify | `_redirects` file: `/* /index.html 200` |
+| Render  | Automatic                               |
 
 ---
 

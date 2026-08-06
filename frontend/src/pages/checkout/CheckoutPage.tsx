@@ -2,6 +2,7 @@ import { ArrowRight, Lock, ShoppingBag, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import { applyCouponApi } from "@/api/coupon.api";
 import CheckoutHeader from "@/components/layout/CheckoutHeader";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,16 @@ export default function CheckoutPage() {
   );
   const [shippingOption, setShippingOption] =
     useState<ShippingOption>("standard");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: "percentage" | "flat";
+    discountValue: number;
+    discount: number;
+    finalTotal: number;
+  } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
 
   const items = useMemo(() => {
     return (cart?.items ?? []).filter(
@@ -84,7 +95,8 @@ export default function CheckoutPage() {
 
   const shipping =
     shippingOption === "standard" ? 0 : shippingOption === "express" ? 15 : 35;
-  const total = subtotal + shipping;
+  const couponDiscount = appliedCoupon?.discount ?? 0;
+  const total = subtotal + shipping - couponDiscount;
 
   const hasInvalidStock = items.some(
     (item: CartItem) => item.quantity > item.product.stock,
@@ -98,13 +110,45 @@ export default function CheckoutPage() {
   const handleAddressChange = (field: keyof ShippingAddress, value: string) =>
     setAddress((curr) => ({ ...curr, [field]: value }));
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Enter a coupon code.");
+      setAppliedCoupon(null);
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError("");
+
+    try {
+      const res = await applyCouponApi(couponCode.trim(), subtotal);
+      setAppliedCoupon(res.data.data);
+    } catch (error) {
+      setAppliedCoupon(null);
+      setCouponError(
+        error instanceof Error ? error.message : "Could not apply coupon.",
+      );
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setAppliedCoupon(null);
+    setCouponError("");
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canCheckout) return;
     if (paymentMethod === "cod") {
-      placeOrder(address);
+      placeOrder({ shippingAddress: address, couponCode: appliedCoupon?.code });
     } else {
-      initiatePayment(address);
+      initiatePayment({
+        shippingAddress: address,
+        couponCode: appliedCoupon?.code,
+      });
     }
   };
 
@@ -463,16 +507,45 @@ export default function CheckoutPage() {
                   <div className="flex gap-2">
                     <Input
                       placeholder="Enter code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value);
+                        setCouponError("");
+                      }}
                       className="flex-1 rounded-none"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       className="shrink-0"
+                      disabled={couponLoading || !couponCode.trim()}
+                      onClick={handleApplyCoupon}
                     >
-                      Apply
+                      {couponLoading ? "Applying..." : "Apply"}
                     </Button>
                   </div>
+                  {couponError ? (
+                    <p className="mt-2 text-sm text-destructive">
+                      {couponError}
+                    </p>
+                  ) : null}
+                  {appliedCoupon ? (
+                    <div className="mt-3 rounded-md border border-success/30 bg-success/10 p-3 text-sm text-success-foreground">
+                      <div className="flex items-center justify-between gap-3">
+                        <span>
+                          Coupon <strong>{appliedCoupon.code}</strong> applied —
+                          saved {formatPrice(appliedCoupon.discount)}.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoupon}
+                          className="text-success underline-offset-4 transition hover:text-success/80"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Totals */}
@@ -489,6 +562,14 @@ export default function CheckoutPage() {
                       {shipping === 0 ? "Free" : formatPrice(shipping)}
                     </span>
                   </div>
+                  {couponDiscount > 0 ? (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Coupon discount</span>
+                      <span className="text-foreground">
+                        -{formatPrice(couponDiscount)}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between border-t border-sidebar-border pt-3 text-lg font-bold text-foreground">
                     <span>Total</span>
                     <span>{formatPrice(total)}</span>

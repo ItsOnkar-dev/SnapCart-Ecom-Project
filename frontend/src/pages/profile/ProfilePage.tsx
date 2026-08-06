@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useLogout } from "@/hooks/useAuth";
+import { useDeleteAccount, useLogout } from "@/hooks/useAuth";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuthStore } from "@/store/auth.store";
 import type { Order } from "@/types/order.types";
@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Store,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -43,9 +44,11 @@ const formatDate = (value: string) =>
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
   const { data, isLoading: isOrdersLoading } = useOrders();
   const orders = data?.orders ?? [];
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (!user) {
     return null;
@@ -59,7 +62,6 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-6xl">
         <section className="mb-10 grid gap-6 border-b border-border pb-10 lg:grid-cols-[1fr_auto]">
           <div className="flex items-start gap-5">
-            {/* AVATAR LOGIC ADDED HERE */}
             {user.avatar ? (
               <img
                 src={user.avatar}
@@ -115,6 +117,13 @@ export default function ProfilePage() {
               </Button>
             ) : null}
             <Button
+              variant="destructive"
+              className="h-12 rounded-none px-6"
+              onClick={() => setDeleteOpen(true)}
+            >
+              Delete account
+            </Button>
+            <Button
               variant="outline"
               className="h-12 rounded-none px-6 cursor-pointer"
               onClick={() => {
@@ -164,6 +173,44 @@ export default function ProfilePage() {
                   }}
                 >
                   {isLoggingOut ? "Signing out..." : "Sign out"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-destructive/10 p-2">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                  </div>
+
+                  <div>
+                    <AlertDialogTitle>
+                      Permanently delete your account?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="mt-1">
+                      This action cannot be undone. Your cart, wishlist, orders,
+                      and saved account information will be deleted.
+                    </AlertDialogDescription>
+                  </div>
+                </div>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={isDeleting}
+                  onClick={() => {
+                    setDeleteOpen(false);
+                    deleteAccount();
+                  }}
+                >
+                  {isDeleting ? "Deleting..." : "Delete account"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

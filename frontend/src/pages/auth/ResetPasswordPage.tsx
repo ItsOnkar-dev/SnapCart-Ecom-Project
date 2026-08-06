@@ -1,7 +1,8 @@
 // pages/auth/ResetPasswordPage.tsx
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Lock, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, XCircle } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useSearchParams } from "react-router";
 
@@ -18,6 +19,8 @@ export default function ResetPasswordPage() {
   const token = searchParams.get("token");
 
   const { mutate: resetPassword, isPending } = useResetPassword();
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -86,11 +89,23 @@ export default function ResetPasswordPage() {
 
               <Input
                 id="newPassword"
-                type="password"
+                type={showNewPassword ? "text" : "password"}
                 placeholder="At least 8 characters"
                 {...register("newPassword")}
                 className="pl-10 rounded-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
 
             {errors.newPassword && (
@@ -113,11 +128,25 @@ export default function ResetPasswordPage() {
 
               <Input
                 id="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
                 {...register("confirmPassword")}
                 className="pl-10 rounded-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
 
             {errors.confirmPassword && (

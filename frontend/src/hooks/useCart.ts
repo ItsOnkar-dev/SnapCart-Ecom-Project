@@ -13,15 +13,16 @@ import { useAuthStore } from "@/store/auth.store";
 import { getApiErrorMessage } from "@/types/api.types";
 
 export const cartKeys = {
-  cart: ["cart"] as const,
+  cart: (userId?: string) => ["cart", userId ?? "anonymous"] as const,
 };
 
 // GET /cart — only fires when user is logged in
 export function useCart() {
   const user = useAuthStore((s) => s.user);
+  const userId = user?._id;
 
   return useQuery({
-    queryKey: cartKeys.cart,
+    queryKey: cartKeys.cart(userId),
     queryFn: async () => {
       const res = await getCartApi();
       // res.data.data = { _id, user, items: CartItem[] }
@@ -36,6 +37,7 @@ export function useCart() {
 // endpoint is /cart/add NOT /cart — confirmed from cart.api.ts
 export function useAddToCart() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?._id);
 
   return useMutation({
     mutationFn: ({
@@ -46,7 +48,7 @@ export function useAddToCart() {
       quantity: number;
     }) => addToCartApi(productId, quantity),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.cart });
+      queryClient.invalidateQueries({ queryKey: cartKeys.cart(userId) });
       toast.success("Added to cart!");
     },
     onError: (err: unknown) => {
@@ -58,6 +60,7 @@ export function useAddToCart() {
 // PATCH /cart/:productId → { quantity }
 export function useUpdateCartItem() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?._id);
 
   return useMutation({
     mutationFn: ({
@@ -68,7 +71,7 @@ export function useUpdateCartItem() {
       quantity: number;
     }) => updateCartItemApi(productId, quantity),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.cart });
+      queryClient.invalidateQueries({ queryKey: cartKeys.cart(userId) });
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Could not update quantity."));
@@ -79,11 +82,12 @@ export function useUpdateCartItem() {
 // DELETE /cart/:productId
 export function useRemoveCartItem() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?._id);
 
   return useMutation({
     mutationFn: (productId: string) => removeCartItemApi(productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.cart });
+      queryClient.invalidateQueries({ queryKey: cartKeys.cart(userId) });
       toast.success("Item removed.");
     },
     onError: (err: unknown) => {
@@ -96,11 +100,12 @@ export function useRemoveCartItem() {
 // removeQueries not invalidateQueries — cart is definitively empty after this
 export function useClearCart() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?._id);
 
   return useMutation({
     mutationFn: () => clearCartApi(),
     onSuccess: () => {
-      queryClient.removeQueries({ queryKey: cartKeys.cart });
+      queryClient.removeQueries({ queryKey: cartKeys.cart(userId) });
       toast.success("Cart cleared.");
     },
     onError: (err: unknown) => {

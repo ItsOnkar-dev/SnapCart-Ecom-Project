@@ -8,8 +8,10 @@ import type { ShippingAddress } from "@/types/order.types";
 
 // POST /api/orders — requires verified email
 // backend: validates cart, deducts stock, creates order, clears cart in one transaction
-export const placeOrderApi = (shippingAddress: ShippingAddress) =>
-  api.post("/orders", { shippingAddress });
+export const placeOrderApi = (
+  shippingAddress: ShippingAddress,
+  couponCode?: string,
+) => api.post("/orders", { shippingAddress, couponCode });
 
 // GET /api/orders — buyer sees their own orders only
 export const getOrdersApi = (page?: number) =>

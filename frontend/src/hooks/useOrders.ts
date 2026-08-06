@@ -1,7 +1,7 @@
 // hooks/useOrders.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import {
   getOrderByIdApi,
@@ -10,6 +10,7 @@ import {
   updateOrderStatusApi,
 } from "@/api/order.api";
 import { cartKeys } from "@/hooks/useCart";
+import { useAuthStore } from "@/store/auth.store";
 import { getApiErrorMessage } from "@/types/api.types";
 
 import type { OrderStatus, ShippingAddress } from "@/types/order.types";
@@ -45,20 +46,31 @@ export function useOrder(id: string | undefined) {
   });
 }
 
-// POST /orders → { shippingAddress }
+export interface PlaceOrderPayload {
+  shippingAddress: ShippingAddress;
+  couponCode?: string;
+}
+
+// POST /orders → { shippingAddress, couponCode }
 // backend handles cart validation + stock deduction in one transaction
 export function usePlaceOrder() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const userId = useAuthStore((s) => s.user?._id);
 
   return useMutation({
-    mutationFn: (shippingAddress: ShippingAddress) =>
-      placeOrderApi(shippingAddress),
+    mutationFn: (payload: PlaceOrderPayload) =>
+      placeOrderApi(payload.shippingAddress, payload.couponCode),
     onSuccess: (res) => {
       const order = res.data.data;
       // Immediately set cart to empty so the nav badge updates instantly
-      queryClient.setQueryData(cartKeys.cart, { items: [], totalPrice: 0 });
-      queryClient.invalidateQueries({ queryKey: cartKeys.cart });
+      if (userId) {
+        queryClient.setQueryData(cartKeys.cart(userId), {
+          items: [],
+          totalPrice: 0,
+        });
+        queryClient.invalidateQueries({ queryKey: cartKeys.cart(userId) });
+      }
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order placed!");
       navigate(`/orders/${order._id}`);
@@ -75,8 +87,13 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
-      updateOrderStatusApi(orderId, status),
+    mutationFn: ({
+      orderId,
+      status,
+    }: {
+      orderId: string;
+      status: OrderStatus;
+    }) => updateOrderStatusApi(orderId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
       toast.success("Order status updated.");

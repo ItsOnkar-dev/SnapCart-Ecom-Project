@@ -6,12 +6,12 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-// Extract Components
 import OrdersTab from "@/components/admin/tabs/OrdersTab";
 import ProductsTab from "@/components/admin/tabs/ProductsTab";
 import SellersTab from "@/components/admin/tabs/SellersTab";
+import CouponsTab from "@/components/admin/tabs/CouponsTab";;
 
-type ActiveTab = "analytics" | "products" | "orders" | "sellers";
+type ActiveTab = "analytics" | "products" | "orders" | "sellers" | "coupons";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -34,6 +34,7 @@ export default function AdminDashboardPage() {
       count: ordersData?.pagination?.total ?? 0,
     },
     { key: "sellers", label: "Sellers", count: applicants?.length ?? 0 },
+    { key: "coupons", label: "Coupons", count: null },
   ];
 
   return (
@@ -88,6 +89,7 @@ export default function AdminDashboardPage() {
           {activeTab === "products" && <ProductsTab />}
           {activeTab === "orders" && <OrdersTab />}
           {activeTab === "sellers" && <SellersTab />}
+          {activeTab === "coupons" && <CouponsTab />}
         </main>
       </div>
     </div>

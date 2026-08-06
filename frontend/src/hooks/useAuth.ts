@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import {
   changePasswordApi,
+  deleteAccountApi,
   forgotPasswordApi,
   loginApi,
   logoutApi,
@@ -196,6 +197,26 @@ export function useApplyForSeller() {
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Application failed. Try again."));
+    },
+  });
+}
+
+// DELETE /auth/account — permanently delete account
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: () => deleteAccountApi(),
+    onSuccess: () => {
+      clearAuth();
+      queryClient.clear();
+      toast.success("Account deleted.");
+      navigate("/");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Could not delete account."));
     },
   });
 }

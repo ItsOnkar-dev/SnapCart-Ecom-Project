@@ -48,3 +48,6 @@ export const changePasswordApi = (body: ChangePasswordInput) =>
 // GET /api/auth/google — NOT axios, full page redirect to Google OAuth
 export const getGoogleAuthUrl = () =>
   `${import.meta.env.VITE_API_URL}/auth/google`;
+
+// DELETE /api/auth/account — permanently delete account
+export const deleteAccountApi = () => api.delete("/auth/account");

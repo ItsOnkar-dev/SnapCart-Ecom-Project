@@ -4,8 +4,8 @@ import { useLogin } from "@/hooks/useAuth";
 import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Lock, Mail } from "lucide-react";
-import { useEffect } from "react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -60,6 +60,8 @@ export default function LoginPage() {
 
     initializeGoogleLogin();
   }, [searchParams, navigate]);
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -159,11 +161,23 @@ export default function LoginPage() {
 
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 {...register("password")}
                 className="pl-10 rounded-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
 
             {errors.password && (
