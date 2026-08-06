@@ -327,16 +327,18 @@ All routes are defined in `src/App.tsx`. The app uses two primary layouts:
 | `/orders/:id`              | Auth required  | OrderDetailPage         |
 | `/profile`                 | Auth required  | ProfilePage             |
 | `/wishlist`                | Auth required  | WishlistPage            |
+| `/checkout`                | Auth required  | CheckoutPage            |
 | `/payment-success`         | Auth required  | PaymentSuccess          |
 | `/seller/apply`            | Auth required  | SellerApplyPage         |
-| `/seller/products`         | Seller / Admin | SellerProductsPage      |
-| `/admin/sellers`           | Admin only     | AdminSellersPage        |
-| `/admin/analytics`         | Admin only     | AdminAnalyticsDashboard |
+| `/seller/dashboard`        | Seller / Admin | SellerDashboardPage     |
+| `/admin/dashboard`         | Admin / Demo Admin | AdminDashboardPage  |
+| `/admin/analytics`         | Admin / Demo Admin | AdminAnalyticsDashboard |
 
 **Route guards:**
 
 - `ProtectedRoute` — redirects unauthenticated users to `/login`
 - `RoleRoute` — checks `user.role`; redirects to `/unauthorized` on mismatch
+- Admin routes accessible to both `admin` and `demo_admin` (permission-based restrictions on write actions)
 
 ---
 
@@ -424,20 +426,20 @@ The frontend is a standard Vite SPA and can be deployed anywhere that serves sta
 
 ```bash
 # Set the production API URL before building
-VITE_API_URL=https://your-backend.railway.app npm run build
+VITE_API_URL=https://your-backend.onrender.com npm run build
 
 # Output is in frontend/dist/
 ```
 
-For SPA routing to work, configure your host to redirect all `404`s to `index.html`. Most static hosts (Vercel, Netlify, Railway static) handle this automatically.
+For SPA routing to work, configure your host to redirect all `404`s to `index.html`. Most static hosts (Vercel, Netlify, Render static) handle this automatically.
 
 **Hosting recommendations:**
 
-| Host           | SPA redirect config                     |
-| -------------- | --------------------------------------- |
-| Vercel         | Automatic                               |
-| Netlify        | `_redirects` file: `/* /index.html 200` |
-| Railway static | Automatic                               |
+| Host         | SPA redirect config                     |
+| ------------ | --------------------------------------- |
+| Vercel       | Automatic                               |
+| Netlify      | `_redirects` file: `/* /index.html 200` |
+| Render       | Automatic                               |
 
 ---
 

@@ -1136,9 +1136,9 @@ Env validation (`config/validateEnv.ts`) checks for required variables on startu
 ```typescript
 // backend/src/scripts/seed.dev.ts
 Users:
-  - admin@snapcart.test / password123   → role: admin
-  - seller@snapcart.test / password123  → role: seller (approved)
-  - shopper@snapcart.test / password123 → role: customer
+  - demo_admin@snapcart.dev / Demo@1234   → role: demo_admin (view-only)
+  - demo_seller@snapcart.dev / Demo@1234  → role: seller (approved)
+  - demo_customer@snapcart.dev / Demo@1234 → role: customer
 
 Products: 12 products across 6 categories
   - electronics (3): wireless headphones, smartphone, bluetooth speaker
@@ -1182,51 +1182,28 @@ Products: 12 products across 6 categories
 
 ## Known Technical Debt
 
-### 1. Seller Dashboard Route
-
-The seller dashboard route (`/seller/dashboard`) is commented out in `App.tsx`. The `SellerDashboardPage` lazy import is also commented out.
-
-### 2. StatusBar Component
+### 1. StatusBar Component
 
 The rotating USP bar (`StatusBar`) is imported in `Header.tsx` but commented out — not rendered.
 
-### 3. COD Order Route
+### 2. No Automated Tests
 
-COD (Cash on Delivery) is fully implemented and available to all verified users via the order creation endpoint. Customers can choose between Razorpay online payment or COD at checkout.
-
-### 4. No Automated Tests
-
-Both `package.json` files have placeholder test scripts:
-e to all verified users via the order creation endpoint. Customers can choose between Razorpay online payment or COD at checkout.
-
-### 4. No Automated Tests
-
-Both `package.json` files have placeholder test scripts:
-
-- Backend: `"test": "echo \"Error: no test specified\" && exit 1"`
-- Frontend: No test script at all (no test dependencies installed)
-
-### 5. Validation Constants
-
-Shared validation constants (min lengths, enums, etc.) are centralized in `backend/src/validation-constants.ts`. Both backend `validators/` and frontend `schemas/` import from this file via relative paths, eliminating drift between frontend and backend validation rules.
+Both `package.json` files have placeholder test scripts. Per project policy, automated tests are intentionally omitted for this portfolio project.
 
 ---
 
 ## Suggested Improvements
 
-### High Priority
-
-1. **Add admin product/order management UI** — Admin seller/analytics pages exist, but product and order management actions are mock-only.
-
 ### Medium Priority
 
-1. **Uncomment seller dashboard** — Restore the seller dashboard route and implement analytics for sellers.
-2. **Add product filtering shortcuts** — Enable the `StatusBar` with rotating promotional messages.
-3. **Error monitoring** — Integrate Sentry or similar for production error tracking.
-4. **Add test suites** — Unit tests for services, integration tests for API endpoints, E2E tests for critical flows.
+1. **Enable StatusBar** — Restore the rotating USP promotions bar in the header.
+2. **Error monitoring** — Integrate Sentry or similar for production error tracking.
 
 ### Nice-to-Have
 
 1. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
 2. **WebSocket notifications** — Real-time order status updates for buyers.
 3. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.
+4. **Image optimization** — Add sharp/resize pipeline before Cloudinary upload for smaller payloads.
+5. **Rate-limited account lockout** — Lock accounts after N failed login attempts (currently only IP-based rate limiting).
+6. **Refresh token expiry cleanup** — Background job to remove expired refresh tokens from the database.

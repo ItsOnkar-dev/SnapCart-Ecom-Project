@@ -79,7 +79,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 | Payments   | Razorpay                           | Order creation + webhook with raw-body signature check  |
 | Security   | Helmet · express-rate-limit · CSRF | Defence in depth across all routes                      |
 | Logging    | morgan + custom logger             | HTTP logs + structured audit events                     |
-| Deployment | Railway                            | Zero-config, ephemeral filesystem handled by Cloudinary |
+| Deployment | Render                              | Zero-config, ephemeral filesystem handled by Cloudinary |
 
 ---
 
@@ -543,7 +543,7 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                                                                               |
 | CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual`   |
 | CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (auth routes excluded; webhook uses HMAC-SHA256) |
-| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Railway)                                                         |
+| CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Render)                                                         |
 | Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook         |
 | Request size              | `express.json({ limit: "10kb" })`                                                                                                     |
 | Validation                | Zod schemas at route boundary                                                                                                         |
@@ -579,7 +579,7 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 
 ### Why Multer memory storage?
 
-> Railway's filesystem is ephemeral — files written to disk vanish on redeploy. Keeping uploads in memory and streaming directly to Cloudinary avoids temporary files, cleanup logic, and ephemeral-storage failures entirely.
+> Render's filesystem is ephemeral — files written to disk vanish on redeploy. Keeping uploads in memory and streaming directly to Cloudinary avoids temporary files, cleanup logic, and ephemeral-storage failures entirely.
 
 ### Why a heuristic recommendation engine?
 
@@ -621,7 +621,7 @@ npm run db:seed:dev
 
 ## 🚢 Deployment
 
-The backend is deployed on [Railway](https://railway.app/).
+The backend is deployed on [Render](https://render.com/).
 
 ### Steps
 
@@ -633,7 +633,7 @@ npm run build
 npm start     # node dist/server.js
 ```
 
-Railway detects the `start` script in `package.json` automatically. No Procfile needed.
+Render detects the `start` script in `package.json` automatically. No Procfile needed.
 
 ### Production Environment Checklist
 
