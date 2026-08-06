@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
+import { User } from "../models/user.model";
 import { Wishlist } from "../models/wishlist.model";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -24,6 +24,9 @@ import {
 
 const getVerificationLink = (rawToken: string) =>
   `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+const getResetPasswordLink = (rawToken: string) =>
+  `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
 
 const isDemoVerificationEnabled = () =>
   process.env.EMAIL_VERIFICATION_DEMO_MODE === "true" ||
@@ -134,9 +137,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   // ── Account lockout check ────────────────────────────────────────────────
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    const mins = Math.ceil(
-      (user.lockedUntil.getTime() - Date.now()) / 60000,
-    );
+    const mins = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
     throw new ApiError(
       423,
       `Account is temporarily locked. Please try again in ${mins} minute${mins > 1 ? "s" : ""}.`,
@@ -242,10 +243,7 @@ export const refreshAccessToken = asyncHandler(
         user.refreshToken = undefined;
         await user.save({ validateBeforeSave: false });
       }
-      throw new ApiError(
-        401,
-        "Your session has expired. Please log in again.",
-      );
+      throw new ApiError(401, "Your session has expired. Please log in again.");
     }
 
     // Step 4 — Issue new tokens (rotation)
@@ -506,8 +504,9 @@ export const changePassword = asyncHandler(
 export const forgotPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { email } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     // security: same response whether or not the user exists
     // never let this endpoint leak which emails are registered — that's an enumeration attack
@@ -530,9 +529,19 @@ export const forgotPassword = asyncHandler(
     user.passwordResetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min — matches email copy
     await user.save({ validateBeforeSave: false });
 
-    // pass the whole user object, not just the email —
-    // sendPasswordResetEmail needs user.name for the greeting, same as sendVerificationEmail does
-    await sendPasswordResetEmail(user, rawToken);
+    let demoResetUrl: string | undefined;
+    try {
+      if (isDemoVerificationEnabled()) {
+        demoResetUrl = getResetPasswordLink(rawToken);
+        console.info("Demo reset link:", demoResetUrl);
+      } else {
+        await sendPasswordResetEmail(user, rawToken);
+      }
+    } catch (err) {
+      console.error("Failed to send reset email:", err);
+      demoResetUrl = getResetPasswordLink(rawToken);
+      console.info("Fallback demo reset link:", demoResetUrl);
+    }
 
     res
       .status(200)
@@ -540,7 +549,7 @@ export const forgotPassword = asyncHandler(
         new ApiResponse(
           200,
           "If that email exists, a reset link has been sent.",
-          null,
+          demoResetUrl ? { demoResetUrl } : null,
         ),
       );
     return;
@@ -555,10 +564,7 @@ export const deleteAccount = asyncHandler(
     await Promise.all([
       Cart.deleteMany({ user: userId }),
       Wishlist.deleteMany({ user: userId }),
-      Order.updateMany(
-        { user: userId },
-        { $set: { user: null } },
-      ),
+      Order.updateMany({ user: userId }, { $set: { user: null } }),
     ]);
 
     await User.findByIdAndDelete(userId);
@@ -596,7 +602,10 @@ export const resetPassword = asyncHandler(
     });
 
     if (!user) {
-      throw new ApiError(400, "The password reset link is invalid or has expired.");
+      throw new ApiError(
+        400,
+        "The password reset link is invalid or has expired.",
+      );
     }
 
     user.password = await bcrypt.hash(newPassword, 12);
