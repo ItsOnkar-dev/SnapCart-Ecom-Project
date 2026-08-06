@@ -471,21 +471,22 @@ All endpoints are prefixed with `/api`.
 
 #### Auth — `/api/auth`
 
-| Method  | Path                   | Auth        | Rate Limit | Description                             |
-| ------- | ---------------------- | ----------- | ---------- | --------------------------------------- |
-| `GET`   | `/csrf-token`          | None        | General    | Returns CSRF token as cookie + JSON     |
-| `POST`  | `/register`            | None        | 20/10min   | Create account, send verification email |
-| `GET`   | `/verify-email`        | None        | General    | Verify email with one-time token        |
-| `POST`  | `/resend-verification` | None        | 5/10min    | Resend verification email               |
-| `POST`  | `/login`               | None        | 20/10min   | Login, set httpOnly JWT cookies         |
-| `POST`  | `/refresh`             | Cookie      | 60/10min   | Rotate refresh token, issue new access  |
-| `GET`   | `/me`                  | Cookie      | General    | Get current user                        |
-| `POST`  | `/logout`              | Auth + CSRF | General    | Clear cookies, invalidate refresh token |
-| `PATCH` | `/change-password`     | Auth + CSRF | General    | Change password, clear all sessions     |
-| `POST`  | `/forgot-password`     | None        | 5/10min    | Send password reset email               |
-| `POST`  | `/reset-password`      | None        | 5/10min    | Reset password using raw token          |
-| `GET`   | `/google`              | None        | General    | Redirect to Google OAuth consent screen |
-| `GET`   | `/google/callback`     | None        | General    | Google OAuth callback                   |
+| Method   | Path                   | Auth        | Rate Limit | Description                              |
+| -------- | ---------------------- | ----------- | ---------- | ---------------------------------------- |
+| `GET`    | `/csrf-token`          | None        | General    | Returns CSRF token as cookie + JSON      |
+| `POST`   | `/register`            | None        | 20/10min   | Create account, send verification email  |
+| `GET`    | `/verify-email`        | None        | General    | Verify email with one-time token         |
+| `POST`   | `/resend-verification` | None        | 5/10min    | Resend verification email                |
+| `POST`   | `/login`               | None        | 20/10min   | Login, set httpOnly JWT cookies          |
+| `POST`   | `/refresh`             | Cookie      | 60/10min   | Rotate refresh token, issue new access   |
+| `GET`    | `/me`                  | Cookie      | General    | Get current user                         |
+| `POST`   | `/logout`              | Auth + CSRF | General    | Clear cookies, invalidate refresh token  |
+| `PATCH`  | `/change-password`     | Auth + CSRF | General    | Change password, clear all sessions      |
+| `POST`   | `/forgot-password`     | None        | 5/10min    | Send password reset email                |
+| `POST`   | `/reset-password`      | None        | 5/10min    | Reset password using raw token           |
+| `DELETE` | `/account`             | Auth + CSRF | General    | Delete own account and related user data |
+| `GET`    | `/google`              | None        | General    | Redirect to Google OAuth consent screen  |
+| `GET`    | `/google/callback`     | None        | General    | Google OAuth callback                    |
 
 #### Health
 

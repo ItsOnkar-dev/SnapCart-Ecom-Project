@@ -240,18 +240,19 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🛍️ Buyer Features
 
-| Feature          | Details                                                                          |
-| ---------------- | -------------------------------------------------------------------------------- |
-| Product Catalog  | Paginated grid with live text search, category & price filters, and sort options |
-| Product Detail   | Image gallery, description, stock indicator, related product rails               |
-| Cart             | Persistent server-side cart; add, update quantity, remove, clear                 |
-| Checkout         | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
-| Order Tracking   | Status timeline: `pending → confirmed → shipped → delivered`                     |
-| Order History    | Full order list with per-order detail view                                       |
-| Reviews          | Write a review only after receiving a delivered order                            |
-| Wishlist         | Heart-toggle from any product card; move all items to cart in one click          |
-| Wishlist Sharing | Generate a public share link or email it to anyone                               |
-| Recommendations  | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
+| Feature            | Details                                                                          |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
+| Product Detail     | Image gallery, description, stock indicator, related product rails               |
+| Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
+| Checkout           | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
+| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                     |
+| Order History      | Full order list with per-order detail view                                       |
+| Reviews            | Write a review only after receiving a delivered order                            |
+| Wishlist           | Heart-toggle from any product card; move all items to cart in one click          |
+| Wishlist Sharing   | Generate a public share link or email it to anyone                               |
+| Account management | Change password from profile and delete account with one action                  |
+| Recommendations    | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
 
 ### 🏪 Seller Features
 
@@ -614,18 +615,18 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 **Coverage — all state-changing routes are protected:**
 
-| Route Group  | Endpoints                                                                                                                                                                                                        |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth         | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `POST /auth/resend-verification` |
-| Cart         | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`                                                                                                                                          |
-| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                       |
-| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                                  |
-| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                                |
-| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                       |
-| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                           |
-| Seller       | `POST /seller/apply`                                                                                                                                                                                             |
-| Admin        | `PATCH /admin/sellers/:id`                                                                                                                                                                                       |
-| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                         |
+| Route Group  | Endpoints                                                                                                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth         | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `DELETE /auth/account`, `POST /auth/resend-verification` |
+| Cart         | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`                                                                                                                                                                  |
+| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                                               |
+| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                                                          |
+| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                                                        |
+| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                                               |
+| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                                                   |
+| Seller       | `POST /seller/apply`                                                                                                                                                                                                                     |
+| Admin        | `PATCH /admin/sellers/:id`                                                                                                                                                                                                               |
+| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                                                 |
 
 ---
 
@@ -633,10 +634,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 SnapCart is feature-complete for its current scope. Planned enhancements include:
 
-- **Admin product/order management UI** — full CRUD actions for the admin panel
-- **Seller dashboard** — order analytics and performance metrics for sellers
 - **WebSocket notifications** — real-time order status updates
-- **Full-text search** — MongoDB Atlas Search for better relevance
 
 ---
 

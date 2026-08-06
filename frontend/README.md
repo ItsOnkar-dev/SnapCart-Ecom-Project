@@ -179,7 +179,7 @@ VITE_API_URL=http://localhost:5000
 
 > All Vite environment variables must be prefixed with `VITE_` to be accessible in the browser bundle. The value is **inlined at build time**, so set this correctly before running `npm run build` for production.
 
-> **Note:** The backend must have `EMAIL_VERIFICATION_DEMO_MODE=true` set in its environment for the demo verification button to appear after registration. Without it, Resend attempts real email delivery (which fails silently on the free sandbox tier).
+> **Note:** The backend must have `EMAIL_VERIFICATION_DEMO_MODE=true` set in its environment for the demo verification button to appear after registration and for the demo reset link fallback to work during forgot password. Without it, Resend attempts real email delivery (which fails silently on the free sandbox tier).
 
 ---
 
@@ -328,6 +328,7 @@ All routes are defined in `src/App.tsx`. The app uses two primary layouts:
 | `/orders`                  | Auth required      | OrdersPage (paginated, 10 per page) |
 | `/orders/:id`              | Auth required      | OrderDetailPage                     |
 | `/profile`                 | Auth required      | ProfilePage                         |
+| `/change-password`         | Auth required      | ChangePasswordPage                  |
 | `/wishlist`                | Auth required      | WishlistPage                        |
 | `/checkout`                | Auth required      | CheckoutPage                        |
 | `/payment-success`         | Auth required      | PaymentSuccess                      |
@@ -387,6 +388,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 - httpOnly cookie session — no tokens ever touch `localStorage`
 - Email verification with a demo-mode bypass (no paid sender domain needed)
 - Forgot password and reset password flows with expiring links
+- Account management from profile: change password and delete account
 
 ### 🛍️ Product Catalog
 

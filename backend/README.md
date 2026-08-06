@@ -290,6 +290,7 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | PATCH  | `/auth/change-password`     | Auth   | Change password and invalidate old sessions     |
 | POST   | `/auth/forgot-password`     | None   | Send password reset link                        |
 | POST   | `/auth/reset-password`      | None   | Reset password with raw token                   |
+| DELETE | `/auth/account`             | Auth   | Delete own account and related user data        |
 | GET    | `/auth/google`              | None   | Redirect to Google OAuth consent screen         |
 | GET    | `/auth/google/callback`     | None   | Handle Google OAuth callback                    |
 
@@ -414,9 +415,11 @@ The project uses [Resend](https://resend.com/) for transactional email delivery.
 ### Password Reset and Change
 
 - Forgot password uses the same raw-token/hash-token pattern as email verification
+- The same demo-mode fallback also applies to password reset: when Resend is unavailable, `/auth/forgot-password` returns `demoResetUrl`
 - Reset links expire after **15 minutes**
-- Reset and change-password flows **clear refresh tokens** to invalidate old sessions
+- Reset and change-password flows clear refresh tokens to invalidate old sessions
 - Password change **notifications** are emailed to the user
+- Users can delete their own account from the profile page, which removes the user record and related cart/wishlist data
 
 ---
 
