@@ -9,6 +9,7 @@ import { mongoSanitize } from "./middleware/sanitize";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
+import couponRoutes from "./routes/coupon.routes";
 import healthRoutes from "./routes/health.routes";
 import orderRoutes from "./routes/order.routes";
 import paymentRoutes from "./routes/payment.routes";
@@ -128,6 +129,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/coupons", couponRoutes);
 
 // Global error handler —
 // Express knows this is an error handler because it has 4 parameters (err, req, res, next)

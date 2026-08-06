@@ -1201,9 +1201,4 @@ Both `package.json` files have placeholder test scripts. Per project policy, aut
 
 ### Nice-to-Have
 
-1. **Full-text search** — Replace basic regex search with MongoDB Atlas Search for better relevance.
-2. **WebSocket notifications** — Real-time order status updates for buyers.
-3. **Coupon/discount system** — Admin-configurable promo codes with percentage/flat discounts.
-4. **Image optimization** — Add sharp/resize pipeline before Cloudinary upload for smaller payloads.
-5. **Rate-limited account lockout** — Lock accounts after N failed login attempts (currently only IP-based rate limiting).
-6. **Refresh token expiry cleanup** — Background job to remove expired refresh tokens from the database.
+1. **WebSocket notifications** — Real-time order status updates for buyers.
