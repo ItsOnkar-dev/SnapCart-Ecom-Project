@@ -117,6 +117,13 @@ export default function ProfilePage() {
               </Button>
             ) : null}
             <Button
+              asChild
+              variant="outline"
+              className="h-12 rounded-none px-6"
+            >
+              <Link to="/change-password">Change password</Link>
+            </Button>
+            <Button
               variant="destructive"
               className="h-12 rounded-none px-6"
               onClick={() => setDeleteOpen(true)}

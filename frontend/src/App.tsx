@@ -19,6 +19,9 @@ const ForgotPasswordPage = lazy(
   () => import("@/pages/auth/ForgotPasswordPage"),
 );
 const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
+const ChangePasswordPage = lazy(
+  () => import("@/pages/auth/ChangePasswordPage"),
+);
 
 // ── public pages ──────────────────────────────────────────────────────────────
 const HomePage = lazy(() => import("@/pages/HomePage"));
@@ -77,7 +80,7 @@ function MainLayout() {
 const router = createBrowserRouter([
   {
     element: <AuthGate />,
-    errorElement: <RouteErrorBoundary />, 
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         element: <AuthLayout />,
@@ -136,6 +139,7 @@ const router = createBrowserRouter([
               { path: "/orders/:id", element: <OrderDetailPage /> },
               { path: "/profile", element: <ProfilePage /> },
               { path: "/account", element: <ProfilePage /> },
+              { path: "/change-password", element: <ChangePasswordPage /> },
               { path: "/seller/apply", element: <SellerApplyPage /> },
               { path: "/sell", element: <SellerApplyPage /> },
               {
@@ -146,7 +150,10 @@ const router = createBrowserRouter([
               {
                 element: <RoleRoute allowedRoles={["seller", "admin"]} />,
                 children: [
-                  { path: "/seller/dashboard", element: <SellerDashboardPage /> },
+                  {
+                    path: "/seller/dashboard",
+                    element: <SellerDashboardPage />,
+                  },
                 ],
               },
 

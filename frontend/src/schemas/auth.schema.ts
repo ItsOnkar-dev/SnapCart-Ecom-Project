@@ -1,13 +1,11 @@
-// schemas/auth.schema.ts
-// Single source of truth for all auth form validation.
-// Mirrors backend/src/validators/auth.validator.ts — keep in sync when backend rules change.
-// Every auth page imports from here — no inline schemas anywhere.
-
 import { z } from "zod";
-import { NAME_MIN, NAME_MAX, PASSWORD_MIN, PASSWORD_MAX } from "../../../backend/src/validation-constants";
+import {
+  NAME_MAX,
+  NAME_MIN,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
+} from "../../../backend/src/validation-constants";
 
-// ── shared base ───────────────────────────────────────────────────────────────
-// Reused across login, register, forgot — same email rules everywhere
 const emailSchema = z
   .string()
   .trim()
@@ -65,25 +63,22 @@ export const forgotPasswordSchema = z.object({
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 // ── reset password ────────────────────────────────────────────────────────────
-// token comes from URL params — not part of the form, not validated here
-// body sent to backend: { token, newPassword } — key is newPassword, confirmed from controller
 export const resetPasswordSchema = z
   .object({
     newPassword: z
       .string()
       .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
       .max(PASSWORD_MAX, "Password is too long"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmNewPassword: z.string().min(1, "Please confirm your password"),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
     message: "Passwords do not match",
-    path: ["confirmPassword"],
+    path: ["confirmNewPassword"],
   });
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 // ── change password ───────────────────────────────────────────────────────────
-// Used on the settings/profile page — logged-in users only
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),
@@ -91,11 +86,11 @@ export const changePasswordSchema = z
       .string()
       .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
       .max(PASSWORD_MAX, "Password is too long"),
-    confirmPassword: z.string().min(1, "Please confirm your new password"),
+    confirmNewPassword: z.string().min(1, "Please confirm your new password"),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
     message: "Passwords do not match",
-    path: ["confirmPassword"],
+    path: ["confirmNewPassword"],
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
     message: "New password must be different from current password",

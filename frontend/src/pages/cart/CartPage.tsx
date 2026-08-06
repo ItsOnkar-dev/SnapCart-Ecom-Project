@@ -14,8 +14,8 @@ import RecommendedProducts from "@/components/home/RecommendedProducts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/useCart";
-import { usePayment } from "@/hooks/usePayment";
 import { usePlaceOrder } from "@/hooks/useOrders";
+import { usePayment } from "@/hooks/usePayment";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
 
@@ -52,7 +52,9 @@ export default function CartPage() {
   const { initiatePayment, isPending: isRazorpayPending } = usePayment();
   const { mutate: placeOrder, isPending: isCodPending } = usePlaceOrder();
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
+    "online",
+  );
 
   // ── Derived values — after hooks, before render ───────────────────────────
   // Memoize `items` to keep a stable array reference — otherwise the `?? []`
@@ -106,9 +108,9 @@ export default function CartPage() {
     e.preventDefault();
     if (!canCheckout) return;
     if (paymentMethod === "cod") {
-      placeOrder(address);
+      placeOrder({ shippingAddress: address });
     } else {
-      initiatePayment(address);
+      initiatePayment({ shippingAddress: address });
     }
   };
 

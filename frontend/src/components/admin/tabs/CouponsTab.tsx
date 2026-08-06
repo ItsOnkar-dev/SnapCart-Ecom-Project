@@ -1,13 +1,18 @@
-import { useState, type FormEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import {
+  useCoupons,
+  useCreateCoupon,
+  useDeleteCoupon,
+  useUpdateCoupon,
+} from "@/hooks/useCoupons";
 import { useAuthStore } from "@/store/auth.store";
-import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon } from "@/hooks/useCoupons";
 import type { Coupon, CouponDiscountType } from "@/types/coupon.types";
 
 const initialFormState = {
@@ -26,7 +31,9 @@ export default function CouponsTab() {
   const createCoupon = useCreateCoupon();
   const updateCoupon = useUpdateCoupon();
   const deleteCoupon = useDeleteCoupon();
-  const isDemoAdmin = useAuthStore((state) => state.user?.role === "demo_admin");
+  const isDemoAdmin = useAuthStore(
+    (state) => state.user?.role === "demo_admin",
+  );
 
   const [formState, setFormState] = useState(initialFormState);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
@@ -87,11 +94,16 @@ export default function CouponsTab() {
           </p>
           {isDemoAdmin ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              Demo admin accounts are view-only for coupon management. Coupon actions are disabled.
+              Demo admin accounts are view-only for coupon management. Coupon
+              actions are disabled.
             </p>
           ) : null}
         </div>
-        <Button type="button" onClick={() => setFormState(initialFormState)} disabled={isDemoAdmin}>
+        <Button
+          type="button"
+          onClick={() => setFormState(initialFormState)}
+          disabled={isDemoAdmin}
+        >
           <Plus className="mr-2 h-4 w-4" /> New coupon
         </Button>
       </div>
@@ -111,7 +123,10 @@ export default function CouponsTab() {
           ) : coupons?.length ? (
             <div className="space-y-3">
               {coupons.map((coupon: Coupon) => (
-                <div key={coupon._id} className="rounded-lg border border-border bg-background p-4">
+                <div
+                  key={coupon._id}
+                  className="rounded-lg border border-border bg-background p-4"
+                >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-sm font-medium">{coupon.code}</p>
@@ -121,13 +136,17 @@ export default function CouponsTab() {
                           : `?${coupon.discountValue} off`}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Min order: ?{coupon.minimumOrder} • Max discount: ?{coupon.maxDiscount}
+                        Min order: ?{coupon.minimumOrder} ï¿½ Max discount: ?
+                        {coupon.maxDiscount}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Used {coupon.usedCount}/{coupon.usageLimit || "8"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Expires: {coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : "Never"}
+                        Expires:{" "}
+                        {coupon.expiresAt
+                          ? new Date(coupon.expiresAt).toLocaleDateString()
+                          : "Never"}
                       </p>
                     </div>
 
@@ -167,7 +186,12 @@ export default function CouponsTab() {
               {editingCoupon ? "Edit coupon" : "Create coupon"}
             </h3>
             {editingCoupon ? (
-              <Button type="button" variant="ghost" onClick={handleCancel} disabled={isDemoAdmin}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancel}
+                disabled={isDemoAdmin}
+              >
                 Cancel
               </Button>
             ) : null}
@@ -179,7 +203,9 @@ export default function CouponsTab() {
               <Input
                 id="code"
                 value={formState.code}
-                onChange={(e) => setFormState({ ...formState, code: e.target.value })}
+                onChange={(e) =>
+                  setFormState({ ...formState, code: e.target.value })
+                }
                 className="mt-2"
                 placeholder="SUMMER10"
                 required
@@ -215,7 +241,10 @@ export default function CouponsTab() {
                   min="0"
                   value={formState.discountValue}
                   onChange={(e) =>
-                    setFormState({ ...formState, discountValue: Number(e.target.value) })
+                    setFormState({
+                      ...formState,
+                      discountValue: Number(e.target.value),
+                    })
                   }
                   className="mt-2"
                   required
@@ -230,7 +259,10 @@ export default function CouponsTab() {
                   min="0"
                   value={formState.minimumOrder}
                   onChange={(e) =>
-                    setFormState({ ...formState, minimumOrder: Number(e.target.value) })
+                    setFormState({
+                      ...formState,
+                      minimumOrder: Number(e.target.value),
+                    })
                   }
                   className="mt-2"
                   disabled={isDemoAdmin}
@@ -247,7 +279,10 @@ export default function CouponsTab() {
                   min="0"
                   value={formState.maxDiscount}
                   onChange={(e) =>
-                    setFormState({ ...formState, maxDiscount: Number(e.target.value) })
+                    setFormState({
+                      ...formState,
+                      maxDiscount: Number(e.target.value),
+                    })
                   }
                   className="mt-2"
                   disabled={isDemoAdmin}
@@ -261,7 +296,10 @@ export default function CouponsTab() {
                   min="0"
                   value={formState.usageLimit}
                   onChange={(e) =>
-                    setFormState({ ...formState, usageLimit: Number(e.target.value) })
+                    setFormState({
+                      ...formState,
+                      usageLimit: Number(e.target.value),
+                    })
                   }
                   className="mt-2"
                   disabled={isDemoAdmin}
@@ -275,7 +313,9 @@ export default function CouponsTab() {
                 id="expiresAt"
                 type="date"
                 value={formState.expiresAt}
-                onChange={(e) => setFormState({ ...formState, expiresAt: e.target.value })}
+                onChange={(e) =>
+                  setFormState({ ...formState, expiresAt: e.target.value })
+                }
                 className="mt-2"
                 disabled={isDemoAdmin}
               />
@@ -285,7 +325,7 @@ export default function CouponsTab() {
               <Switch
                 id="isActive"
                 checked={formState.isActive}
-                onCheckedChange={(checked) =>
+                onCheckedChange={(checked: boolean) =>
                   setFormState({ ...formState, isActive: checked })
                 }
                 disabled={isDemoAdmin}

@@ -16,6 +16,7 @@ import {
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [demoResetUrl, setDemoResetUrl] = useState<string | null>(null);
   const { mutate: forgotPassword, isPending } = useForgotPassword();
 
   const {
@@ -29,7 +30,12 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = (data: ForgotPasswordFormData) => {
     forgotPassword(data, {
-      onSuccess: () => setSubmitted(true),
+      onSuccess: (res) => {
+        setSubmitted(true);
+        if (res?.data?.data?.demoResetUrl) {
+          setDemoResetUrl(res.data.data.demoResetUrl);
+        }
+      },
     });
   };
 
@@ -55,6 +61,21 @@ export default function ForgotPasswordPage() {
           <p className="mt-2 text-xs text-muted-foreground">
             The link expires in 15 minutes.
           </p>
+
+          {demoResetUrl ? (
+            <div className="mt-6 rounded-xl border border-border bg-muted p-4 text-left text-sm">
+              <p className="font-medium text-foreground">Demo reset link</p>
+              <Button asChild className="w-full rounded-none mt-4">
+                <a href={demoResetUrl} target="_blank" rel="noreferrer">
+                  Open reset link
+                </a>
+              </Button>
+              <p className="mt-3 text-xs text-muted-foreground">
+                In demo or local mode, email delivery may not be available. Use
+                this button to open the reset page directly.
+              </p>
+            </div>
+          ) : null}
 
           <Button asChild className="w-full h-12 rounded-none mt-8">
             <Link to="/login">
