@@ -445,6 +445,8 @@ EMAIL_VERIFICATION_DEMO_MODE=true
 
 **Optional services (enhanced functionality):**
 
+> See [Email Configuration and Delivery](./backend/README.md#-email-configuration-and-delivery) for a deep dive into the email delivery system.
+
 ```env
 # Real email delivery
 RESEND_API_KEY=

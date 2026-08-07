@@ -1,6 +1,6 @@
-// src/components/AuthGate.tsx
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router"; // Use "react-router" to match your router package
+// import { Loader2 } from "lucide-react";
+import { Outlet } from "react-router";
 import { useAuthStore } from "../store/auth.store";
 import { Logo } from "./home/Logo";
 
@@ -15,16 +15,23 @@ export const AuthGate = () => {
 
     const timer = setTimeout(() => {
       setMinTimeElapsed(true);
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [initAuth]);
 
-  if (isAuthLoading || !minTimeElapsed) {
+  if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse duration-1000">
-          <Logo className="scale-150" />
+      <div className="min-h-screen bg-background flex gap-4 items-center justify-center">
+        {/* <Loader2 className="h-10 w-10 animate-spin text-indigo-400" /> */}
+        <div className="flex flex-col items-center justify-center animate-pulse text-center duration-1000">
+          <Logo />
+          {minTimeElapsed && (
+            <p className="mt-2 text-sm font-semibold text-muted-foreground animate-pulse max-w-sm">
+              Getting the storefront ready! Connecting to our backend systems
+              usually takes 4-6 seconds. Hang tight!
+            </p>
+          )}
         </div>
       </div>
     );
