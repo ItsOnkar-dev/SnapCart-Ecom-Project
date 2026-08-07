@@ -33,6 +33,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 - [Scripts](#-scripts)
 - [API Reference](#-api-reference)
 - [Authentication and Account Security](#-authentication-and-account-security)
+- [Email Configuration and Delivery](#-email-configuration-and-delivery)
 - [Core E-Commerce Features](#-core-e-commerce-features)
 - [Email Notifications](#-email-notifications)
 - [Security Measures](#-security-measures)
@@ -389,13 +390,216 @@ Registration creates an account with `isEmailVerified: false`, stores a SHA-256 
 - Resend verification is **enumeration-safe** for unknown emails
 - Verified email is required before checkout, seller application, and seller product writes
 
-### Email Verification Note
+> **VERY IMPORTANT SETUP:**
 
-The project uses [Resend](https://resend.com/) for transactional email delivery. Resend's free tier operates in **sandbox mode**, which means emails are only delivered to verified email addresses (the sender's own inbox). This is a Resend-imposed limitation, not a gap in the implementation.
+### Email Configuration and Delivery
 
-- The full verification architecture is production-ready: raw token delivered, SHA-256 hash stored, 10-minute expiry, single-use, enumeration-safe
-- In production, verifying a domain with Resend enables email delivery to any recipient — no code changes needed
-- For local/portfolio deployments, the frontend shows a demo verification link so the app remains fully usable without a paid email domain
+This project supports two modes for all email flows (verification, password reset, password changed notifications).
+
+---
+
+## Demo Mode (Default — works out of the box)
+
+No email setup needed. When `RESEND_API_KEY` is not set, the backend automatically switches to demo mode:
+
+- **Email verification** — the verification link is returned directly in the API response and displayed on the frontend verify page.
+- **Password reset** — the reset link is returned directly in the API response and displayed as an "Open reset link" card on your frontend.
+- **Password changed** — notification is skipped silently
+
+This means you can run and test the full auth flow locally with zero configuration.
+
+```env
+# .env — demo mode, just leave these unset or empty
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+```
+
+> **What triggers demo mode?**
+> Any of these conditions activates it automatically:
+>
+> - `RESEND_API_KEY` is missing or empty
+> - `RESEND_FROM_EMAIL` is missing or empty
+> - `EMAIL_VERIFICATION_DEMO_MODE=true` is explicitly set
+
+---
+
+## Production Mode (Real emails via Resend)
+
+When you're ready to send real emails, you need:
+
+1. A [Resend](https://resend.com) account
+2. A verified domain in Resend
+3. Two environment variables set
+
+```env
+# .env — production mode
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+```
+
+Once both are set, the backend sends real emails automatically — no code changes needed.
+
+---
+
+## Step-by-Step: Setting Up Resend
+
+### 1. Create a Resend account
+
+Go to [resend.com](https://resend.com) and sign up for free.
+
+The free tier includes **3,000 emails/month** and **100 emails/day** — enough for development and small projects.
+
+### 2. Get your API key
+
+- Go to [resend.com/api-keys](https://resend.com/api-keys)
+- Click **Create API Key**
+- Give it a name (e.g. `auth-starter-dev`)
+- Set permission to **Sending access**
+- Copy the key — it starts with `re_`
+
+```env
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+> ⚠️ You only see the key once. Copy it immediately.
+
+### 3. Add and verify your domain
+
+- Go to [resend.com/domains](https://resend.com/domains)
+- Click **Add Domain**
+- Enter your domain (e.g. `yourdomain.com`)
+- Resend will give you DNS records to add (MX, SPF, DKIM)
+- Add them in your domain registrar (Namecheap, Cloudflare, GoDaddy, etc.)
+- Click **Verify** — DNS propagation takes 1–48 hours
+
+Once verified, your domain shows a green **Verified** badge.
+
+### 4. Set your from address
+
+Use any address on your verified domain:
+
+```env
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+# or
+RESEND_FROM_EMAIL=auth@yourdomain.com
+```
+
+### 5. Restart your backend
+
+```bash
+# Stop your backend (Ctrl+C) then:
+npm run dev
+```
+
+The backend reads env vars on startup. A restart is required after changes.
+
+---
+
+## Verifying It Works
+
+### Demo mode check
+
+Submit forgot password with any registered email. You should see a **"Demo reset link"** box appear on screen with a clickable button — no email is sent.
+
+### Production mode check
+
+Submit forgot password with a real email address. You should receive an email within a few seconds. Check your spam folder if it doesn't arrive.
+
+You can also check delivery status in your [Resend dashboard](https://resend.com/emails) under the **Emails** tab.
+
+---
+
+## Email Flows Reference
+
+| Flow               | Trigger                       | Demo mode            | Production mode         |
+| ------------------ | ----------------------------- | -------------------- | ----------------------- |
+| Email verification | User registers                | Link shown on screen | Email sent to user      |
+| Password reset     | Forgot password submitted     | Link shown on screen | Email sent to user      |
+| Password changed   | Reset/change password success | Skipped silently     | Confirmation email sent |
+
+---
+
+## Customizing Email Templates
+
+Email HTML is in `src/utils` (or `src/lib` depending on your structure).
+
+Each function sends one email type:
+
+```
+sendVerificationEmail()      → registration verification link
+sendPasswordResetEmail()     → forgot password reset link
+sendPasswordChangedEmail()   → password change confirmation
+```
+
+The templates are plain HTML strings — edit them directly to match your brand. For production use, consider moving to [React Email](https://react.email) for component-based templates that Resend supports natively.
+
+---
+
+## Using Resend with a Free Account (No Custom Domain)
+
+Resend's free tier lets you send emails **only to your own email address** (the one you signed up with) until you verify a domain.
+
+This is useful for testing the real email flow before your domain is set up:
+
+```env
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=onboarding@resend.dev   # Resend's shared domain — works without verification
+```
+
+> `onboarding@resend.dev` is Resend's built-in shared sender. You can use it immediately without domain verification, but emails only deliver to your own Resend account email.
+
+Use this to confirm real email delivery works before going to production.
+
+---
+
+## Environment Variables Reference
+
+| Variable                       | Required        | Description                                                     |
+| ------------------------------ | --------------- | --------------------------------------------------------------- |
+| `RESEND_API_KEY`               | Production only | Your Resend API key (`re_...`)                                  |
+| `RESEND_FROM_EMAIL`            | Production only | Verified sender address                                         |
+| `EMAIL_VERIFICATION_DEMO_MODE` | Optional        | Set `true` to force demo mode even with a Resend key configured |
+
+---
+
+## Common Issues
+
+**Emails not arriving**
+
+- Check the Resend dashboard under **Emails** — delivery status is shown there
+- Check spam/junk folder
+- Confirm your domain's DNS records are fully propagated (use [dnschecker.org](https://dnschecker.org))
+
+**"Domain not verified" error from Resend**
+
+- Your DNS records haven't propagated yet — wait up to 48 hours
+- Use `onboarding@resend.dev` as `RESEND_FROM_EMAIL` temporarily
+
+**Still in demo mode after adding keys**
+
+- Restart your backend — env vars are read on startup
+- Double-check your `.env` file has no extra spaces around the `=`
+- Confirm the `.env` file is in your **backend root**, not frontend root
+
+**`EMAIL_VERIFICATION_DEMO_MODE=true` overrides everything**
+
+- If this is set to `true`, demo mode is forced regardless of whether Resend is configured
+- Set it to `false` or remove it entirely for production
+
+---
+
+## Password Reset
+
+1. `POST /forgot-password` → generates reset token, sends email first, persists to DB only if email succeeds
+2. User clicks email link → lands on `FRONTEND_URL/reset-password?token=<rawToken>`
+3. Frontend form collects new password
+4. `POST /reset-password` → accepts { token, newPassword, confirmNewPassword }, validates match on the backend, hashes incoming token, updates password
+5. Wipes `refreshToken` — forces logout on all devices
+6. Sends password-changed notification email
+
+Reset tokens expire after **15 minutes** and are single-use.
+
+---
 
 ### Login, Cookies, and Refresh Rotation
 
@@ -630,6 +834,20 @@ npm run db:seed:dev
 ## 🚢 Deployment
 
 The backend is deployed on [Render](https://render.com/).
+
+> ## ⚡ Performance Note: Render Free Tier "Cold Starts"
+>
+> This project's backend API is hosted on **Render's Free Tier**. To conserve resources, Render automatically spins down free web services after 15 minutes of inactivity.
+>
+> If you are visiting the live demo for the first time in a while, **the initial load may take 4 to 6 seconds** while the backend container wakes up.
+>
+> **How I mitigated this challenge:**
+> To provide a smooth experience despite zero-budget infrastructure constraints, I implemented a multi-layered approach:
+>
+> 1. **Infrastructure Keep-Alive:** A scheduled cron job (via cron-job.org) pings a lightweight `/api/v1/health` endpoint every 14 minutes to prevent the server from sleeping during peak hours.
+> 2. **UX Fallback:** The React frontend utilizes a delayed-timeout "Smart Loader". If the initial API handshake exceeds 3 seconds, the UI gracefully informs the user that the free-tier server is waking up, managing expectations rather than leaving them staring at a frozen screen.
+>
+> Once the server is awake, all subsequent API requests and page loads execute in standard milliseconds.
 
 ### Steps
 
