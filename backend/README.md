@@ -33,7 +33,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 - [Scripts](#-scripts)
 - [API Reference](#-api-reference)
 - [Authentication and Account Security](#-authentication-and-account-security)
-- [Email Configuration and Delivery](#-email-configuration-and-delivery)
+- [Email Configuration and Delivery](#email-configuration-and-delivery)
 - [Core E-Commerce Features](#-core-e-commerce-features)
 - [Email Notifications](#-email-notifications)
 - [Security Measures](#-security-measures)
