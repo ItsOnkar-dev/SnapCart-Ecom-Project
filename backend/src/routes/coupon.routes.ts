@@ -19,7 +19,12 @@ import { validate } from "../middleware/validate.middleware";
 import { createCouponSchema } from "../validators/coupon.validator";
 
 // Public — apply coupon at checkout
-router.post("/apply", verifyToken, applyCoupon);
+router.post(
+  "/apply",
+  requireRole("customer", "seller"),
+  verifyToken,
+  applyCoupon,
+);
 
 // Admin routes
 router.get(

@@ -25,7 +25,7 @@ const router = Router();
 router.post(
   "/",
   verifyToken,
-  requireRole("admin", "seller", "customer"),
+  requireRole("seller", "customer"),
   requireVerifiedEmail,
   validate(placeOrderSchema),
   placeOrder,
