@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   createCouponApi,
   deleteCouponApi,
+  getActiveCouponsApi,
   getCouponsApi,
   updateCouponApi,
 } from "@/api/coupon.api";
@@ -23,6 +24,17 @@ export function useCoupons() {
       return res.data.data;
     },
     staleTime: 30 * 1000,
+  });
+}
+
+export function useActiveCoupons() {
+  return useQuery({
+    queryKey: ["coupons", "public"],
+    queryFn: async () => {
+      const res = await getActiveCouponsApi();
+      return res.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

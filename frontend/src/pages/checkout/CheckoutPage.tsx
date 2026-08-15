@@ -8,10 +8,12 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
+import { useActiveCoupons } from "@/hooks/useCoupons";
 import { usePlaceOrder } from "@/hooks/useOrders";
 import { usePayment } from "@/hooks/usePayment";
 import { getApiErrorMessage } from "@/types/api.types";
 import type { CartItem } from "@/types/cart.types";
+import type { Coupon } from "@/types/coupon.types";
 import type { ShippingAddress } from "@/types/order.types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -58,6 +60,7 @@ const SHIPPING_OPTIONS: {
 
 export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
+  const { data: activeCoupons } = useActiveCoupons();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
   const { initiatePayment, isPending: isRazorpayPending } = usePayment();
   const { mutate: placeOrder, isPending: isCodPending } = usePlaceOrder();
@@ -545,6 +548,36 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   ) : null}
+                  {!appliedCoupon && activeCoupons?.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        Available coupons:
+                      </p>
+                      {activeCoupons.map((c: Coupon) => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => {
+                            setCouponCode(c.code);
+                            setCouponError("");
+                          }}
+                          className="w-full text-left rounded border border-dashed border-border p-2 text-xs hover:border-primary transition-colors"
+                        >
+                          <span className="font-mono font-semibold">
+                            {c.code}
+                          </span>
+                          <span className="ml-2 text-muted-foreground">
+                            {c.discountType === "percentage"
+                              ? `${c.discountValue}% off`
+                              : `₹${c.discountValue} off`}
+                            {c.minimumOrder > 0
+                              ? ` · Min ₹${c.minimumOrder}`
+                              : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Totals */}
