@@ -53,7 +53,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 ✅ Email verification    SHA-256 hash stored, raw token delivered, 10-minute expiry
 ✅ Demo email mode       Returns verification URL in API response — no paid sender domain needed
 ✅ Google OAuth          Account linking by email prevents duplicate users
-✅ Atomic checkout       MongoDB transaction: stock decrement + order create + cart clear
+✅ Checkout integrity    Guarded stock updates + order snapshots + payment recovery
 ✅ Heuristic recs        Related, frequently-bought, personalized — no paid ML service
 ✅ Seller workflow       Apply → admin approve → manage products with ownership checks
 ✅ Admin analytics       Revenue, orders, top products, category breakdown via aggregation
@@ -71,7 +71,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 | Runtime    | Node.js 20+                        | Stable LTS, native async/await                          |
 | Framework  | Express.js 5                       | Native async error handling, no wrapper needed          |
 | Language   | TypeScript 6                       | End-to-end type safety                                  |
-| Database   | MongoDB + Mongoose 9               | Document model + Atlas transactions                     |
+| Database   | MongoDB + Mongoose 9               | Document model with targeted indexes                    |
 | Auth       | JWT + bcrypt                       | Short-lived access + hashed refresh tokens              |
 | OAuth      | Google OAuth 2.0                   | `google-auth-library` with account linking              |
 | Validation | Zod 4                              | Schema-first validation at route boundary               |
@@ -159,7 +159,9 @@ backend/
 │   │   ├── recommendation.controller.ts  Recommendation endpoint
 │   │   ├── review.controller.ts       Verified-purchase reviews
 │   │   ├── seller.controller.ts       Seller application flow
-│   │   └── wishlist.controller.ts     Wishlist, public sharing, email sharing
+│   │   ├── wishlist.controller.ts     Wishlist, public sharing, email sharing
+│   │   ├── coupon.controller.ts       Coupon application during checkout
+│   │   └── coupon.admin.controller.ts Admin coupon CRUD
 │   │
 │   ├── middleware/
 │   │   ├── auth.middleware.ts         verifyToken · optionalVerifyToken · requireRole · requireVerifiedEmail
@@ -170,6 +172,7 @@ backend/
 │   │
 │   ├── models/
 │   │   ├── cart.model.ts
+│   │   ├── coupon.model.ts
 │   │   ├── order.model.ts
 │   │   ├── product.model.ts
 │   │   ├── review.model.ts
@@ -181,10 +184,15 @@ backend/
 │   ├── scripts/
 │   │   └── seed.dev.ts               Development seed script
 │   │
-│   ├── services/                      Business logic — transactions live here
-│   │   ├── order.service.ts          Transactional checkout logic
+│   ├── services/                      Business logic and ownership checks
+│   │   ├── cart.service.ts           Cart totals and stock validation
+│   │   ├── coupon.service.ts         Coupon validation and usage counts
+│   │   ├── order.service.ts          Checkout logic with guarded stock updates
+│   │   ├── product.service.ts        Product ownership and image handling
 │   │   ├── recommendation.service.ts Scoring engine (related / bought / personalized)
-│   │   └── review.service.ts         Rating recalculation
+│   │   ├── review.service.ts         Rating recalculation
+│   │   ├── seller.service.ts         Seller application workflow
+│   │   └── wishlist.service.ts       Wishlist sharing and email helpers
 │   │
 │   ├── types/
 │   │   └── env.d.ts                  TypeScript augmentations for process.env
@@ -222,29 +230,29 @@ backend/
 cp .env.example .env
 ```
 
-| Variable                       | Required | Description                                              |
-| ------------------------------ | -------- | -------------------------------------------------------- |
-| `NODE_ENV`                     | ✅       | `development` or `production`                            |
-| `PORT`                         | ✅       | Port the server listens on (default: `5000`)             |
-| `MONGO_URI`                    | ✅       | MongoDB Atlas connection string                          |
-| `ACCESS_TOKEN_SECRET`          | ✅       | Random string, 32+ chars in production                   |
-| `REFRESH_TOKEN_SECRET`         | ✅       | Random string, 32+ chars in production                   |
-| `REFRESH_TOKEN_HASH_SECRET`    | ✅       | Random string for hashing stored refresh tokens          |
-| `FRONTEND_URL`                 | ✅       | CORS origin, e.g. `http://localhost:5173`                |
-| `GOOGLE_CLIENT_ID`             | ✅       | From Google Cloud Console                                |
-| `GOOGLE_CLIENT_SECRET`         | ✅       | From Google Cloud Console                                |
-| `GOOGLE_CALLBACK_URL`          | ✅       | e.g. `http://localhost:5000/api/auth/google/callback`    |
-| `CLOUDINARY_CLOUD_NAME`        | ✅       | From Cloudinary dashboard                                |
-| `CLOUDINARY_API_KEY`           | ✅       | From Cloudinary dashboard                                |
-| `CLOUDINARY_API_SECRET`        | ✅       | From Cloudinary dashboard                                |
-| `EMAIL_VERIFICATION_DEMO_MODE` | Optional | `true` → returns verification URL in response            |
-| `RESEND_API_KEY`               | Optional | From resend.com — required for real email delivery       |
-| `RESEND_FROM_EMAIL`            | Optional | Verified sender address on your Resend domain            |
-| `RESEND_EMAIL`                 | Optional | Receives seller application notification emails          |
-| `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin    |
-| `ADMIN_PASSWORD`               | Optional | Used by bootstrap script — password of the primary admin |
-| `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                                  |
-| `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                                  |
+| Variable                       | Required | Description                                                                           |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------- |
+| `NODE_ENV`                     | ✅       | `development` or `production`                                                         |
+| `PORT`                         | ✅       | Port the server listens on (default: `5000`)                                          |
+| `MONGO_URI`                    | ✅       | MongoDB Atlas connection string                                                       |
+| `ACCESS_TOKEN_SECRET`          | ✅       | Random string, 32+ chars in production                                                |
+| `REFRESH_TOKEN_SECRET`         | ✅       | Random string, 32+ chars in production                                                |
+| `REFRESH_TOKEN_HASH_SECRET`    | Optional | Random string for hashing stored refresh tokens; falls back to refresh/access secrets |
+| `FRONTEND_URL`                 | ✅       | CORS origin, e.g. `http://localhost:5173`                                             |
+| `GOOGLE_CLIENT_ID`             | ✅       | From Google Cloud Console                                                             |
+| `GOOGLE_CLIENT_SECRET`         | ✅       | From Google Cloud Console                                                             |
+| `GOOGLE_CALLBACK_URL`          | ✅       | e.g. `http://localhost:5000/api/auth/google/callback`                                 |
+| `CLOUDINARY_CLOUD_NAME`        | ✅       | From Cloudinary dashboard                                                             |
+| `CLOUDINARY_API_KEY`           | ✅       | From Cloudinary dashboard                                                             |
+| `CLOUDINARY_API_SECRET`        | ✅       | From Cloudinary dashboard                                                             |
+| `EMAIL_VERIFICATION_DEMO_MODE` | Optional | `true` → returns verification/reset URLs in responses                                 |
+| `RESEND_API_KEY`               | Optional | From resend.com — required for real email delivery                                    |
+| `RESEND_FROM_EMAIL`            | Optional | Verified sender address on your Resend domain                                         |
+| `RESEND_EMAIL`                 | Optional | Receives seller application notification emails                                       |
+| `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin                                 |
+| `ADMIN_PASSWORD`               | Optional | Used by bootstrap script — password of the primary admin                              |
+| `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                                                               |
+| `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                                                               |
 
 > 💡 **For local / portfolio deployments:** Set `EMAIL_VERIFICATION_DEMO_MODE=true`. The server returns the verification URL in the register response so you can verify accounts without a paid Resend sender domain. The full token → hash → expiry → clear flow still runs.
 
@@ -329,7 +337,7 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 | Method | Path                 | Auth         | Description                                                                 |
 | ------ | -------------------- | ------------ | --------------------------------------------------------------------------- |
-| POST   | `/orders`            | Auth         | Checkout — atomic MongoDB transaction                                       |
+| POST   | `/orders`            | Auth         | COD checkout with guarded stock updates and order snapshot                  |
 | GET    | `/orders`            | Auth         | Paginated list of the current user's orders (default 10, supports `?page=`) |
 | GET    | `/orders/:id`        | Auth         | Order detail                                                                |
 | PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                                                         |
@@ -356,25 +364,34 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 ### Seller
 
-| Method | Path            | Auth | Description                                  |
-| ------ | --------------- | ---- | -------------------------------------------- |
-| POST   | `/seller/apply` | Auth | Submit application (verified email required) |
+| Method | Path               | Auth | Description                                  |
+| ------ | ------------------ | ---- | -------------------------------------------- |
+| POST   | `/seller/apply`    | Auth | Submit application (verified email required) |
+| GET    | `/seller/products` | Auth | List the current seller's products           |
+| GET    | `/seller/orders`   | Auth | List orders containing the seller's products |
 
 ### Admin
 
-| Method | Path                 | Auth  | Description                      |
-| ------ | -------------------- | ----- | -------------------------------- |
-| GET    | `/admin/sellers`     | Admin | List pending seller applications |
-| PATCH  | `/admin/sellers/:id` | Admin | Approve or reject seller         |
-| GET    | `/admin/analytics`   | Admin | Aggregated platform analytics    |
+| Method | Path                         | Auth             | Description                            |
+| ------ | ---------------------------- | ---------------- | -------------------------------------- |
+| GET    | `/admin/sellers`             | Admin/Demo Admin | List seller applications               |
+| PATCH  | `/admin/sellers/:id`         | Admin            | Approve or reject seller               |
+| GET    | `/admin/dashboard`           | Admin/Demo Admin | Dashboard KPIs                         |
+| GET    | `/admin/analytics`           | Admin/Demo Admin | Aggregated platform analytics          |
+| GET    | `/admin/orders`              | Admin/Demo Admin | Paginated list of all orders           |
+| GET    | `/admin/products`            | Admin/Demo Admin | Paginated list of all products         |
+| GET    | `/admin/products/count`      | Admin/Demo Admin | Count active products                  |
+| PATCH  | `/admin/products/:id`        | Admin            | Edit any product                       |
+| PATCH  | `/admin/products/:id/status` | Admin            | Toggle product active status           |
+| DELETE | `/admin/products/:id`        | Admin            | Archive product with `isActive: false` |
 
 ### Payments
 
-| Method | Path                | Auth | Description                                     |
-| ------ | ------------------- | ---- | ----------------------------------------------- |
-| POST   | `/payments/order`   | Auth | Create a Razorpay order                         |
-| POST   | `/payments/verify`  | None | Razorpay payment verification.                  |
-| POST   | `/payments/webhook` | None | Razorpay webhook (raw body, signature verified) |
+| Method | Path                     | Auth | Description                                     |
+| ------ | ------------------------ | ---- | ----------------------------------------------- |
+| POST   | `/payments/create-order` | Auth | Create Razorpay order and pending DB order      |
+| POST   | `/payments/verify`       | Auth | Verify payment and confirm pending order        |
+| POST   | `/payments/webhook`      | None | Razorpay webhook (raw body, signature verified) |
 
 ---
 
@@ -645,15 +662,18 @@ Reset tokens expire after **15 minutes** and are single-use.
 
 ### Orders — Atomic Checkout
 
-Checkout (COD/admin) runs inside a **MongoDB transaction**:
+Checkout uses sequential guarded stock updates — no MongoDB transaction **(Atlas M0 free tier does not support multi-document transactions):**
 
 ```
 1. Validate cart items and current stock
 2. Atomically decrement stock  →  findOneAndUpdate with stock guard
 3. Create order snapshot        →  captures name, price, qty, image at time of purchase
 4. Clear the cart
-5. Commit all writes — or roll everything back on any failure
+5. If any step fails — order is never created; already-decremented stock is the only edge case
+
 ```
+
+Cancellation **does** use a real MongoDB transaction — stock restore and status update must succeed together or not at all.
 
 ### Payments — Razorpay Flow
 
@@ -785,9 +805,9 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 
 > Email verification is a strong portfolio feature, but Resend requires a verified sender domain for production sending. Demo mode keeps the real token-hash-expiry-clear architecture intact while making the project usable without a paid domain. Recruiters see the real system; they just receive the link differently.
 
-### Why MongoDB transactions for checkout?
+### Why guarded atomic updates instead of MongoDB transactions for checkout?
 
-> Checkout writes to three collections: stock (product), order (new document), and cart (clear). Without a transaction, a crash between writes leaves the system in an inconsistent state — stock decremented but no order created, or order created but cart not cleared. Transactions make all three atomic.
+> Atlas M0 free tier does not support multi-document transactions. Instead, checkout uses `findOneAndUpdate` with a `stock: { $gte: quantity }` guard — a single atomic MongoDB operation that only decrements if stock is sufficient. If any item fails the guard, the error is thrown before the order is created. Cancellation uses a real transaction because stock restore and status update must succeed together — and cancellation is infrequent enough that it can be deferred to a paid tier without affecting normal checkout.
 
 ### Why Multer memory storage?
 
@@ -904,4 +924,5 @@ For significant changes (new routes, schema changes, auth flows), open an issue 
 
 [◀ Back to Root README](../README.md) · [🎨 Frontend Docs](../frontend/README.md)
 
+</div>
 </div>
