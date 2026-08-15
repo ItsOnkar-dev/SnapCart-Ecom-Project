@@ -26,7 +26,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ## 📋 Table of Contents
 
 - [🎨 SnapCart — Frontend](#-snapcart--frontend)
-  - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
+    - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [✨ Highlights](#-highlights)
   - [🛠 Tech Stack](#-tech-stack)
@@ -269,8 +269,8 @@ frontend/
 │   │   ├── wishlist/        # WishlistPage · WishlistSharePage (public)
 │   │   ├── profile/         # ProfilePage
 │   │   ├── payment/         # PaymentSuccess
-│   │   ├── seller/          # SellerApplyPage · SellerProductsPage
-│   │   ├── admin/           # AdminSellersPage · AdminAnalyticsDashboard
+│   │   ├── seller/          # SellerApplyPage · SellerDashboardPage
+│   │   ├── admin/           # AdminDashboardPage · AdminAnalyticsDashboard
 │   │   ├── error/           # NotFound · Unauthorized
 │   │   └── HomePage.tsx
 │   │

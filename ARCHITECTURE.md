@@ -37,11 +37,11 @@ SnapCart-Ecom Project/
 │   │   ├── app.ts                  # Express app — middleware stack, routes, error handler
 │   │   ├── server.ts               # DB connection + HTTP server startup
 │   │   ├── config/                 # DB, Cloudinary, Google OAuth, env validation
-│   │   ├── controllers/            # 11 route handlers — thin, delegate to services
+│   │   ├── controllers/            # Route handlers — thin, delegate to services
 │   │   ├── middleware/             # auth, csrf, multer, sanitize, validate
-│   │   ├── models/                 # 6 Mongoose schemas (User, Product, Order, Cart, Review, Wishlist)
-│   │   ├── routes/                 # 9 Express routers
-│   │   ├── services/               # 7 business-logic modules
+│   │   ├── models/                 # Mongoose schemas (User, Product, Order, Cart, Review, Wishlist, Coupon)
+│   │   ├── routes/                 # Express routers by domain
+│   │   ├── services/               # Business-logic modules
 │   │   ├── types/                  # TypeScript interfaces and type augmentations
 │   │   ├── utils/                  # ApiResponse, asyncHandler, auditLogger, analyticsCache, pagination, tokens, email senders (5)
 │   │   ├── validators/             # Zod schemas per domain
@@ -86,7 +86,7 @@ SnapCart-Ecom Project/
 | Runtime    | Node.js 20+                                    |
 | Framework  | Express 5 (native async error handling)        |
 | Language   | TypeScript 6                                   |
-| Database   | MongoDB + Mongoose 9 (Atlas with transactions) |
+| Database   | MongoDB + Mongoose 9                           |
 | Auth       | JWT (15m access) + bcrypt + httpOnly cookies   |
 | OAuth      | Google OAuth 2.0 via `google-auth-library`     |
 | Validation | Zod 4 (schema-first)                           |
@@ -191,10 +191,10 @@ ApiResponse (unified JSON shape)
         <ProtectedRoute>                          ← redirects to /login if no user
           <CartPage />, <OrdersPage />, ...
           <RoleRoute allowedRoles={["seller","admin"]}>
-            <SellerProductsPage />
+            <SellerDashboardPage />
           </RoleRoute>
-          <RoleRoute allowedRoles={["admin"]}>
-            <AdminSellersPage />
+          <RoleRoute allowedRoles={["admin","demo_admin"]}>
+            <AdminDashboardPage />
             <AdminAnalyticsDashboard />
           </RoleRoute>
         </ProtectedRoute>
@@ -541,7 +541,7 @@ All endpoints are prefixed with `/api`.
 | Method | Path            | Auth   | Description                               |
 | ------ | --------------- | ------ | ----------------------------------------- |
 | `POST` | `/create-order` | Auth   | Create Razorpay payment intent            |
-| `POST` | `/verify`       | Auth   | Verify payment signature, create DB order |
+| `POST` | `/verify`       | Auth   | Verify payment signature, confirm pending DB order |
 | `POST` | `/webhook`      | None\* | Razorpay server-to-server webhook         |
 
 \*Webhook uses raw-body parser and HMAC-SHA256 signature verification instead of CSRF.
@@ -572,15 +572,22 @@ All endpoints are prefixed with `/api`.
 | ------ | ----------- | ----------------- | -------------------------------------------------- |
 | `POST` | `/apply`    | Customer+Verified | Submit seller application                          |
 | `GET`  | `/products` | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
+| `GET`  | `/orders`   | Seller+Verified   | Get orders containing the seller's products        |
 
 #### Admin — `/api/admin`
 
-| Method  | Path           | Auth  | Description                                    |
-| ------- | -------------- | ----- | ---------------------------------------------- |
-| `GET`   | `/analytics`   | Admin | KPIs, 14-day revenue, top products, categories |
-| `GET`   | `/sellers`     | Admin | List seller applications                       |
-| `PATCH` | `/sellers/:id` | Admin | Approve/reject seller application              |
-| `GET`   | `/dashboard`   | Admin | Dashboard metrics (revenue, orders, avg value) |
+| Method   | Path                   | Auth               | Description                                    |
+| -------- | ---------------------- | ------------------ | ---------------------------------------------- |
+| `GET`    | `/analytics`           | Admin / Demo Admin | KPIs, 14-day revenue, top products, categories |
+| `GET`    | `/sellers`             | Admin / Demo Admin | List seller applications                       |
+| `PATCH`  | `/sellers/:id`         | Admin              | Approve/reject seller application              |
+| `GET`    | `/dashboard`           | Admin / Demo Admin | Dashboard metrics (revenue, orders, avg value) |
+| `GET`    | `/orders`              | Admin / Demo Admin | Paginated list of all orders                   |
+| `GET`    | `/products`            | Admin / Demo Admin | Paginated list of all products                 |
+| `GET`    | `/products/count`      | Admin / Demo Admin | Count active products                          |
+| `PATCH`  | `/products/:id`        | Admin              | Edit any product                               |
+| `PATCH`  | `/products/:id/status` | Admin              | Toggle product active status                   |
+| `DELETE` | `/products/:id`        | Admin              | Archive product with `isActive: false`         |
 
 ### Response Shape
 
@@ -768,6 +775,7 @@ Reuse Detection:
 ### Password Security
 
 - bcrypt with 12 salt rounds
+- Five failed login attempts lock the account for 15 minutes
 - Verification/reset tokens: SHA-256 hashed before storage (raw never persisted)
 - `passwordChangedAt` timestamp invalidates all prior tokens
 - Rate-limited password reset endpoints (5 req / 10 min)
@@ -862,15 +870,16 @@ Razorpay                    BACKEND
    │◄── 200 { received: true }│
 ```
 
-### Atomic Checkout (MongoDB Transaction)
+### Checkout Integrity
 
-The `placeOrderService` wraps three operations in a MongoDB transaction:
+The COD checkout path in `placeOrderService` uses guarded sequential writes rather than a MongoDB transaction:
 
-1. **Stock decrement**: `findOneAndUpdate` with `{ stock: { $gte: item.quantity } }` atomic guard
+1. **Stock decrement**: `findOneAndUpdate` with `{ isActive: true, stock: { $gte: item.quantity } }` atomic guard
 2. **Order creation**: Snapshots cart items with current prices
-3. **Cart clearing**: Resets items + totalPrice
+3. **Coupon usage update**: Increments usage when a coupon was applied
+4. **Cart clearing**: Resets items + totalPrice
 
-If any step fails (insufficient stock, product deactivated), `session.abortTransaction()` rolls everything back atomically.
+If stock validation fails, the order is not created. Razorpay checkout uses a separate pending-order flow: `/payments/create-order` saves a pending order before payment, and `/payments/verify` or the webhook confirms it and clears the cart.
 
 ### Idempotency
 
@@ -1086,7 +1095,7 @@ No structured logging on the frontend. Error visibility is through:
 | `MONGO_URI`                    | Yes      | MongoDB Atlas connection string           |
 | `ACCESS_TOKEN_SECRET`          | Yes      | JWT signing (min 32 chars in prod)        |
 | `REFRESH_TOKEN_SECRET`         | Yes      | JWT refresh signing (min 32 chars)        |
-| `REFRESH_TOKEN_HASH_SECRET`    | Yes      | HMAC secret for hashing refresh tokens    |
+| `REFRESH_TOKEN_HASH_SECRET`    | No       | Optional HMAC secret for hashing refresh tokens; falls back to refresh/access secrets |
 | `FRONTEND_URL`                 | Yes      | CORS origin + redirect URLs               |
 | `GOOGLE_CLIENT_ID`             | Yes      | Google OAuth client ID                    |
 | `GOOGLE_CLIENT_SECRET`         | Yes      | Google OAuth client secret                |

@@ -64,16 +64,16 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
 
 ## 🧩 About the Project
 
-SnapCart is a **monorepo full-stack e-commerce platform** with a Node.js/Express REST API and a React/Vite SPA. It covers the complete lifecycle of an online marketplace — from buyer browsing and transactional checkout to seller onboarding, admin moderation, and an analytics dashboard.
+SnapCart is a **monorepo full-stack e-commerce platform** with a Node.js/Express REST API and a React/Vite SPA. It covers the complete lifecycle of an online marketplace — from buyer browsing and checkout to seller onboarding, admin moderation, and an analytics dashboard.
 
-This isn't a tutorial clone. Every design decision — from httpOnly cookie auth to MongoDB transactions at checkout — was made deliberately, and the reasoning is documented.
+This isn't a tutorial clone. Every design decision — from httpOnly cookie auth to guarded stock updates and payment recovery — was made deliberately, and the reasoning is documented.
 
 **What it demonstrates:**
 
 | Concern              | What SnapCart does                                                    |
 | -------------------- | --------------------------------------------------------------------- |
 | Auth security        | JWT rotation, refresh-token reuse detection, bcrypt, httpOnly cookies |
-| Data integrity       | MongoDB transactions for atomic checkout (stock + order + cart)       |
+| Data integrity       | Guarded stock updates, order snapshots, cart clearing, and payment recovery |
 | Role architecture    | Three-tier RBAC: customer → seller → admin                            |
 | Developer UX         | Demo email verification so the app works without a paid email domain  |
 | Observability        | Structured audit logging for all sensitive operations                 |
@@ -84,7 +84,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 ## 💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further
 
 - **Refresh-token reuse detection** — if a stolen refresh token is replayed, the backend detects it, clears all tokens, and forces re-login. Most tutorials skip this entirely.
-- **Atomic checkout** — placing an order is a single MongoDB transaction. Stock decrement, order creation, and cart clearing either all succeed or all roll back together.
+- **Checkout integrity** — stock is decremented with atomic guards, orders snapshot cart prices, carts are cleared after order creation, and Razorpay payments save a pending order before confirmation/webhook recovery.
 - **Demo email mode** — real verification architecture (hash stored, raw token emailed, 10-minute expiry) with a fallback that returns the link in the API response. Portfolio-ready without a paid Resend domain.
 - **Coupon management** — admin coupon CRUD with expiry, minimum order, usage limit, and demo-admin view-only restrictions.
 - **Heuristic recommendation engine** — related, frequently-bought-together, and personalized recommendations built from order co-occurrence and user signals. No paid ML service. Fully explainable.
@@ -133,7 +133,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
   <tr>
     <td>Database</td>
     <td>MongoDB Atlas · Mongoose 9</td>
-    <td>Document model fits product/order/cart shapes; Atlas transactions</td>
+    <td>Document model fits product/order/cart/coupon shapes with targeted indexes</td>
   </tr>
   <tr>
     <td>Auth</td>
@@ -245,7 +245,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
 | Product Detail     | Image gallery, description, stock indicator, related product rails               |
 | Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
-| Checkout           | Razorpay online or Cash on Delivery — both backed by MongoDB transactions        |
+| Checkout           | Razorpay online or Cash on Delivery with server-side totals, stock guards, coupons, and order snapshots |
 | Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                     |
 | Order History      | Full order list with per-order detail view                                       |
 | Reviews            | Write a review only after receiving a delivered order                            |
@@ -281,6 +281,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Refresh-Token Reuse Detection | Replay of a used token clears all sessions and forces re-login                                                              |
 | Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry                                                              |
 | Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
+| Account Lockout               | Five failed login attempts temporarily lock the account for 15 minutes                                                       |
 | CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality                                                     |
 | Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
 | RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config                                       |
@@ -300,7 +301,7 @@ snapcart/
 │   │   ├── middleware/         # Auth, CSRF, rate limit, Zod validation
 │   │   ├── models/             # Mongoose schemas
 │   │   ├── routes/             # Express router definitions
-│   │   ├── services/           # Business logic (transactions live here)
+│   │   ├── services/           # Business logic, ownership checks, checkout helpers
 │   │   ├── utils/              # ApiResponse, tokens, email helpers
 │   │   └── types/              # TypeScript augmentations
 │   ├── .env.example            # ← copy to .env and fill in values
@@ -498,9 +499,13 @@ Coupons       POST /api/coupons/apply              (auth) Apply coupon during ch
               PATCH /api/coupons/:id              (admin) Update coupon
               DELETE /api/coupons/:id             (admin) Delete coupon
 
-Cart          GET/POST/PATCH/DELETE /api/cart
+Cart          GET  /api/cart
+              POST /api/cart/add
+              PATCH /api/cart/:productId
+              DELETE /api/cart/:productId
+              DELETE /api/cart
 
-Orders        POST /api/orders                      (atomic checkout transaction)
+Orders        POST /api/orders                      (COD checkout with stock guards)
               GET  /api/orders
               GET  /api/orders/:id
               PATCH /api/orders/:id/status          (seller/admin)
@@ -518,12 +523,21 @@ Wishlist      GET  /api/wishlist
               POST /api/wishlist/email
 
 Seller        POST /api/seller/apply
+              GET  /api/seller/products
+              GET  /api/seller/orders
 
 Admin         GET  /api/admin/sellers
               PATCH /api/admin/sellers/:id
+              GET  /api/admin/dashboard
               GET  /api/admin/analytics
+              GET  /api/admin/orders
+              GET  /api/admin/products
+              GET  /api/admin/products/count
+              PATCH /api/admin/products/:id
+              PATCH /api/admin/products/:id/status
+              DELETE /api/admin/products/:id
 
-Payments      POST /api/payments/order
+Payments      POST /api/payments/create-order
               POST /api/payments/verify
               POST /api/payments/webhook
 ```
@@ -544,6 +558,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 ✅ User-friendly errors      — all API error messages use plain language, no internal terminology exposed
 ✅ Helmet                    — secure HTTP headers out of the box
 ✅ Rate limiting             — 4 tiers: general (100), auth (20), password reset (5), refresh (60) per 10 min
+✅ Account lockout           — five failed login attempts lock the account for 15 minutes
 ✅ Zod validation            — schema-enforced at the route boundary
 ✅ RBAC with permissions — config-based, not stored in DB: roles map to granular permissions
 ✅ Verified email guard      — checkout and seller writes require verification
@@ -620,14 +635,14 @@ For the full reference including request/response shapes, see [`backend/README.m
 | Route Group  | Endpoints                                                                                                                                                                                                                                |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Auth         | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `DELETE /auth/account`, `POST /auth/resend-verification` |
-| Cart         | `POST /cart/add`, `PATCH /cart/:id`, `DELETE /cart/:id`, `DELETE /cart`                                                                                                                                                                  |
+| Cart         | `POST /cart/add`, `PATCH /cart/:productId`, `DELETE /cart/:productId`, `DELETE /cart`                                                                                                                                                    |
 | Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                                               |
 | Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                                                          |
 | Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                                                        |
 | Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                                               |
 | Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                                                   |
 | Seller       | `POST /seller/apply`                                                                                                                                                                                                                     |
-| Admin        | `PATCH /admin/sellers/:id`                                                                                                                                                                                                               |
+| Admin        | `PATCH /admin/sellers/:id`, `PATCH /admin/products/:id`, `PATCH /admin/products/:id/status`, `DELETE /admin/products/:id`                                                                                                                |
 | **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                                                 |
 
 ---
