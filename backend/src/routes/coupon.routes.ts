@@ -5,6 +5,7 @@ const router = Router();
 import {
   createCoupon,
   deleteCoupon,
+  getActiveCoupons,
   getAllCoupons,
   getCouponById,
   updateCoupon,
@@ -21,10 +22,12 @@ import { createCouponSchema } from "../validators/coupon.validator";
 // Public — apply coupon at checkout
 router.post(
   "/apply",
-  requireRole("customer", "seller"),
   verifyToken,
+  requireRole("customer", "seller"),
   applyCoupon,
 );
+
+router.get("/public", getActiveCoupons);
 
 // Admin routes
 router.get(
