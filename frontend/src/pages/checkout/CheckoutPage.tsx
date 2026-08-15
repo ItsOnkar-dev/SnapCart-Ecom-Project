@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
 import { usePlaceOrder } from "@/hooks/useOrders";
 import { usePayment } from "@/hooks/usePayment";
+import { getApiErrorMessage } from "@/types/api.types";
 import type { CartItem } from "@/types/cart.types";
 import type { ShippingAddress } from "@/types/order.types";
 
@@ -123,11 +124,9 @@ export default function CheckoutPage() {
     try {
       const res = await applyCouponApi(couponCode.trim(), subtotal);
       setAppliedCoupon(res.data.data);
-    } catch (error) {
+    } catch (error: unknown) {
       setAppliedCoupon(null);
-      setCouponError(
-        error instanceof Error ? error.message : "Could not apply coupon.",
-      );
+      setCouponError(getApiErrorMessage(error, "Could not apply coupon."));
     } finally {
       setCouponLoading(false);
     }

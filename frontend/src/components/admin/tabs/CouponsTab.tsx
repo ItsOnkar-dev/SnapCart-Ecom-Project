@@ -133,14 +133,14 @@ export default function CouponsTab() {
                       <p className="mt-1 text-xs text-muted-foreground">
                         {coupon.discountType === "percentage"
                           ? `${coupon.discountValue}% off`
-                          : `?${coupon.discountValue} off`}
+                          : `₹${coupon.discountValue} off`}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Min order: ?{coupon.minimumOrder} � Max discount: ?
+                        Min order: ₹{coupon.minimumOrder} Max discount: ₹
                         {coupon.maxDiscount}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Used {coupon.usedCount}/{coupon.usageLimit || "8"}
+                        Used {coupon.usedCount}/{coupon.usageLimit || "∞"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Expires:{" "}

@@ -1,8 +1,7 @@
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-// import { Loader2 } from "lucide-react";
 import { Outlet } from "react-router";
 import { useAuthStore } from "../store/auth.store";
-import { Logo } from "./home/Logo";
 
 export const AuthGate = () => {
   const initAuth = useAuthStore((s) => s.initAuth);
@@ -23,9 +22,13 @@ export const AuthGate = () => {
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-background flex gap-4 items-center justify-center">
-        {/* <Loader2 className="h-10 w-10 animate-spin text-indigo-400" /> */}
         <div className="flex flex-col items-center justify-center animate-pulse text-center duration-1000">
-          <Logo />
+          {/* <Logo /> */}
+          <div className="flex items-center gap-2 text-lg md:text-xl font-bold ">
+            <p className="text-foreground">Loading</p>
+            <p className="text-indigo-400">SnapCart</p>
+            <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+          </div>
           {minTimeElapsed && (
             <p className="mt-2 text-sm font-semibold text-muted-foreground animate-pulse max-w-sm">
               Getting the storefront ready! Connecting to our backend systems
