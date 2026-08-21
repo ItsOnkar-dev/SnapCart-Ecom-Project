@@ -90,6 +90,59 @@ export const getOrderById = asyncHandler(
   },
 );
 
+// PATCH /api/orders/:id/cancel — customer-initiated, only before shipped
+// Reuses restoreStockService (same as admin cancel path in updateOrderStatus)
+export const cancelOrder = asyncHandler(
+  async (req: Request, res: Response) => {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) throw new ApiError(404, "Order not found");
+
+    // Ownership check — only the buyer who placed the order can cancel it
+    if (order.user.toString() !== req.user!._id.toString()) {
+      throw new ApiError(403, "You are not authorized to cancel this order");
+    }
+
+    // Idempotency — already cancelled
+    if (order.status === "cancelled") {
+      throw new ApiError(400, "This order has already been cancelled");
+    }
+
+    // Time gate — cannot cancel once shipped or delivered
+    if (order.status === "shipped" || order.status === "delivered") {
+      throw new ApiError(
+        400,
+        "Order cannot be cancelled once it has been shipped",
+      );
+    }
+
+    // Use a transaction: stock restore + status update must be atomic
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      await restoreStockService(order._id, session);
+      order.status = "cancelled";
+      // If the buyer already paid (Razorpay), flag for refund processing
+      if (order.paymentStatus === "paid") {
+        order.paymentStatus = "refund_pending";
+      }
+      await order.save({ session });
+      await session.commitTransaction();
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      await session.endSession();
+    }
+
+    invalidateAnalyticsCache();
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Order cancelled successfully", order));
+  },
+);
+
 const ORDER_STATUSES = [
   "pending",
   "confirmed",
