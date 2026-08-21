@@ -340,7 +340,20 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | POST   | `/orders`            | Auth         | COD checkout with guarded stock updates and order snapshot                  |
 | GET    | `/orders`            | Auth         | Paginated list of the current user's orders (default 10, supports `?page=`) |
 | GET    | `/orders/:id`        | Auth         | Order detail                                                                |
+| PATCH  | `/orders/:id/cancel` | Auth         | Cancel pending/confirmed orders with transaction-based stock restore         |
 | PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                                                         |
+
+### Coupons
+
+| Method | Path            | Auth               | Description                                |
+| ------ | --------------- | ------------------ | ------------------------------------------ |
+| POST   | `/apply`        | Auth               | Apply coupon during checkout                |
+| GET    | `/public`       | None               | Get active coupons for checkout discovery   |
+| GET    | `/`             | Admin / Demo Admin | Fetch all coupons                          |
+| GET    | `/:id`          | Admin / Demo Admin | Fetch coupon details                       |
+| POST   | `/`             | Admin              | Create a coupon                            |
+| PATCH  | `/:id`          | Admin              | Update a coupon                            |
+| DELETE | `/:id`          | Admin              | Delete a coupon                            |
 
 ### Reviews
 
@@ -707,9 +720,20 @@ The payment flow uses two server endpoints plus a webhook safety net:
 
 - Admin coupon CRUD with expiry, minimum order, usage limit, and active/inactive toggles
 - `POST /api/coupons/apply` validates coupon codes during checkout and enforces all coupon rules
+- `GET /api/coupons/public` provides active coupons for checkout page discovery without authentication
+- Coupon usage tracked and enforced via usage limits and expiry dates
+
+### Order Cancellation
+
+- Customer-initiated cancellation for `pending` and `confirmed` orders only
+- Transaction-based stock restore ensures atomicity between stock restoration and status update
+- Ownership checks ensure only the buyer can cancel their own orders
+- Time gates prevent cancellation once order is `shipped` or `delivered`
+- Refund handling: paid orders get `paymentStatus: refund_pending` flag
+- Reuses `restoreStockService` for consistency with admin cancellation flow
 
 Status flow: `pending` → `confirmed` → `shipped` → `delivered` / `cancelled`
-Cancellation **restores stock** through the service layer.
+Cancellation **restores stock** through the service layer with MongoDB transactions.
 
 ### Reviews
 
@@ -774,6 +798,7 @@ Metrics computed via MongoDB aggregation pipelines and cached in memory with a 5
 | CORS                      | Credentials enabled, strict `FRONTEND_URL` origin                                                                                     |
 | Cookies                   | httpOnly access and refresh tokens (inaccessible to JS)                                                                               |
 | CSRF                      | Double-submit cookie pattern; non-httpOnly `csrfToken` cookie compared against `x-csrf-token` header using `crypto.timingSafeEqual`   |
+| CSRF Auto-Retry           | Interceptor invalidates expired CSRF token and retries request automatically on 403 response                                          |
 | CSRF enforcement          | Single global middleware in `app.ts` covering all POST/PATCH/PUT/DELETE under `/api` (auth routes excluded; webhook uses HMAC-SHA256) |
 | CSRF cross-origin         | Token returned in response body for cross-origin frontends (Vercel → Render)                                                          |
 | Rate limiting             | 100 req/10 min general; 20 req/10 min login/register; 5 req/10 min password reset; 60 req/10 min refresh; 100 req/min webhook         |

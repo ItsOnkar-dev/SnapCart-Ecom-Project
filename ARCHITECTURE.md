@@ -58,7 +58,7 @@ SnapCart-Ecom Project/
 │   │   ├── hooks/                  # 12 files — TanStack Query hooks (queries + mutations)
 │   │   ├── components/
 │   │   │   ├── home/               # Hero, DepartmentGrid, ProductCard, ProductRail, etc.
-│   │   │   ├── layout/             # Header (6 sub-components), Footer, AuthLayout
+│   │   │   ├── layout/             # Header (6 sub-components), Footer, AuthLayout, MobileSidebar
 │   │   │   ├── ui/                 # 12 shadcn/ui primitives (Button, Dialog, Carousel, etc.)
 │   │   │   └── AuthGate.tsx        # Boot-time auth initialization + splash screen
 │   │   ├── pages/                  # 18 route-level components across 11 directories
@@ -198,7 +198,7 @@ ApiResponse (unified JSON shape)
             <AdminAnalyticsDashboard />
           </RoleRoute>
         </ProtectedRoute>
-        <NotFound />, <Unauthorized />            ← error pages
+        <NotFound />, <Unauthorized />, <RouteErrorBoundary /> ← error pages
       </MainLayout>
     </AuthGate>
   </RouterProvider>
@@ -356,7 +356,7 @@ The `requireVerifiedEmail` middleware checks `user.isEmailVerified` and returns 
 ### Entity Relationship
 
 ```
-User (6 models across the codebase)
+User (7 models across the codebase)
   │
   ├── has one ──► Cart (1:1, unique user ref)
   ├── has many ─► Order (1:N, user ref)
@@ -415,6 +415,20 @@ Review
 | `totalReviews`  | Number                             | Updated via aggregation                 |
 | `isActive`      | Boolean                            | Soft-delete flag                        |
 
+### Coupon Model
+
+| Field           | Type                               | Notes                                   |
+| --------------- | ---------------------------------- | --------------------------------------- |
+| `code`          | String (uppercase, trim)           | Required (unique)                       |
+| `discountType`  | `"percentage" \| "flat"`           | Required                                |
+| `discountValue` | Number (min 0)                     | Required                                |
+| `minimumOrder`  | Number (min 0)                     | Default: 0                              |
+| `maxDiscount`   | Number (min 0)                     | Default: 0                              |
+| `usageLimit`    | Number (min 0)                     | Default: 0                              |
+| `usedCount`     | Number                             | Default: 0                              |
+| `isActive`      | Boolean                            | Default: true                           |
+| `expiresAt`     | Date                               | Optional                                |
+
 ### Order Model
 
 | Field               | Type                                                        | Notes                                |
@@ -425,6 +439,8 @@ Review
 | `subtotal`          | Number (min 0)                                              |                                      |
 | `shipping`          | Number (min 0)                                              | ₹0 if subtotal ≥ 500, else ₹49       |
 | `totalPrice`        | Number (min 0)                                              |                                      |
+| `couponCode`        | String (uppercase, trim)                                    | Applied coupon                       |
+| `discount`          | Number (min 0)                                              | Discount amount applied              |
 | `status`            | `pending \| confirmed \| shipped \| delivered \| cancelled` | State machine                        |
 | `paymentStatus`     | `pending \| paid \| failed \| refund_pending \| refunded`   |                                      |
 | `paymentMethod`     | `razorpay \| cod`                                           |                                      |
@@ -508,14 +524,15 @@ All endpoints are prefixed with `/api`.
 
 #### Coupons — `/api/coupons`
 
-| Method   | Path     | Auth               | Description                    |
-| -------- | -------- | ------------------ | ------------------------------ |
-| `POST`   | `/apply` | Auth               | Apply a coupon during checkout |
-| `GET`    | `/`      | Admin / Demo Admin | Fetch all coupons              |
-| `GET`    | `/:id`   | Admin / Demo Admin | Fetch coupon details           |
-| `POST`   | `/`      | Admin              | Create a coupon                |
-| `PATCH`  | `/:id`   | Admin              | Update a coupon                |
-| `DELETE` | `/:id`   | Admin              | Delete a coupon                |
+| Method   | Path       | Auth               | Description                               |
+| -------- | ---------- | ------------------ | ----------------------------------------- |
+| `POST`   | `/apply`   | Auth               | Apply a coupon during checkout             |
+| `GET`    | `/public`  | None               | Fetch active coupons for checkout discovery |
+| `GET`    | `/`        | Admin / Demo Admin | Fetch all coupons                          |
+| `GET`    | `/:id`     | Admin / Demo Admin | Fetch coupon details                       |
+| `POST`   | `/`        | Admin              | Create a coupon                            |
+| `PATCH`  | `/:id`     | Admin              | Update a coupon                            |
+| `DELETE` | `/:id`     | Admin              | Delete a coupon                            |
 
 #### Cart — `/api/cart`
 
@@ -529,12 +546,13 @@ All endpoints are prefixed with `/api`.
 
 #### Orders — `/api/orders`
 
-| Method  | Path          | Auth              | Description                                          |
-| ------- | ------------- | ----------------- | ---------------------------------------------------- |
-| `POST`  | `/`           | Auth+Verified     | Place order (COD or admin)                           |
-| `GET`   | `/`           | Auth              | List user's orders (paginated, default 10, `?page=`) |
-| `GET`   | `/:id`        | Auth              | Single order (ownership-gated)                       |
-| `PATCH` | `/:id/status` | Admin/Seller+CSRF | Update order status (state machine)                  |
+| Method  | Path           | Auth              | Description                                          |
+| ------- | -------------- | ----------------- | ---------------------------------------------------- |
+| `POST`  | `/`            | Auth+Verified     | Place order (COD or admin)                           |
+| `GET`   | `/`            | Auth              | List user's orders (paginated, default 10, `?page=`) |
+| `GET`   | `/:id`         | Auth              | Single order (ownership-gated)                       |
+| `PATCH` | `/:id/cancel`  | Auth+CSRF         | Cancel pending/confirmed orders (stock restore)      |
+| `PATCH` | `/:id/status`  | Admin/Seller+CSRF | Update order status (state machine)                  |
 
 #### Payments — `/api/payments`
 
@@ -743,7 +761,13 @@ All other state (server data) lives in React Query caches. No Redux, no addition
    → Uses crypto.timingSafeEqual (timing-safe comparison)
    → If mismatch → 403
 
-5. Why non-httpOnly is correct:
+5. CSRF Token Auto-Retry (Frontend):
+   → On 403 response, Axios interceptor busts cached token
+   → Fetches fresh CSRF token from /auth/csrf-token
+   → Retries original request with new token
+   → Prevents false "session expired" errors from natural token expiry
+
+6. Why non-httpOnly is correct:
    - CSRF token defeats cross-origin requests, not XSS
    - If an attacker has XSS, httpOnly cookies don't help (real secrets: accessToken/refreshToken are httpOnly)
    - Attacker's cross-origin request cannot read the csrfToken cookie (Same-Origin Policy)
@@ -886,6 +910,19 @@ If stock validation fails, the order is not created. Razorpay checkout uses a se
 - `razorpayPaymentId` has a unique sparse index on the Order collection
 - The `/verify` endpoint checks for existing orders with the same payment ID before creating a new one
 - Prevents duplicate orders if the client retries the verify request
+
+### Order Cancellation
+
+Customer-initiated cancellation (`PATCH /api/orders/:id/cancel`) uses a MongoDB transaction to ensure atomicity:
+
+1. **Ownership check** — Only the buyer who placed the order can cancel it
+2. **Time gate** — Cannot cancel once status is `shipped` or `delivered`
+3. **Transaction-based stock restore** — Uses `restoreStockService` within a MongoDB session
+4. **Status update** — Sets status to `cancelled`
+5. **Refund handling** — If payment status is `paid`, changes to `refund_pending`
+6. **Analytics cache invalidation** — Forces dashboard data refresh
+
+The transaction ensures that stock restore and status update succeed together or not at all, preventing data inconsistency.
 
 ### Webhook Safety Net
 
@@ -1068,13 +1105,21 @@ app.use((err, req, res, next) => {
 
 ### Frontend
 
-**Axios Response Interceptor (401 handling):**
+**Axios Response Interceptor (401 & 403 handling):**
 
-1. Catches all HTTP 401 responses
-2. If not already refreshing, calls `POST /auth/refresh`
-3. Queues concurrent failed requests during refresh
-4. On refresh success: retries all queued requests, then the original
-5. On refresh failure: calls `clearAuth()`, rejects all queued requests
+1. **403 CSRF Expiration Retry**:
+   - Catches 403 Forbidden responses (CSRF validation failure)
+   - Checks if `_csrfRetry` flag is false
+   - Invalidates cached `csrfToken` & `csrfPromise`
+   - Re-fetches a fresh token via `getCsrfToken()` and updates request headers
+   - Retries original request ONCE seamlessly
+2. **401 Authentication Refresh**:
+   - Catches all HTTP 401 responses (Access Token expired)
+   - Excludes login, register, and refresh endpoints to avoid infinite loops
+   - Calls `POST /auth/refresh`
+   - Queues concurrent failed requests during refresh
+   - On refresh success: retries queued requests and original request
+   - On refresh failure: clears auth state (`clearAuth()`) and rejects queued requests
 
 **React Query Error Handling:**
 
@@ -1267,3 +1312,23 @@ Products: 12 products across 6 categories
 - Shared validation logic via Zod schemas in `schemas/` (frontend) and `validators/` (backend) — schemas are duplicated, not shared via a package.
 
 ---
+
+## Known Technical Debt
+
+1. **MongoDB Atlas M0 Transaction Limits**:
+   - Order creation (`placeOrderService`) relies on guarded sequential atomic operations (`findOneAndUpdate` with stock guards) rather than a full multi-document transaction because free-tier Atlas M0 clusters enforce limitations on replica set transactions.
+   - Order cancellation (`cancelOrder`), however, uses explicit session transactions as it's a lighter, single-order atomic operation.
+
+2. **Schema Duplication**:
+   - Validation rules (e.g. `validation-constants.ts`) and Zod schemas are defined separately in backend (`validators/`) and frontend (`schemas/`) rather than shared via a monorepo package.
+
+---
+
+## Suggested Improvements
+
+1. **WebSocket Notifications**:
+   - Implement real-time order status updates for buyers and seller dashboard alerts using Socket.io or WebSockets.
+
+2. **Dedicated Returns Module**:
+   - Implement a full Return/Refund workflow with return reason tracking, seller approval, and refund status management after delivery (`status === 'delivered'`).
+

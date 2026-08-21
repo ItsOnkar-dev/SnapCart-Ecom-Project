@@ -271,7 +271,7 @@ frontend/
 │   │   ├── payment/         # PaymentSuccess
 │   │   ├── seller/          # SellerApplyPage · SellerDashboardPage
 │   │   ├── admin/           # AdminDashboardPage · AdminAnalyticsDashboard
-│   │   ├── error/           # NotFound · Unauthorized
+│   │   ├── error/           # NotFound · Unauthorized · RouteErrorBoundary
 │   │   └── HomePage.tsx
 │   │
 │   ├── router/
@@ -373,6 +373,7 @@ Everything else (products, cart, orders, wishlist, etc.) is **server state** man
 | Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                                                                                  |
 | CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility                             |
 | CSRF header   | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT                                                                                       |
+| CSRF 403 retry| Response interceptor catches `403` → clears cached CSRF token → fetches fresh token via `getCsrfToken()` → retries original request once                             |
 | Token refresh | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
 | Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                                                                                 |
 

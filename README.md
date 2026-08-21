@@ -215,7 +215,7 @@ Browser → CSRF token check → Rate limiter → verifyToken (JWT from cookie)
 ```
 Register → Verify Email → Browse Catalog → Search & Filter
     → Add to Wishlist / Cart → Razorpay Checkout
-    → Track Order Status → Leave a Review
+    → Track Order Status → Cancel Order (if needed) → Leave a Review
 ```
 
 ### Seller
@@ -322,7 +322,7 @@ Browser → CSRF token check → Rate limiter → verifyToken (JWT from cookie)
 ```
 Register → Verify Email → Browse Catalog → Search & Filter
     → Add to Wishlist / Cart → Razorpay Checkout
-    → Track Order Status → Leave a Review
+    → Track Order Status → Cancel Order (if needed) → Leave a Review
 ```
 
 ### Seller
@@ -353,9 +353,10 @@ Log In → Review Seller Applications → Approve / Reject
 | Product Detail     | Image gallery, description, stock indicator, related product rails               |
 | Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
 | Checkout           | Razorpay online or Cash on Delivery with server-side totals, stock guards, coupons, and order snapshots |
-| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                     |
-| Order History      | Full order list with per-order detail view                                       |
-| Order Cancellation | Cancel `pending` or `confirmed` orders; stock restored, refund initiated if paid |
+| Coupon Discovery   | View available active coupons on checkout page with auto-fill on click                               |
+| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                                              |
+| Order History      | Full order list with per-order detail view                                                          |
+| Order Cancellation | Cancel `pending` or `confirmed` orders with transaction-based stock restore; refund initiated if paid |
 | Reviews            | Write a review only after receiving a delivered order                            |
 | Wishlist           | Heart-toggle from any product card; move all items to cart in one click          |
 | Wishlist Sharing   | Generate a public share link or email it to anyone                               |
@@ -390,7 +391,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry                                                              |
 | Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
 | Account Lockout               | Five failed login attempts temporarily lock the account for 15 minutes                                                       |
-| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality                                                     |
+| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality; auto-retry on 403 with fresh token                                               |
 | Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
 | RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config                                       |
 | Audit Logging                 | Login, logout, refresh, verification, password, and seller events                                                           |
@@ -584,10 +585,16 @@ All routes are prefixed with `/api`. State-changing routes require an `x-csrf-to
 ```
 Auth          GET  /api/auth/csrf-token
               POST /api/auth/register
+              GET  /api/auth/verify-email?token=
+              POST /api/auth/resend-verification
               POST /api/auth/login
               POST /api/auth/refresh
               GET  /api/auth/me
               POST /api/auth/logout
+              PATCH /api/auth/change-password
+              POST /api/auth/forgot-password
+              POST /api/auth/reset-password
+              DELETE /api/auth/account
               GET  /api/auth/google
               GET  /api/auth/google/callback
 
@@ -601,6 +608,7 @@ Products      GET  /api/products                    (public, paginated + filters
               PATCH/DELETE /api/products/:id        (seller/admin, ownership-checked)
 
 Coupons       POST /api/coupons/apply              (auth) Apply coupon during checkout
+              GET  /api/coupons/public            (public) Get active coupons for checkout page
               GET  /api/coupons                    (admin/demo_admin) List coupons
               GET  /api/coupons/:id               (admin/demo_admin) Get coupon detail
               POST /api/coupons                   (admin) Create coupon
@@ -613,7 +621,7 @@ Cart          GET  /api/cart
               DELETE /api/cart/:productId
               DELETE /api/cart
 
-Orders        POST /api/orders                      (COD checkout with stock guards)
+Orders        POST /api/orders                      (COD checkout with stock guards and coupons)
               GET  /api/orders
               GET  /api/orders/:id
               PATCH /api/orders/:id/cancel          (customer — before shipped)
@@ -706,6 +714,7 @@ For the full reference including request/response shapes, see [`backend/README.m
 
    - Every `POST`/`PATCH`/`DELETE`/`PUT` request automatically gets `x-csrf-token` header
    - Token is cached in memory and refreshed when the cookie expires (1 hour)
+   - **CSRF Token Expiry Recovery (403 retry)**: If an operation returns a 403 CSRF error and hasn't been retried yet (`_csrfRetry`), the request interceptor invalidates the cached token, fetches a fresh token via `GET /api/auth/csrf-token`, and automatically retries the original request seamlessly.
 
 4. **Backend validation (timing-safe comparison):**
 
