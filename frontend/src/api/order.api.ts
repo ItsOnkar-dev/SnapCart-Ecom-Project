@@ -24,3 +24,8 @@ export const getOrderByIdApi = (id: string) => api.get(`/orders/${id}`);
 // statuses: pending → confirmed → shipped → delivered | cancelled
 export const updateOrderStatusApi = (id: string, status: string) =>
   api.patch(`/orders/${id}/status`, { status });
+
+// PATCH /api/orders/:id/cancel — customer-initiated, only before shipped
+// No request body — ownership + time-gate enforced by the backend
+export const cancelOrderApi = (id: string) =>
+  api.patch(`/orders/${id}/cancel`);

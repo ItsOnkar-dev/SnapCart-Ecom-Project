@@ -4,6 +4,8 @@ import { api } from "@/lib/axios";
 import { lazy, Suspense, useEffect } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import { AuthGate } from "./components/AuthGate";
+import NotFound from "@/pages/error/NotFound";
+import Unauthorized from "@/pages/error/Unauthorized";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
@@ -11,7 +13,7 @@ import RoleRoute from "./router/RoleRoute";
 // Error Boundary
 import RouteErrorBoundary from "@/pages/error/RouteErrorBoundary";
 
-// ── auth pages ────────────────────────────────────────────────────────────────
+// auth pages 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
@@ -23,7 +25,7 @@ const ChangePasswordPage = lazy(
   () => import("@/pages/auth/ChangePasswordPage"),
 );
 
-// ── public pages ──────────────────────────────────────────────────────────────
+// public pages 
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ProductsPage = lazy(() => import("@/pages/product/ProductsPage"));
 const ProductDetailPage = lazy(
@@ -33,7 +35,7 @@ const WishlistSharePage = lazy(
   () => import("@/pages/wishlist/WishlistSharePage"),
 );
 
-// ── protected buyer pages ─────────────────────────────────────────────────────
+// protected buyer pages
 const CartPage = lazy(() => import("@/pages/cart/CartPage"));
 const CheckoutPage = lazy(() => import("@/pages/checkout/CheckoutPage"));
 const OrdersPage = lazy(() => import("@/pages/order/OrdersPage"));
@@ -41,16 +43,14 @@ const OrderDetailPage = lazy(() => import("@/pages/order/OrderDetailPage"));
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const WishlistPage = lazy(() => import("@/pages/wishlist/WishlistPage"));
 const PaymentSuccess = lazy(() => import("@/pages/payment/PaymentSuccess"));
-const Unauthorized = lazy(() => import("@/pages/error/Unauthorized"));
-const NotFound = lazy(() => import("@/pages/error/NotFound"));
 
-// ── seller pages ──────────────────────────────────────────────────────────────
+// seller pages
 const SellerApplyPage = lazy(() => import("@/pages/seller/SellerApplyPage"));
 const SellerDashboardPage = lazy(
   () => import("@/pages/seller/SellerDashboardPage"),
 );
 
-// ── admin pages ───────────────────────────────────────────────────────────────
+// admin pages
 const AdminDashboardPage = lazy(
   () => import("@/pages/admin/AdminDashboardPage"),
 );
@@ -61,7 +61,7 @@ const ReviewSellerRedirect = lazy(
   () => import("@/pages/admin/ReviewSellerRedirect"),
 );
 
-// ── layout wrapper — Header + page content via Outlet ────────────────────────
+// layout wrapper — Header + page content via Outlet 
 function MainLayout() {
   useEffect(() => {
     api.get("/auth/csrf-token").catch(() => {
@@ -108,7 +108,7 @@ const router = createBrowserRouter([
         ],
       },
 
-      // ── everything else gets the Header ───────────────────────────────────────
+      // everything else gets the Header
       {
         element: <MainLayout />,
         children: [
@@ -129,7 +129,7 @@ const router = createBrowserRouter([
           { path: "/unauthorized", element: <Unauthorized /> },
           { path: "*", element: <NotFound /> },
 
-          // ── protected: any authenticated user ───────────────────────────────
+          // protected: any authenticated user
           {
             element: <ProtectedRoute />,
             children: [

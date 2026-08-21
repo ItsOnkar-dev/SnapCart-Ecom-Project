@@ -48,7 +48,6 @@ api.interceptors.request.use(async (config) => {
   if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
     const token = await getCsrfToken();
     if (token) {
-      config.headers = config.headers ?? {};
       config.headers.set("x-csrf-token", token);
     }
   }
@@ -61,10 +60,6 @@ api.interceptors.response.use(
 
   async (error) => {
     const originalRequest = error.config;
-
-    // Don't intercept auth or refresh requests — let them pass through
-    // so login with wrong password returns "Invalid email or password"
-    // instead of being swallowed by the refresh token logic.
     if (
       originalRequest?.url?.includes("/auth/refresh") ||
       originalRequest?.url?.includes("/auth/login") ||
@@ -72,6 +67,23 @@ api.interceptors.response.use(
     ) {
       return Promise.reject(error);
     }
+
+    // CSRF token expired → re-fetch and retry once
+    if (
+      error.response?.status === 403 &&
+      !originalRequest._csrfRetry
+    ) {
+      originalRequest._csrfRetry = true;
+      csrfToken = null; // ← bust the cached token
+      csrfPromise = null;
+
+      const newToken = await getCsrfToken(); // ← fetch fresh token
+      if (newToken) {
+        originalRequest.headers["x-csrf-token"] = newToken;
+      }
+      return api(originalRequest); // ← retry original request
+    }
+
 
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
@@ -87,10 +99,6 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // Use a raw axios call, NOT `api`, so this request never
-      // passes back through this same interceptor chain.
-      // Read CSRF token from cookie manually — the request interceptor that
-      // normally attaches x-csrf-token won't run on this raw call.
       const csrfFromCookie = document.cookie
         .split("; ")
         .find((row) => row.startsWith("csrfToken="))

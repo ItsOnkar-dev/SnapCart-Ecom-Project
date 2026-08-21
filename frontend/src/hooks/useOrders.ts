@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
+  cancelOrderApi,
   getOrderByIdApi,
   getOrdersApi,
   placeOrderApi, // ← correct name
@@ -100,6 +101,24 @@ export function useUpdateOrderStatus() {
     },
     onError: (err: unknown) => {
       toast.error(getApiErrorMessage(err, "Could not update status."));
+    },
+  });
+}
+
+// PATCH /orders/:id/cancel — customer-initiated, before shipped
+export function useCancelOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: string) => cancelOrderApi(orderId),
+    onSuccess: (_res, orderId) => {
+      // Invalidate both the list and the detail so both pages reflect cancelled state
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+      toast.success("Order cancelled successfully.");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Could not cancel order."));
     },
   });
 }
