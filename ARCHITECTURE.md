@@ -55,7 +55,7 @@ SnapCart-Ecom Project/
 │   │   ├── App.tsx                 # Route definitions (createBrowserRouter)
 │   │   ├── index.css               # Tailwind CSS v4 + custom CSS variables
 │   │   ├── api/                    # 11 files — plain async functions for every domain
-│   │   ├── hooks/                  # 11 files — TanStack Query hooks (queries + mutations)
+│   │   ├── hooks/                  # 12 files — TanStack Query hooks (queries + mutations)
 │   │   ├── components/
 │   │   │   ├── home/               # Hero, DepartmentGrid, ProductCard, ProductRail, etc.
 │   │   │   ├── layout/             # Header (6 sub-components), Footer, AuthLayout
@@ -899,6 +899,73 @@ If the user closes the browser tab after payment but before `/verify` completes,
 6. Clears the user's cart
 
 This works because `createRazorpayOrder` now saves the pending Order to MongoDB (with `shippingAddress`) **before** the user sees the Razorpay popup, so the webhook always has everything it needs.
+
+### Customer Order Cancellation Flow
+
+Customers can cancel their own orders **before the order is shipped**.
+
+**Eligibility gate** (enforced by `cancelOrder` controller):
+
+| Order Status | Cancellable? | Reason |
+| ------------ | ------------ | ------ |
+| `pending`    | ✅ Yes        | Order placed but not yet confirmed |
+| `confirmed`  | ✅ Yes        | Confirmed but not yet shipped |
+| `shipped`    | ❌ No         | In transit — cannot be recalled |
+| `delivered`  | ❌ No         | Already delivered |
+| `cancelled`  | ❌ No (400)   | Idempotency — already cancelled |
+
+**Cancellation flow:**
+
+```
+FRONTEND                              BACKEND
+   │                                     │
+   │  PATCH /api/orders/:id/cancel       │
+   │  (no request body)                  │
+   │────────────────────────────────────►│
+   │                                     │  verifyToken — must be logged in
+   │                                     │  requireRole("customer", "seller")
+   │                                     │  Find order by ID
+   │                                     │  Ownership check — order.user === req.user._id
+   │                                     │  Time gate — status must be pending | confirmed
+   │                                     │
+   │                                     │  START MongoDB transaction
+   │                                     │  ├── restoreStockService(orderId, session)
+   │                                     │  │   └── increments stock for each order item
+   │                                     │  ├── order.status = "cancelled"
+   │                                     │  └── if paymentStatus === "paid" →
+   │                                     │       paymentStatus = "refund_pending"
+   │                                     │  COMMIT transaction
+   │                                     │
+   │                                     │  invalidateAnalyticsCache()
+   │◄── { order (cancelled state) }      │
+   │                                     │
+   │  queryClient.invalidateQueries      │
+   │  (orderKeys.all + orderKeys.detail) │
+   │  → OrderDetailPage re-renders with  │
+   │    cancelled banner + no cancel btn │
+```
+
+**Frontend UI behaviour:**
+
+- "Cancel order" link appears only when `status ∈ { "pending", "confirmed" }`
+- Clicking opens `CancelOrderDialog` (shadcn `Dialog`) with an `AlertTriangle` icon and a clear refund warning
+- Dialog has two buttons: "Yes, cancel order" (destructive) and "Keep order"
+- During mutation `isPending`: the confirm button shows a spinner and is disabled
+- On success: dialog closes, cancelled banner replaces the status stepper, `paymentStatus` badge turns amber if refund is pending
+
+**Security:**
+
+- CSRF protection: covered automatically by the global middleware in `app.ts` (all `PATCH` requests are checked)
+- Ownership: enforced in the controller (`order.user.toString() !== req.user._id.toString()` → 403)
+- Role gate: `requireRole("customer", "seller")` — admins use the existing `PATCH /:id/status` route instead
+
+**Side effects:**
+
+- Stock is restored atomically via `restoreStockService` (same function used by admin cancel)
+- Analytics cache is invalidated so dashboard KPIs stay accurate
+- `paymentStatus = "refund_pending"` is informational — actual refund processing is a manual/external step (out of scope for this version)
+
+**Returns (out of scope):** Post-delivery returns require a separate `Return` model with its own lifecycle. They are not handled by this route.
 
 ### Shipping Policy
 
