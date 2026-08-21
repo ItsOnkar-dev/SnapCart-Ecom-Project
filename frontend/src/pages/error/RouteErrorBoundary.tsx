@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
-import NotFound from "@/pages/error/NotFound";
-import Unauthorized from "@/pages/error/Unauthorized";
 import { Home, RefreshCw, ShieldAlert } from "lucide-react";
 import { isRouteErrorResponse, useRouteError } from "react-router";
+import NotFound from "./NotFound";
+import Unauthorized from "./Unauthorized";
+
 
 export default function RouteErrorBoundary() {
   const error = useRouteError();
 
-  // 1. If it's a standard routing error status (like 404 or 403)
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
       return <NotFound />;
@@ -17,7 +17,6 @@ export default function RouteErrorBoundary() {
     }
   }
 
-  // 2. If it's an unexpected JavaScript crash (or a failed Vite module fetch)
   return (
     <main className="grid min-h-screen place-items-center bg-background px-6 py-24 sm:py-32 lg:px-8 font-sans antialiased text-foreground">
       <div className="text-center max-w-md">
@@ -32,7 +31,6 @@ export default function RouteErrorBoundary() {
           due to a temporary network lag or local file updates.
         </p>
 
-        {/* Display details during local development */}
         {import.meta.env.DEV && error instanceof Error && (
           <pre className="mt-4 p-3 bg-muted border border-border rounded-xl text-[10px] font-mono text-left overflow-x-auto max-h-40 scrollbar-hide select-all">
             {error.message}

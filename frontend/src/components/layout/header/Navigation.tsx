@@ -1,8 +1,9 @@
-import { Heart, Menu, X } from "lucide-react";
+import { Heart, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
 import CartDrawer from "@/components/cart/CartDrawer";
+import MobileSidebar from "./MobileSidebar";
 import { Logo } from "@/components/home/Logo";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -24,7 +25,7 @@ const CATEGORIES: { slug: string; label: string }[] = [
 ];
 
 export default function Navigation() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
 
   const { data: cart } = useCart();
@@ -37,30 +38,34 @@ export default function Navigation() {
     ) ?? 0;
 
   const wishlistCount = wishlist?.items?.length ?? 0;
-
   const showBecomeSeller = user?.role === "customer";
 
   return (
     <>
-      <div className="bg-background/90 backdrop-blur-lg border-b border-border">
+      {/* ── Mobile Sidebar */}
+      <MobileSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      <div className="bg-background/80 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-40">
         <div className="flex items-center gap-3 h-16 px-4 md:px-6 max-w-7xl mx-auto">
+
+          {/* Hamburger — opens sidebar, mobile only */}
           <Button
             variant="ghost"
             size="icon"
             className="lg:hidden text-foreground"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={sidebarOpen}
           >
-            {mobileOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            <Menu className="w-6 h-6" />
           </Button>
 
           <Logo className="shrink-0" />
 
-          {/* Desktop search — live dropdown, debounced, wired to useProducts */}
+          {/* Desktop search */}
           <div className="hidden md:flex flex-1 max-w-xl mx-auto">
             <SearchAutocomplete />
           </div>
@@ -72,13 +77,8 @@ export default function Navigation() {
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
-
               {wishlistCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 grid place-items-center
-                 min-w-4.5 h-4.5 px-1 rounded-full
-                 bg-red-500 text-white text-[10px] font-semibold"
-                >
+                <span className="absolute -top-1 -right-1 grid place-items-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold">
                   {wishlistCount}
                 </span>
               )}
@@ -94,11 +94,7 @@ export default function Navigation() {
             >
               <ShoppingBagIcon />
               {cartCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 grid place-items-center
-                 min-w-4.5 h-4.5 px-1 rounded-full
-                 bg-red-500 text-white text-[10px] font-semibold"
-                >
+                <span className="absolute -top-1 -right-1 grid place-items-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold">
                   {cartCount}
                 </span>
               )}
@@ -110,16 +106,14 @@ export default function Navigation() {
         <div className="md:hidden px-4 pb-3">
           <SearchAutocomplete
             placeholder="Search products..."
-            onNavigate={() => setMobileOpen(false)}
+            onNavigate={() => setSidebarOpen(false)}
           />
         </div>
 
-        {/* ── desktop category strip ─────────────────────────────────────── */}
         <nav className="hidden lg:block border-t border-border/60">
           <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
             <Link
               to="/products"
-              // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
               className="text-sm font-medium text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
             >
               All Products
@@ -128,7 +122,6 @@ export default function Navigation() {
               <Link
                 key={c.slug}
                 to={`/products?category=${c.slug}`}
-                // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
                 className="text-sm text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
               >
                 {c.label}
@@ -136,7 +129,6 @@ export default function Navigation() {
             ))}
             <Link
               to="/products?sort=newest"
-              // Changed hover:text-white to hover:text-nav-hover and text-muted-foreground to text-nav-foreground
               className="text-sm text-nav-foreground hover:text-nav-hover transition-colors whitespace-nowrap"
             >
               New In
@@ -145,7 +137,6 @@ export default function Navigation() {
             {showBecomeSeller && (
               <Link
                 to="/seller/apply"
-                // Changed text-white hover:text-white/80 to text-primary hover:text-primary-hover
                 className="ml-auto text-sm font-semibold text-primary hover:text-primary-hover whitespace-nowrap"
               >
                 Become a seller
@@ -153,72 +144,8 @@ export default function Navigation() {
             )}
           </div>
         </nav>
-
-        {/* ── mobile slide-out menu ───────────────────────────────────────── */}
-        {mobileOpen && (
-          <div className="lg:hidden border-t border-border bg-background">
-            <div className="px-4 py-4 space-y-1">
-              <Link
-                to="/products"
-                onClick={() => setMobileOpen(false)}
-                // Changed hover:text-white to hover:text-nav-hover
-                className="block py-2.5 text-base font-medium text-foreground hover:text-nav-hover"
-              >
-                All Products
-              </Link>
-              {CATEGORIES.map((c) => (
-                <Link
-                  key={c.slug}
-                  to={`/products?category=${c.slug}`}
-                  onClick={() => setMobileOpen(false)}
-                  // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
-                  className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
-                >
-                  {c.label}
-                </Link>
-              ))}
-              <Link
-                to="/products?sort=newest"
-                onClick={() => setMobileOpen(false)}
-                // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
-                className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
-              >
-                New In
-              </Link>
-
-              <div className="pt-3 mt-2 border-t border-border space-y-1">
-                {showBecomeSeller && (
-                  <Link
-                    to="/seller/apply"
-                    onClick={() => setMobileOpen(false)}
-                    // Changed text-white to text-primary and hover:text-white/80 to hover:text-primary-hover
-                    className="block py-2.5 text-base font-semibold text-primary hover:text-primary-hover"
-                  >
-                    Become a seller
-                  </Link>
-                )}
-                {!user && (
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileOpen(false)}
-                    // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
-                    className="block py-2.5 text-base text-nav-foreground hover:text-nav-hover"
-                  >
-                    Sign in
-                  </Link>
-                )}
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  // Changed text-muted-foreground to text-nav-foreground and hover:text-white to hover:text-nav-hover
-                  className="block w-full text-left py-2.5 text-base text-nav-foreground hover:text-nav-hover"
-                >
-                  Favourites
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
       <CartDrawer />
     </>
   );
