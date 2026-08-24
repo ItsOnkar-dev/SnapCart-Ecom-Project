@@ -58,6 +58,7 @@ export default function UserMenu() {
         className="relative"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
+        onClick={() => setOpen(false)}
       >
         <button
           className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-secondary transition-colors"

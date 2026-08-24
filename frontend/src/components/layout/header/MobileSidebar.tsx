@@ -16,6 +16,7 @@ import {
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useAuthStore } from "@/store/auth.store";
 
 const CATEGORIES = [
@@ -37,6 +38,8 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
   const user = useAuthStore((s) => s.user);
   const location = useLocation();
 
+  useScrollLock(open);
+
   // Close on route change
   useEffect(() => {
     onClose();
@@ -50,22 +53,6 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
-
-  useEffect(() => {
-    if (open) {
-      const scrollbarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    };
-  }, [open]);
 
   const showBecomeSeller = user?.role === "customer";
 

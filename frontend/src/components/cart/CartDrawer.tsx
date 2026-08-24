@@ -1,12 +1,12 @@
-import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { useMemo } from "react";
-import { Link } from "react-router";
-
 import RecommendedProducts from "@/components/home/RecommendedProducts";
 import { Button } from "@/components/ui/button";
 import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/useCart";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useCartDrawerStore } from "@/store/cart-drawer.store";
 import type { CartItem } from "@/types/cart.types";
+import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { useMemo } from "react";
+import { Link } from "react-router";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -29,6 +29,8 @@ export default function CartDrawer() {
   const { data: cart, isLoading } = useCart();
   const { mutate: updateCartItem, isPending: isUpdating } = useUpdateCartItem();
   const { mutate: removeCartItem, isPending: isRemoving } = useRemoveCartItem();
+
+  useScrollLock(isOpen);
 
   const items = useMemo(() => {
     return (cart?.items ?? []).filter(
