@@ -8,33 +8,47 @@ export const AuthGate = () => {
   const isAuthLoading = useAuthStore((s) => s.isAuthLoading);
 
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [isSlowConnection, setIsSlowConnection] = useState(false);
 
   useEffect(() => {
     initAuth();
 
-    const timer = setTimeout(() => {
-      setMinTimeElapsed(true);
-    }, 3000);
+    const minTimer = setTimeout(() => setMinTimeElapsed(true), 2000);
+    const slowTimer = setTimeout(() => setIsSlowConnection(true), 3000);
 
-    return () => clearTimeout(timer);
-  }, [initAuth]);
+    return () => {
+      clearTimeout(minTimer);
+      clearTimeout(slowTimer);
+    };
+  }, []);
 
-  if (isAuthLoading) {
+   // Stay on splash until BOTH auth is done AND min time has passed
+  const showSplash = isAuthLoading || !minTimeElapsed;
+
+  if (showSplash) {
     return (
-      <div className="min-h-screen bg-background flex gap-4 items-center justify-center">
-        <div className="flex flex-col items-center justify-center animate-pulse text-center duration-1000">
-          {/* <Logo /> */}
-          <div className="flex items-center gap-2 text-lg md:text-xl font-bold ">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center text-center gap-3 px-6">
+
+          <div className="flex items-center gap-2 text-lg md:text-xl font-bold">
             <p className="text-foreground">Loading</p>
             <p className="text-indigo-400">SnapCart</p>
             <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
           </div>
-          {minTimeElapsed && (
-            <p className="mt-2 text-sm font-semibold text-muted-foreground animate-pulse max-w-sm">
-              Getting the storefront ready! Connecting to our backend systems
-              usually takes 4-6 seconds. Hang tight!
-            </p>
+
+
+          {isSlowConnection && (
+            <div className="mt-2 max-w-sm space-y-1 animate-in fade-in duration-500">
+              <p className="text-sm font-semibold text-muted-foreground">
+                ⏳ Our backend is waking up from sleep.
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                Render's free tier spins down after inactivity.
+                First load takes 6–8 seconds — thanks for your patience!
+              </p>
+            </div>
           )}
+
         </div>
       </div>
     );
