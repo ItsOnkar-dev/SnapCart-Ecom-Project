@@ -26,7 +26,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ## 📋 Table of Contents
 
 - [🎨 SnapCart — Frontend](#-snapcart--frontend)
-    - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
+  - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [✨ Highlights](#-highlights)
   - [🛠 Tech Stack](#-tech-stack)
@@ -240,17 +240,18 @@ frontend/
 │   │   │   ├── AuthLayout.tsx
 │   │   │   └── Footer.tsx
 │   │   ├── ui/              # shadcn/ui primitive components
-│   │   ├── AuthGate.tsx     # Calls initAuth() once on mount
+│   │   ├── AuthGate.tsx     # # Pings health endpoint, retries on cold start, then calls initAuth()
 │   │   └── Logo.tsx
 │   │
-│   ├── hooks/               # React Query hooks — one per domain
-│   │   ├── useAuth.ts       # Login, logout, register mutations
-│   │   ├── useCart.ts       # Cart queries and mutations
-│   │   ├── useOrders.ts     # Order list, detail, status
-│   │   ├── useProducts.ts   # Catalog query, product detail
-│   │   ├── useCoupons.ts    # Admin coupon list + mutations
-│   │   ├── useWishlist.ts   # Wishlist CRUD + share
-│   │   ├── useReviews.ts    # Reviews list + submit
+│   ├── hooks/                  # React Query hooks — one per domain
+│   │   ├── useServerWakeUp.ts  # Health ping with exponential backoff retry for Render cold starts
+│   │   ├── useAuth.ts          # Login, logout, register mutations
+│   │   ├── useCart.ts          # Cart queries and mutations
+│   │   ├── useOrders.ts        # Order list, detail, status
+│   │   ├── useProducts.ts      # Catalog query, product detail
+│   │   ├── useCoupons.ts       # Admin coupon list + mutations
+│   │   ├── useWishlist.ts      # Wishlist CRUD + share
+│   │   ├── useReviews.ts       # Reviews list + submit
 │   │   ├── useRecommendations.ts
 │   │   ├── useSellerProducts.ts
 │   │   ├── useAdmin.ts
@@ -367,15 +368,15 @@ Everything else (products, cart, orders, wishlist, etc.) is **server state** man
 
 `src/lib/axios.ts` exports a single Axios instance used by every API module:
 
-| Concern       | Implementation                                                                                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Base URL      | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                                                                                       |
-| Credentials   | `withCredentials: true` — httpOnly cookies sent on every request                                                                                                  |
-| CSRF token    | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility                             |
-| CSRF header   | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT                                                                                       |
-| CSRF 403 retry| Response interceptor catches `403` → clears cached CSRF token → fetches fresh token via `getCsrfToken()` → retries original request once                             |
-| Token refresh | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
-| Auth failure  | On refresh failure, calls `clearAuth()` and redirects to `/login`                                                                                                 |
+| Concern        | Implementation                                                                                                                                                    |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base URL       | Reads `VITE_API_URL`; falls back to `http://localhost:5000`                                                                                                       |
+| Credentials    | `withCredentials: true` — httpOnly cookies sent on every request                                                                                                  |
+| CSRF token     | Fetched once on first non-GET request via `GET /api/auth/csrf-token` — token returned in response body for cross-origin compatibility                             |
+| CSRF header    | Request interceptor attaches `x-csrf-token` header on POST/PATCH/DELETE/PUT                                                                                       |
+| CSRF 403 retry | Response interceptor catches `403` → clears cached CSRF token → fetches fresh token via `getCsrfToken()` → retries original request once                          |
+| Token refresh  | Response interceptor catches `401` → reads csrfToken from `document.cookie` → calls raw `axios.post('/auth/refresh')` with CSRF header → retries original request |
+| Auth failure   | On refresh failure, calls `clearAuth()` and redirects to `/login`                                                                                                 |
 
 Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks/` wrap them with `useQuery` or `useMutation`.
 

@@ -55,7 +55,7 @@ SnapCart-Ecom Project/
 │   │   ├── App.tsx                 # Route definitions (createBrowserRouter)
 │   │   ├── index.css               # Tailwind CSS v4 + custom CSS variables
 │   │   ├── api/                    # 11 files — plain async functions for every domain
-│   │   ├── hooks/                  # 12 files — TanStack Query hooks (queries + mutations)
+│   │   ├── hooks/                  # 13 files — TanStack Query hooks (queries + mutations) + server wakeup
 │   │   ├── components/
 │   │   │   ├── home/               # Hero, DepartmentGrid, ProductCard, ProductRail, etc.
 │   │   │   ├── layout/             # Header (6 sub-components), Footer, AuthLayout, MobileSidebar
@@ -180,7 +180,7 @@ ApiResponse (unified JSON shape)
 <QueryClientProvider>
   <Toaster />
   <RouterProvider>
-    <AuthGate>                                    ← calls initAuth() on mount, 2s min splash
+    <AuthGate>                                    ← pings health, retries on cold start, then calls initAuth()
       <AuthLayout />                              ← centered layout for auth pages
         /login, /register, /verify-email,
         /forgot-password, /reset-password
@@ -716,7 +716,7 @@ interface AuthState {
 
 - `user` — The current authenticated user object (or `null` when logged out)
 - `isAuthLoading` — `true` while the boot-time `/auth/me` call resolves; guards against flash-of-unauthenticated-content
-- `initAuth()` — Called once by `AuthGate` on mount. Calls `GET /auth/me`. On failure, sets `user: null`. Always sets `isAuthLoading: false` in the `finally` block
+- `initAuth()` — Called by `AuthGate` after the health ping succeeds. Calls `GET /auth/me`. On failure, sets `user: null`. Always sets `isAuthLoading: false` in the `finally` block
 - `clearAuth()` — Called by:
   1. The Axios refresh interceptor when token refresh fails permanently
   2. The logout mutation after successful/logged server-side logout
