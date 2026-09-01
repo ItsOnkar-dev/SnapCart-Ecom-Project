@@ -340,20 +340,20 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | POST   | `/orders`            | Auth         | COD checkout with guarded stock updates and order snapshot                  |
 | GET    | `/orders`            | Auth         | Paginated list of the current user's orders (default 10, supports `?page=`) |
 | GET    | `/orders/:id`        | Auth         | Order detail                                                                |
-| PATCH  | `/orders/:id/cancel` | Auth         | Cancel pending/confirmed orders with transaction-based stock restore         |
+| PATCH  | `/orders/:id/cancel` | Auth         | Cancel pending/confirmed orders with transaction-based stock restore        |
 | PATCH  | `/orders/:id/status` | Seller/Admin | Update order status                                                         |
 
 ### Coupons
 
-| Method | Path            | Auth               | Description                                |
-| ------ | --------------- | ------------------ | ------------------------------------------ |
-| POST   | `/apply`        | Auth               | Apply coupon during checkout                |
-| GET    | `/public`       | None               | Get active coupons for checkout discovery   |
-| GET    | `/`             | Admin / Demo Admin | Fetch all coupons                          |
-| GET    | `/:id`          | Admin / Demo Admin | Fetch coupon details                       |
-| POST   | `/`             | Admin              | Create a coupon                            |
-| PATCH  | `/:id`          | Admin              | Update a coupon                            |
-| DELETE | `/:id`          | Admin              | Delete a coupon                            |
+| Method | Path      | Auth               | Description                               |
+| ------ | --------- | ------------------ | ----------------------------------------- |
+| POST   | `/apply`  | Auth               | Apply coupon during checkout              |
+| GET    | `/public` | None               | Get active coupons for checkout discovery |
+| GET    | `/`       | Admin / Demo Admin | Fetch all coupons                         |
+| GET    | `/:id`    | Admin / Demo Admin | Fetch coupon details                      |
+| POST   | `/`       | Admin              | Create a coupon                           |
+| PATCH  | `/:id`    | Admin              | Update a coupon                           |
+| DELETE | `/:id`    | Admin              | Delete a coupon                           |
 
 ### Reviews
 
@@ -880,19 +880,17 @@ npm run db:seed:dev
 
 The backend is deployed on [Render](https://render.com/).
 
-> ## ⚡ Performance Note: Render Free Tier "Cold Starts"
+> ## ⚡ Performance Note (First Load Notice): Render Free Tier "Cold Starts"
 >
-> This project's backend API is hosted on **Render's Free Tier**. To conserve resources, Render automatically spins down free web services after 15 minutes of inactivity.
+> This backend is hosted on **Render's Free Tier**, which spins down after 15 minutes of inactivity. The first request after a sleep period may take **15–30 seconds** to respond.
 >
-> If you are visiting the live demo for the first time in a while, **the initial load may take 4 to 6 seconds** while the backend container wakes up.
+> **How this is handled:**
 >
-> **How I mitigated this challenge:**
-> To provide a smooth experience despite zero-budget infrastructure constraints, I implemented a multi-layered approach:
+> 1. **Smart wakeup flow:** The frontend pings `/api/v1/health` before calling `initAuth()`. If the server is cold, it retries up to 6 times with exponential backoff (~46s total window) — enough to cover any Render cold start.
+> 2. **Two-phase loading screen:** For the first 3 seconds, users see only the SnapCart logo and spinner. If the server hasn't responded by then, a friendly message appears explaining the free-tier delay — with a live elapsed timer and retry counter.
+> 3. **UptimeRobot monitoring:** A free uptime monitor pings the health endpoint every 5 minutes during active hours to keep the server warm and minimize cold starts for real visitors.
 >
-> 1. **Infrastructure Keep-Alive:** A scheduled cron job (via cron-job.org) pings a lightweight `/api/v1/health` endpoint every 14 minutes to prevent the server from sleeping during peak hours.
-> 2. **UX Fallback:** The React frontend utilizes a delayed-timeout "Smart Loader". If the initial API handshake exceeds 3 seconds, the UI gracefully informs the user that the free-tier server is waking up, managing expectations rather than leaving them staring at a frozen screen.
->
-> Once the server is awake, all subsequent API requests and page loads execute in standard milliseconds.
+> Once the server is awake, all subsequent requests respond in standard milliseconds.
 
 ### Steps
 

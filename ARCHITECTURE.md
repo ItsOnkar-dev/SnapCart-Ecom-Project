@@ -19,6 +19,7 @@ SnapCart is a **production-grade full-stack multi-vendor e-commerce platform** b
 - [Checkout Flow](#checkout-flow)
 - [Recommendation Engine](#recommendation-engine)
 - [Error Handling](#error-handling)
+- [Cold Start Handling](#cold-start-handling)
 - [Logging](#logging)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
@@ -417,17 +418,17 @@ Review
 
 ### Coupon Model
 
-| Field           | Type                               | Notes                                   |
-| --------------- | ---------------------------------- | --------------------------------------- |
-| `code`          | String (uppercase, trim)           | Required (unique)                       |
-| `discountType`  | `"percentage" \| "flat"`           | Required                                |
-| `discountValue` | Number (min 0)                     | Required                                |
-| `minimumOrder`  | Number (min 0)                     | Default: 0                              |
-| `maxDiscount`   | Number (min 0)                     | Default: 0                              |
-| `usageLimit`    | Number (min 0)                     | Default: 0                              |
-| `usedCount`     | Number                             | Default: 0                              |
-| `isActive`      | Boolean                            | Default: true                           |
-| `expiresAt`     | Date                               | Optional                                |
+| Field           | Type                     | Notes             |
+| --------------- | ------------------------ | ----------------- |
+| `code`          | String (uppercase, trim) | Required (unique) |
+| `discountType`  | `"percentage" \| "flat"` | Required          |
+| `discountValue` | Number (min 0)           | Required          |
+| `minimumOrder`  | Number (min 0)           | Default: 0        |
+| `maxDiscount`   | Number (min 0)           | Default: 0        |
+| `usageLimit`    | Number (min 0)           | Default: 0        |
+| `usedCount`     | Number                   | Default: 0        |
+| `isActive`      | Boolean                  | Default: true     |
+| `expiresAt`     | Date                     | Optional          |
 
 ### Order Model
 
@@ -524,15 +525,15 @@ All endpoints are prefixed with `/api`.
 
 #### Coupons — `/api/coupons`
 
-| Method   | Path       | Auth               | Description                               |
-| -------- | ---------- | ------------------ | ----------------------------------------- |
-| `POST`   | `/apply`   | Auth               | Apply a coupon during checkout             |
-| `GET`    | `/public`  | None               | Fetch active coupons for checkout discovery |
-| `GET`    | `/`        | Admin / Demo Admin | Fetch all coupons                          |
-| `GET`    | `/:id`     | Admin / Demo Admin | Fetch coupon details                       |
-| `POST`   | `/`        | Admin              | Create a coupon                            |
-| `PATCH`  | `/:id`     | Admin              | Update a coupon                            |
-| `DELETE` | `/:id`     | Admin              | Delete a coupon                            |
+| Method   | Path      | Auth               | Description                                 |
+| -------- | --------- | ------------------ | ------------------------------------------- |
+| `POST`   | `/apply`  | Auth               | Apply a coupon during checkout              |
+| `GET`    | `/public` | None               | Fetch active coupons for checkout discovery |
+| `GET`    | `/`       | Admin / Demo Admin | Fetch all coupons                           |
+| `GET`    | `/:id`    | Admin / Demo Admin | Fetch coupon details                        |
+| `POST`   | `/`       | Admin              | Create a coupon                             |
+| `PATCH`  | `/:id`    | Admin              | Update a coupon                             |
+| `DELETE` | `/:id`    | Admin              | Delete a coupon                             |
 
 #### Cart — `/api/cart`
 
@@ -546,21 +547,21 @@ All endpoints are prefixed with `/api`.
 
 #### Orders — `/api/orders`
 
-| Method  | Path           | Auth              | Description                                          |
-| ------- | -------------- | ----------------- | ---------------------------------------------------- |
-| `POST`  | `/`            | Auth+Verified     | Place order (COD or admin)                           |
-| `GET`   | `/`            | Auth              | List user's orders (paginated, default 10, `?page=`) |
-| `GET`   | `/:id`         | Auth              | Single order (ownership-gated)                       |
-| `PATCH` | `/:id/cancel`  | Auth+CSRF         | Cancel pending/confirmed orders (stock restore)      |
-| `PATCH` | `/:id/status`  | Admin/Seller+CSRF | Update order status (state machine)                  |
+| Method  | Path          | Auth              | Description                                          |
+| ------- | ------------- | ----------------- | ---------------------------------------------------- |
+| `POST`  | `/`           | Auth+Verified     | Place order (COD or admin)                           |
+| `GET`   | `/`           | Auth              | List user's orders (paginated, default 10, `?page=`) |
+| `GET`   | `/:id`        | Auth              | Single order (ownership-gated)                       |
+| `PATCH` | `/:id/cancel` | Auth+CSRF         | Cancel pending/confirmed orders (stock restore)      |
+| `PATCH` | `/:id/status` | Admin/Seller+CSRF | Update order status (state machine)                  |
 
 #### Payments — `/api/payments`
 
-| Method | Path            | Auth   | Description                               |
-| ------ | --------------- | ------ | ----------------------------------------- |
-| `POST` | `/create-order` | Auth   | Create Razorpay payment intent            |
+| Method | Path            | Auth   | Description                                        |
+| ------ | --------------- | ------ | -------------------------------------------------- |
+| `POST` | `/create-order` | Auth   | Create Razorpay payment intent                     |
 | `POST` | `/verify`       | Auth   | Verify payment signature, confirm pending DB order |
-| `POST` | `/webhook`      | None\* | Razorpay server-to-server webhook         |
+| `POST` | `/webhook`      | None\* | Razorpay server-to-server webhook                  |
 
 \*Webhook uses raw-body parser and HMAC-SHA256 signature verification instead of CSRF.
 
@@ -943,13 +944,13 @@ Customers can cancel their own orders **before the order is shipped**.
 
 **Eligibility gate** (enforced by `cancelOrder` controller):
 
-| Order Status | Cancellable? | Reason |
-| ------------ | ------------ | ------ |
-| `pending`    | ✅ Yes        | Order placed but not yet confirmed |
-| `confirmed`  | ✅ Yes        | Confirmed but not yet shipped |
-| `shipped`    | ❌ No         | In transit — cannot be recalled |
-| `delivered`  | ❌ No         | Already delivered |
-| `cancelled`  | ❌ No (400)   | Idempotency — already cancelled |
+| Order Status | Cancellable? | Reason                             |
+| ------------ | ------------ | ---------------------------------- |
+| `pending`    | ✅ Yes       | Order placed but not yet confirmed |
+| `confirmed`  | ✅ Yes       | Confirmed but not yet shipped      |
+| `shipped`    | ❌ No        | In transit — cannot be recalled    |
+| `delivered`  | ❌ No        | Already delivered                  |
+| `cancelled`  | ❌ No (400)  | Idempotency — already cancelled    |
 
 **Cancellation flow:**
 
@@ -1137,6 +1138,16 @@ app.use((err, req, res, next) => {
 
 ---
 
+## Cold Start Handling
+
+> The backend is hosted on Render's free tier which spins down after 15 minutes of inactivity. The frontend handles this with a dedicated wakeup flow:
+
+- `useServerWakeUp` hook pings `/api/v1/health` before `initAuth()` fires
+- Retries up to 6 times with exponential backoff (8s timeout per attempt, ~46s total)
+- AuthGate shows a two-phase loading screen — logo only for 3s, then status text, progress bar, and tips if the server is still waking
+- UptimeRobot pings the health endpoint every 5 minutes to minimize cold starts during active hours
+- ***
+
 ## Logging
 
 ### Backend
@@ -1200,30 +1211,30 @@ No structured logging on the frontend. Error visibility is through:
 
 ### Backend (`backend/.env`)
 
-| Variable                       | Required | Purpose                                   |
-| ------------------------------ | -------- | ----------------------------------------- |
-| `PORT`                         | Yes      | Server port (default: 5000)               |
-| `NODE_ENV`                     | Yes      | `development` / `production`              |
-| `MONGO_URI`                    | Yes      | MongoDB Atlas connection string           |
-| `ACCESS_TOKEN_SECRET`          | Yes      | JWT signing (min 32 chars in prod)        |
-| `REFRESH_TOKEN_SECRET`         | Yes      | JWT refresh signing (min 32 chars)        |
+| Variable                       | Required | Purpose                                                                               |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------- |
+| `PORT`                         | Yes      | Server port (default: 5000)                                                           |
+| `NODE_ENV`                     | Yes      | `development` / `production`                                                          |
+| `MONGO_URI`                    | Yes      | MongoDB Atlas connection string                                                       |
+| `ACCESS_TOKEN_SECRET`          | Yes      | JWT signing (min 32 chars in prod)                                                    |
+| `REFRESH_TOKEN_SECRET`         | Yes      | JWT refresh signing (min 32 chars)                                                    |
 | `REFRESH_TOKEN_HASH_SECRET`    | No       | Optional HMAC secret for hashing refresh tokens; falls back to refresh/access secrets |
-| `FRONTEND_URL`                 | Yes      | CORS origin + redirect URLs               |
-| `GOOGLE_CLIENT_ID`             | Yes      | Google OAuth client ID                    |
-| `GOOGLE_CLIENT_SECRET`         | Yes      | Google OAuth client secret                |
-| `GOOGLE_CALLBACK_URL`          | Yes      | OAuth redirect URI                        |
-| `CLOUDINARY_CLOUD_NAME`        | Yes      | Cloudinary cloud name                     |
-| `CLOUDINARY_API_KEY`           | Yes      | Cloudinary API key                        |
-| `CLOUDINARY_API_SECRET`        | Yes      | Cloudinary API secret                     |
-| `RESEND_API_KEY`               | No       | Transactional emails                      |
-| `RESEND_FROM_EMAIL`            | No       | Verified sender email                     |
-| `RESEND_EMAIL`                 | No       | Seller application notifications          |
-| `ADMIN_EMAIL`                  | No       | Bootstrap script — primary admin email    |
-| `ADMIN_PASSWORD`               | No       | Bootstrap script — primary admin password |
-| `RAZORPAY_KEY_ID`              | No       | Razorpay payment API key                  |
-| `RAZORPAY_KEY_SECRET`          | No       | Razorpay payment API secret               |
-| `RAZORPAY_WEBHOOK_SECRET`      | No       | Webhook signature secret                  |
-| `EMAIL_VERIFICATION_DEMO_MODE` | No       | `true` returns demo URL in API response   |
+| `FRONTEND_URL`                 | Yes      | CORS origin + redirect URLs                                                           |
+| `GOOGLE_CLIENT_ID`             | Yes      | Google OAuth client ID                                                                |
+| `GOOGLE_CLIENT_SECRET`         | Yes      | Google OAuth client secret                                                            |
+| `GOOGLE_CALLBACK_URL`          | Yes      | OAuth redirect URI                                                                    |
+| `CLOUDINARY_CLOUD_NAME`        | Yes      | Cloudinary cloud name                                                                 |
+| `CLOUDINARY_API_KEY`           | Yes      | Cloudinary API key                                                                    |
+| `CLOUDINARY_API_SECRET`        | Yes      | Cloudinary API secret                                                                 |
+| `RESEND_API_KEY`               | No       | Transactional emails                                                                  |
+| `RESEND_FROM_EMAIL`            | No       | Verified sender email                                                                 |
+| `RESEND_EMAIL`                 | No       | Seller application notifications                                                      |
+| `ADMIN_EMAIL`                  | No       | Bootstrap script — primary admin email                                                |
+| `ADMIN_PASSWORD`               | No       | Bootstrap script — primary admin password                                             |
+| `RAZORPAY_KEY_ID`              | No       | Razorpay payment API key                                                              |
+| `RAZORPAY_KEY_SECRET`          | No       | Razorpay payment API secret                                                           |
+| `RAZORPAY_WEBHOOK_SECRET`      | No       | Webhook signature secret                                                              |
+| `EMAIL_VERIFICATION_DEMO_MODE` | No       | `true` returns demo URL in API response                                               |
 
 Env validation (`config/validateEnv.ts`) checks for required variables on startup and exits with an error message if any are missing. In production, it additionally enforces JWT secrets ≥ 32 characters.
 
@@ -1331,4 +1342,3 @@ Products: 12 products across 6 categories
 
 2. **Dedicated Returns Module**:
    - Implement a full Return/Refund workflow with return reason tracking, seller approval, and refund status management after delivery (`status === 'delivered'`).
-
