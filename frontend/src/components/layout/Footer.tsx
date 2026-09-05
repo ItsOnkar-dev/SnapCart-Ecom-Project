@@ -1,5 +1,3 @@
-// Global footer — Shop / Sell / Help columns + social, matching the screenshot.
-
 import { Globe, Mail } from "lucide-react";
 import { Link } from "react-router";
 
@@ -43,9 +41,9 @@ export default function Footer() {
   return (
     <footer className="mt-8 border-t border-border bg-nav">
       <div className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <div className="flex md:flex-row flex-col justify-between gap-10">
           {/* brand */}
-          <div className="max-w-sm">
+          <div className="max-w-sm space-y-4 md:space-y-8">
             <Logo />
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               Snapcart is a modern marketplace where great products meet great

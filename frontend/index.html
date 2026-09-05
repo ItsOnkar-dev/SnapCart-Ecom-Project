@@ -2,6 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Theme initialization script — unchanged -->
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem("snapcart-theme");
+          const prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+          ).matches;
+          const isLight = stored ? stored === "light" : !prefersDark;
+          if (isLight) document.documentElement.classList.add("light");
+        } catch (e) {}
+      })();
+    </script>
+
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Snapcart — Shop electronics, fashion, home & more</title>

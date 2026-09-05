@@ -1,3 +1,6 @@
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useScrollLock } from "@/hooks/useScrollLock";
+import { useAuthStore } from "@/store/auth.store";
 import {
   BookOpen,
   ChevronRight,
@@ -15,9 +18,6 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
-
-import { useScrollLock } from "@/hooks/useScrollLock";
-import { useAuthStore } from "@/store/auth.store";
 
 const CATEGORIES = [
   { slug: "electronics", label: "Electronics", icon: Cpu },
@@ -158,7 +158,16 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-white/8 p-4">
+        <div className="shrink-0 border-t border-white/8 p-4 space-y-2">
+          <div className="px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
+            <ThemeToggle
+              showLabel={true}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground w-full"
+            />
+          </div>
+
+          <div className="h-px bg-border/40 mx-1" />
+
           {user ? (
             <div className="space-y-1">
               <Link

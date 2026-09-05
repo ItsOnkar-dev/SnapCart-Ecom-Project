@@ -15,15 +15,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth.store";
 import {
   ChevronDown,
   Heart,
   LogOut,
-  Moon,
   Package,
-  Sun,
   TrendingUp,
   User,
   UserCircle,
@@ -35,14 +34,6 @@ export default function UserMenu() {
   const user = useAuthStore((s) => s.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [isLight, setIsLight] = useState(() =>
-    document.documentElement.classList.contains("light"),
-  );
-
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle("light");
-    setIsLight((v) => !v);
-  };
 
   if (!user) {
     return (
@@ -175,16 +166,11 @@ export default function UserMenu() {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onClick={toggleTheme}
-            className="flex items-center gap-2.5 cursor-pointer"
-          >
-            {isLight ? (
-              <Moon className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <Sun className="w-4 h-4 text-muted-foreground" />
-            )}
-            {isLight ? "Dark Mode" : "Light Mode"}
+          <DropdownMenuItem asChild>
+            <ThemeToggle
+              showLabel={true}
+              className="w-full px-2 py-1.5 text-sm"
+            />
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
