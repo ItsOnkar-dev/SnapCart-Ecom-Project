@@ -149,7 +149,7 @@ export const AuthGate = () => {
                 </p>
                 <p className="text-[11px] text-muted-foreground/50">
                   This may take up to 30 seconds on the first load because we
-                  are using a free hosting tier
+                  are using the render's free hosting tier
                   {elapsedSec >= 5 && ` · ${elapsedSec}s`}
                   {attempt > 1 && ` · attempt ${attempt}/${maxAttempts}`}
                 </p>
