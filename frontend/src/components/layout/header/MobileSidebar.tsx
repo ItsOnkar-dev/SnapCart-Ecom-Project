@@ -1,5 +1,6 @@
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useWishlist } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
 import {
   BookOpen,
@@ -36,11 +37,12 @@ interface MobileSidebarProps {
 
 export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
   const user = useAuthStore((s) => s.user);
+  const { data: wishlist } = useWishlist();
+  const wishlistCount = wishlist?.items?.length ?? 0;
   const location = useLocation();
 
   useScrollLock(open);
 
-  // Close on route change
   useEffect(() => {
     onClose();
   }, [location.pathname, location.search]);
@@ -103,7 +105,12 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             <div className="space-y-0.5">
               <Link
                 to="/products"
-                className="group flex items-center justify-between px-3 py-3 rounded-xl text-sm font-semibold text-foreground hover:bg-white/5 transition-all duration-200"
+                className={`group flex items-center justify-between px-3 py-3 rounded-xl text-sm font-semibold transition-colors duration-200
+                  ${
+                    location.pathname === "/products" && !location.search
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-white/5"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="grid place-items-center w-8 h-8 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-200 shrink-0">
@@ -116,7 +123,12 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
               <Link
                 to="/products?sort=newest"
-                className="group flex items-center justify-between px-3 py-3 rounded-xl text-sm font-semibold text-foreground hover:bg-white/5 transition-all duration-200"
+                className={`group flex items-center justify-between px-3 py-3 rounded-xl text-sm font-semibold transition-colors duration-200
+                  ${
+                    location.search === "?sort=newest"
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-white/5"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="grid place-items-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform duration-200 shrink-0">
@@ -143,7 +155,12 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                   <Link
                     key={c.slug}
                     to={`/products?category=${c.slug}`}
-                    className="group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all duration-200"
+                    className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200
+                      ${
+                        location.search === `?category=${c.slug}`
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -172,13 +189,44 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             <div className="space-y-1">
               <Link
                 to="/wishlist"
-                className="group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-white/5 transition-colors"
+                className={`
+    group flex items-center justify-between px-3 py-2.5
+    rounded-xl text-sm font-medium transition-colors
+    ${
+      location.pathname === "/wishlist"
+        ? "bg-primary/10 text-primary"
+        : "text-foreground hover:bg-white/5"
+    }
+  `}
               >
                 <div className="flex items-center gap-3">
-                  <Heart className="w-4 h-4 text-rose-500/70 group-hover:text-rose-500 transition-colors shrink-0" />
+                  <Heart
+                    className="w-4 h-4 text-rose-500/70
+                      group-hover:text-rose-500
+                      transition-colors shrink-0"
+                  />
                   Favourites
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
+                {/* Right side — count badge or chevron */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {wishlistCount > 0 && (
+                    <span
+                      className="
+        grid place-items-center
+        min-w-5 h-5 px-1.5
+        rounded-full bg-rose-500/15 text-rose-500
+        text-[10px] font-bold
+      "
+                    >
+                      {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                  <ChevronRight
+                    className="w-3.5 h-3.5 text-muted-foreground/20
+                             group-hover:text-muted-foreground/60
+                             transition-colors"
+                  />
+                </div>
               </Link>
 
               {showBecomeSeller && (

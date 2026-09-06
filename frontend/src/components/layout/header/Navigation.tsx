@@ -31,21 +31,15 @@ export default function Navigation() {
 
   const location = useLocation();
   const isHomepage = location.pathname === "/";
+  const isSolid = !isHomepage || scrolled;
 
   const { data: cart } = useCart();
   const { data: wishlist } = useWishlist();
 
-  const isSolid = !isHomepage || scrolled;
-
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 60);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", handleScroll, { passive: true });
-
     const rafId = requestAnimationFrame(handleScroll);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
       cancelAnimationFrame(rafId);
@@ -68,68 +62,87 @@ export default function Navigation() {
       <div className="sticky top-0 z-40 w-full">
         <div
           className={`
-            relative z-20 w-full transition-all duration-300 ease-out
-            ${isSolid ? "bg-background/80 backdrop-blur-2xl" : "bg-transparent"}
-          `}
+          relative z-20 w-full
+          transition-[background-color,backdrop-filter] duration-500 ease-out
+          ${isSolid ? "bg-background/80 backdrop-blur-2xl" : "bg-transparent"}
+        `}
         >
           <div className="flex items-center gap-3 h-16 px-4 max-w-7xl mx-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden text-foreground"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open menu"
-              aria-expanded={sidebarOpen}
-            >
-              <Menu className="w-6 h-6" />
-            </Button>
+            <div className="relative lg:hidden shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-foreground"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open menu"
+                aria-expanded={sidebarOpen}
+              >
+                <Menu strokeWidth={3.5} className="w-6 h-6" />
+              </Button>
+              {/* Wishlist count badge  */}
+              {user && wishlistCount > 0 && (
+                <span className=" absolute -top-0.5 -right-0.5 grid place-items-center min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold pointer-events-none">
+                  {wishlistCount > 99 ? "99+" : wishlistCount}
+                </span>
+              )}
+            </div>
 
             <Logo className="shrink-0" />
 
+            {/* Desktop search */}
             <div className="hidden md:flex flex-1 max-w-xl mx-auto">
               <SearchAutocomplete />
             </div>
 
-            <div className="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
-              {/* Wishlist */}
-              <Link
-                to="/wishlist"
-                className="relative hidden sm:grid place-items-center p-2 
-                text-nav-foreground hover:text-nav-hover transition-colors"
-                aria-label="Wishlist"
-              >
-                <Heart className="w-5 h-5" />
-                {wishlistCount > 0 && (
-                  <span
-                    className="absolute -top-1 -right-1 grid place-items-center 
-                    min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 
-                    text-white text-[10px] font-semibold"
-                  >
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
+            <div className="flex items-center gap-1 md:gap-2 ml-auto">
+              {user && (
+                <Link
+                  to="/wishlist"
+                  className="relative hidden md:grid place-items-center p-2
+                          text-nav-foreground hover:text-nav-hover transition-colors"
+                  aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ""}`}
+                >
+                  <Heart className="w-5 h-5" />
+                  {wishlistCount > 0 && (
+                    <span
+                      className="
+                      absolute -top-1 -right-1
+                      grid place-items-center
+                      min-w-4.5 h-4.5 px-1
+                      rounded-full bg-red-500
+                      text-white text-[10px] font-semibold
+                    "
+                    >
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
-              {/* Cart */}
               <button
                 type="button"
                 onClick={() => useCartDrawerStore.getState().open()}
-                className="relative p-2 text-foreground hover:text-nav-hover 
-                transition-colors cursor-pointer"
-                aria-label="Open cart"
+                className="relative p-2 text-foreground hover:text-nav-hover
+                           transition-colors cursor-pointer"
+                aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
               >
                 <ShoppingBagIcon />
                 {cartCount > 0 && (
                   <span
-                    className="absolute -top-1 -right-1 grid place-items-center 
-                    min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 
-                    text-white text-[10px] font-semibold"
+                    className="
+                    absolute -top-1 -right-1
+                    grid place-items-center
+                    min-w-4.5 h-4.5 px-1
+                    rounded-full bg-red-500
+                    text-white text-[10px] font-semibold
+                  "
                   >
                     {cartCount}
                   </span>
                 )}
               </button>
 
+              {/* Theme toggle */}
               {!user && (
                 <div className="hidden md:flex items-center">
                   <ThemeToggle
@@ -144,31 +157,37 @@ export default function Navigation() {
           </div>
         </div>
 
-        {/* Mobile search row */}
-        <div className="md:hidden px-4 pb-3 relative z-20 bg-background/80 backdrop-blur-2xl">
+        {/* Mobile search */}
+        <div
+          className={`
+          md:hidden px-4 pb-3 relative z-20
+          transition-[background-color,backdrop-filter] duration-300 ease-out
+          ${isSolid ? "bg-background/80 backdrop-blur-2xl" : "bg-transparent"}
+        `}
+        >
           <SearchAutocomplete
             placeholder="Search products..."
             onNavigate={() => setSidebarOpen(false)}
           />
         </div>
 
-        {/* Category Strip */}
+        {/* Category strip */}
         <nav
           className={`
-            hidden lg:block absolute left-0 right-0 top-16 z-10 w-full
-            transition-all duration-500
-            ${
-              isSolid
-                ? "bg-background/80 backdrop-blur-2xl"
-                : "bg-transparent shadow-none opacity-0 -translate-y-10 pointer-events-none"
-            }
-          `}
+          hidden lg:block w-full absolute left-0 right-0 top-16 z-10
+          transition-all duration-500
+          ${
+            isSolid
+              ? "bg-background/80 backdrop-blur-2xl"
+              : "bg-transparent opacity-0 -translate-y-10 pointer-events-none"
+          }
+        `}
         >
-          <div className="flex items-center gap-6 px-6 h-14 max-w-7xl mx-auto overflow-x-auto">
+          <div className="flex items-center gap-6 px-6 h-11 max-w-7xl mx-auto overflow-x-auto">
             <Link
               to="/products"
-              className="text-sm font-medium text-nav-foreground 
-              hover:text-nav-hover transition-colors whitespace-nowrap"
+              className="text-sm font-medium text-nav-foreground
+                         hover:text-nav-hover transition-colors whitespace-nowrap"
             >
               All Products
             </Link>
@@ -176,24 +195,24 @@ export default function Navigation() {
               <Link
                 key={c.slug}
                 to={`/products?category=${c.slug}`}
-                className="text-sm text-nav-foreground hover:text-nav-hover 
-                transition-colors whitespace-nowrap"
+                className="text-sm text-nav-foreground hover:text-nav-hover
+                           transition-colors whitespace-nowrap"
               >
                 {c.label}
               </Link>
             ))}
             <Link
               to="/products?sort=newest"
-              className="text-sm text-nav-foreground hover:text-nav-hover 
-              transition-colors whitespace-nowrap"
+              className="text-sm text-nav-foreground hover:text-nav-hover
+                         transition-colors whitespace-nowrap"
             >
               New In
             </Link>
             {showBecomeSeller && (
               <Link
                 to="/seller/apply"
-                className="ml-auto text-sm font-semibold text-primary 
-                hover:text-primary-hover whitespace-nowrap"
+                className="ml-auto text-sm font-semibold text-primary
+                           hover:text-primary-hover whitespace-nowrap"
               >
                 Become a seller
               </Link>
