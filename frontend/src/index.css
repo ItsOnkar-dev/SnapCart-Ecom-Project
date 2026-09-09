@@ -14,10 +14,10 @@
     --nav-hover: 0 0% 100%;
 
     /* Brand / interactive */
-    --primary: 256 72% 62%;
+    --primary: 255 76% 62%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 256 92% 72%;
-    --primary-glow: 266 92% 72%;
+    --primary-hover: 255 92% 72%;
+    --primary-glow: 255 92% 72%;
 
     --secondary: 240 33% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -30,7 +30,7 @@
 
     --border: 240 28% 19%;
     --input: 240 28% 19%;
-    --ring: 244 76% 60%;
+    --ring: 255 92% 62%;
 
     --card: 240 42% 10%;
     --card-foreground: 0 0% 98%;
@@ -45,12 +45,12 @@
 
     --gradient-primary: linear-gradient(
       135deg,
-      hsl(244 76% 60%),
-      hsl(266 82% 66%)
+      hsl(255 92% 62%),
+      hsl(255 92% 72%)
     );
     --gradient-hero: linear-gradient(
       155deg,
-      hsl(244, 49%, 33%),
+      hsl(244, 36%, 41%),
       hsl(248 58% 16%) 55%,
       hsl(258 50% 14%)
     );
@@ -59,19 +59,19 @@
       hsl(244 76% 60% / 0.28),
       transparent 60%
     );
-    --shadow-glow: 0 24px 70px -24px hsl(244 76% 60% / 0.5);
+    --shadow-glow: 0 24px 70px -24px hsl(255 76% 62% / 0.5);
     --shadow-card: 0 10px 36px -16px hsl(240 70% 2% / 0.7);
 
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 240 42% 8%;
     --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 244 76% 60%;
+    --sidebar-primary: 255 76% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 33% 15%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 240 28% 19%;
-    --sidebar-ring: 244 76% 60%;
+    --sidebar-ring: 255 76% 62%;
   }
 
   /* Light theme — Daybreak Indigo */
@@ -83,7 +83,7 @@
     --nav-foreground: 240 20% 30%;
     --nav-hover: 244 76% 52%;
 
-    --primary: 244 76% 56%;
+    --primary: 255 76% 62%;
     --primary-foreground: 0 0% 100%;
     --primary-hover: 244 76% 48%;
     --primary-glow: 256 92% 66%;
@@ -114,7 +114,7 @@
 
     --gradient-hero: linear-gradient(
       155deg,
-      hsl(240, 69%, 90%),
+      hsl(244 60% 96%),
       hsl(250 70% 94%) 55%,
       hsl(258 70% 95%)
     );

@@ -70,7 +70,7 @@ export default function OrdersPage() {
   const pagination = data?.pagination;
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10">
+    <main className="min-h-screen bg-background px-4 py-8 md:py-16 md:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 border-b border-border/70 pb-6">
           <p className="mb-2 text-sm text-muted-foreground">Home / Orders</p>

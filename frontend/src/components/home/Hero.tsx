@@ -52,31 +52,31 @@ export default function Hero() {
   return (
     <section className="mx-auto w-full max-w-7xl px-4 pt-8 md:px-6 md:pt-10">
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
-        {/* promo card */}
         <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-hero p-8 md:p-10">
           <div className="absolute inset-0 bg-gradient-glow" />
           <div className="relative flex h-full flex-col justify-center">
-            {/* Improved badge color contrast across themes */}
-            <span className="inline-block w-fit text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full text-primary bg-primary/10 dark:text-primary-foreground dark:bg-primary/40">
+            <span className="inline-block w-fit text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full bg-primary/60 text-primary-foreground">
               Welcome to Snapcart
             </span>
             <h1 className="mt-5 text-pretty text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-5xl">
               Everything you love,{" "}
               <span className="text-gradient">delivered fast.</span>
             </h1>
-            {/* Slightly darker text for improved readability on light gradient */}
             <p className="mt-4 max-w-md text-pretty leading-relaxed text-muted-foreground/90 dark:text-muted-foreground">
               Shop thousands of products across electronics, fashion, home,
               beauty and more — from trusted sellers.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="px-5">
+              <Button
+                asChild
+                size="lg"
+                className="px-5 bg-gradient-primary text-primary-foreground"
+              >
                 <Link to="/products">
                   Start shopping
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              {/* Dynamic border styling replacing the hardcoded hex value */}
               <Button
                 asChild
                 size="lg"
@@ -89,7 +89,6 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* category bento */}
         <div className="grid gap-4 lg:gap-5">
           <BentoCard
             href="/products?category=electronics"

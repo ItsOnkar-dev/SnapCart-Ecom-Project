@@ -84,14 +84,14 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         `}
       >
         <div className="flex items-center justify-between px-5 h-16 border-b border-white/8 shrink-0">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/60">
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/60">
             Menu
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="grid place-items-center w-8 h-8 rounded-full bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="grid place-items-center w-8 h-8 rounded-full bg-muted/50 text-foreground/60 hover:text-foreground hover:bg-muted transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -99,7 +99,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
         <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 space-y-6 scrollbar-hide">
           <div>
-            <p className="px-2 mb-2 text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground/40">
+            <p className="px-2 mb-2 text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground">
               Browse
             </p>
             <div className="space-y-0.5">
@@ -145,7 +145,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
           {/* Categories */}
           <div>
-            <p className="px-2 mb-2 text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground/40">
+            <p className="px-2 mb-2 text-[10px] font-bold tracking-[0.15em] uppercase text-muted-foreground">
               Categories
             </p>
             <div className="space-y-0.5">
@@ -159,7 +159,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                       ${
                         location.search === `?category=${c.slug}`
                           ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                          : "text-foreground/60 hover:text-foreground hover:bg-white/5"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
           <div className="px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
             <ThemeToggle
               showLabel={true}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground w-full"
+              className="text-sm font-medium text-foreground/60 hover:text-foreground w-full"
             />
           </div>
 
