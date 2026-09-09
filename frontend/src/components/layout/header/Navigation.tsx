@@ -95,6 +95,16 @@ export default function Navigation() {
             </div>
 
             <div className="flex items-center gap-1 md:gap-2 ml-auto">
+              {/* Theme toggle */}
+              {!user && (
+                <div className="hidden md:flex items-center">
+                  <ThemeToggle
+                    showLabel={false}
+                    className="p-2 text-nav-foreground hover:text-nav-hover transition-colors"
+                  />
+                </div>
+              )}
+
               {user && (
                 <Link
                   to="/wishlist"
@@ -141,16 +151,6 @@ export default function Navigation() {
                   </span>
                 )}
               </button>
-
-              {/* Theme toggle */}
-              {!user && (
-                <div className="hidden md:flex items-center">
-                  <ThemeToggle
-                    showLabel={false}
-                    className="p-2 text-nav-foreground hover:text-nav-hover transition-colors"
-                  />
-                </div>
-              )}
 
               <UserMenu />
             </div>

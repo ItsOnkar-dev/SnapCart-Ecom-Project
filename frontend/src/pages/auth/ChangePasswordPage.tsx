@@ -41,7 +41,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="h-full flex items-center justify-center px-6">
+    <div className="h-full flex items-center justify-center px-6 py-12 md:py-20">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-5">
           <Lock className="h-10 w-10 text-primary" />

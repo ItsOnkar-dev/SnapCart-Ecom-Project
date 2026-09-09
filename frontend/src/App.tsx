@@ -1,19 +1,20 @@
 import AuthLayout from "@/components/layout/AuthLayout";
 import Header from "@/components/layout/header/Header";
 import { api } from "@/lib/axios";
+import NotFound from "@/pages/error/NotFound";
+import Unauthorized from "@/pages/error/Unauthorized";
 import { lazy, Suspense, useEffect } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import { AuthGate } from "./components/AuthGate";
-import NotFound from "@/pages/error/NotFound";
-import Unauthorized from "@/pages/error/Unauthorized";
 import Footer from "./components/layout/Footer";
+import ScrollToTop from "./components/ui/ScrollToTop";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RoleRoute from "./router/RoleRoute";
 
 // Error Boundary
 import RouteErrorBoundary from "@/pages/error/RouteErrorBoundary";
 
-// auth pages 
+// auth pages
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
@@ -25,7 +26,7 @@ const ChangePasswordPage = lazy(
   () => import("@/pages/auth/ChangePasswordPage"),
 );
 
-// public pages 
+// public pages
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const ProductsPage = lazy(() => import("@/pages/product/ProductsPage"));
 const ProductDetailPage = lazy(
@@ -61,7 +62,7 @@ const ReviewSellerRedirect = lazy(
   () => import("@/pages/admin/ReviewSellerRedirect"),
 );
 
-// layout wrapper — Header + page content via Outlet 
+// layout wrapper — Header + page content via Outlet
 function MainLayout() {
   useEffect(() => {
     api.get("/auth/csrf-token").catch(() => {
@@ -70,6 +71,7 @@ function MainLayout() {
   }, []);
   return (
     <>
+      <ScrollToTop />
       <Header />
       <Outlet />
       <Footer />

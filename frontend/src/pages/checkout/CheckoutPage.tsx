@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 import { applyCouponApi } from "@/api/coupon.api";
-import CheckoutHeader from "@/components/layout/CheckoutHeader";
+import CheckoutHeader from "@/components/layout/header/CheckoutHeader";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

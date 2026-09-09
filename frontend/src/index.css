@@ -14,10 +14,10 @@
     --nav-hover: 0 0% 100%;
 
     /* Brand / interactive */
-    --primary: 244 76% 60%;
+    --primary: 256 72% 62%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 244 76% 54%;
-    --primary-glow: 256 92% 72%;
+    --primary-hover: 256 92% 72%;
+    --primary-glow: 266 92% 72%;
 
     --secondary: 240 33% 15%;
     --secondary-foreground: 0 0% 95%;

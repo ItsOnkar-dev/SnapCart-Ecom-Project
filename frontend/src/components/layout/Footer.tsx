@@ -33,8 +33,8 @@ const COLUMNS: { heading: string; links: { label: string; to: string }[] }[] = [
 ];
 
 const SOCIALS = [
-  { icon: Mail, label: "Mail", href: "#" },
-  { icon: Globe, label: "Globe", href: "#" },
+  { icon: Mail, label: "Mail", href: "mailto: snapcart.admin0541@gmail.com" },
+  { icon: Globe, label: "Globe", href: "https://snapcart-now.vercel.app" },
 ];
 
 export default function Footer() {
