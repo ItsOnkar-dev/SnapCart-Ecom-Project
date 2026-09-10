@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { AppearanceRow } from "@/components/ui/ThemeToggle";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth.store";
 import {
@@ -102,9 +102,9 @@ export default function UserMenu() {
           <DropdownMenuItem asChild>
             <Link
               to="/profile"
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="flex items-center gap-3 cursor-pointer text-muted-foreground"
             >
-              <UserCircle className="w-4 h-4 text-muted-foreground" />
+              <UserCircle className="w-4 h-4" />
               My Profile
             </Link>
           </DropdownMenuItem>
@@ -112,9 +112,9 @@ export default function UserMenu() {
           <DropdownMenuItem asChild>
             <Link
               to="/orders"
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="flex items-center gap-3 cursor-pointer text-muted-foreground"
             >
-              <Package className="w-4 h-4 text-muted-foreground" />
+              <Package className="w-4 h-4" />
               Orders
             </Link>
           </DropdownMenuItem>
@@ -122,9 +122,9 @@ export default function UserMenu() {
           <DropdownMenuItem asChild>
             <Link
               to="/wishlist"
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="flex items-center gap-3 cursor-pointer text-muted-foreground"
             >
-              <Heart className="w-4 h-4 text-muted-foreground" />
+              <Heart className="w-4 h-4" />
               Wishlist
             </Link>
           </DropdownMenuItem>
@@ -133,9 +133,9 @@ export default function UserMenu() {
             <DropdownMenuItem asChild>
               <Link
                 to="/seller/dashboard"
-                className="flex items-center gap-2.5 cursor-pointer"
+                className="flex items-center gap-3 cursor-pointer text-muted-foreground"
               >
-                <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                <TrendingUp className="w-4 h-4" />
                 Manage Products
               </Link>
             </DropdownMenuItem>
@@ -146,18 +146,18 @@ export default function UserMenu() {
               <DropdownMenuItem asChild>
                 <Link
                   to="/admin/analytics"
-                  className="flex items-center gap-2.5 cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer text-muted-foreground"
                 >
-                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                  <TrendingUp className="w-4 h-4" />
                   Admin Analytics
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   to="/admin/dashboard"
-                  className="flex items-center gap-2.5 cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer text-muted-foreground"
                 >
-                  <UserCircle className="w-4 h-4 text-muted-foreground" />
+                  <UserCircle className="w-4 h-4" />
                   Admin Dashboard
                 </Link>
               </DropdownMenuItem>
@@ -166,18 +166,15 @@ export default function UserMenu() {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem asChild>
-            <ThemeToggle
-              showLabel={true}
-              className="w-full px-2 py-1.5 text-sm"
-            />
-          </DropdownMenuItem>
+          <div>
+            <AppearanceRow variant="dropdown" />
+          </div>
 
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
             onClick={() => setLogoutOpen(true)}
-            className="flex items-center gap-2.5 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+            className="flex items-center gap-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
           >
             <LogOut className="w-4 h-4" />
             Log out

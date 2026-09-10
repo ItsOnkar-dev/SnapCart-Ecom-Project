@@ -1,4 +1,4 @@
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { AppearanceRow } from "@/components/ui/ThemeToggle";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useAuthStore } from "@/store/auth.store";
@@ -75,7 +75,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         aria-modal="true"
         aria-label="Navigation menu"
         className={`
-          fixed top-0 left-0 z-50 h-[100dvh] w-[300px] max-w-[85vw]
+          fixed top-0 left-0 z-50 h-screen w-75 max-w-[85vw]
           bg-background/80 backdrop-blur-2xl
           border-r border-white/8
           flex flex-col shadow-2xl shadow-black/40
@@ -166,7 +166,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                       <Icon className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
                       {c.label}
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
                   </Link>
                 );
               })}
@@ -176,11 +176,8 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
         {/* Footer */}
         <div className="shrink-0 border-t border-white/8 p-4 space-y-2">
-          <div className="px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
-            <ThemeToggle
-              showLabel={true}
-              className="text-sm font-medium text-foreground/60 hover:text-foreground w-full"
-            />
+          <div>
+            <AppearanceRow variant="sidebar" />
           </div>
 
           <div className="h-px bg-border/40 mx-1" />
@@ -222,7 +219,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                     </span>
                   )}
                   <ChevronRight
-                    className="w-3.5 h-3.5 text-muted-foreground/20
+                    className="w-3.5 h-3.5 text-muted-foreground/50
                              group-hover:text-muted-foreground/60
                              transition-colors"
                   />

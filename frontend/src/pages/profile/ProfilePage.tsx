@@ -24,6 +24,7 @@ import {
   Heart,
   KeyRound,
   LogOut,
+  Mail,
   Package,
   ShieldCheck,
   ShieldEllipsis,
@@ -138,11 +139,11 @@ export default function ProfilePage() {
             {/* Decorative rings */}
             <div
               className="pointer-events-none absolute right-[-8%] top-[-90%]
-                            h-[360px] w-[360px] rounded-full border border-primary/10"
+                            h-90 w-90 rounded-full border border-primary/10"
             />
             <div
               className="pointer-events-none absolute right-[8%] top-[-70%]
-                            h-[280px] w-[280px] rounded-full border border-primary/10"
+                            h-70 w-70 rounded-full border border-primary/10"
             />
 
             <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
@@ -190,12 +191,13 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Mail size={14} />
                     {user.email}
-                  </p>
+                  </div>
 
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <UserRound size={16} className="text-primary" />
+                    <UserRound size={14} />
                     Member since {formatDate(user.createdAt)}
                   </div>
 
@@ -464,14 +466,10 @@ export default function ProfilePage() {
           </Link>
         </section>
 
-        <footer
-          className="mt-8 flex flex-col gap-4 border-t border-border
-                           py-6 text-xs text-muted-foreground
-                           sm:flex-row sm:items-center sm:justify-between"
-        >
+        <footer className="mt-8 flex items-center justify-between gap-4 border-t border-border py-6 text-sm sm:text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <a
-              href="mailto:support@snapcart.com"
+              href="mailto:snapcart.admin0541@gmail.com"
               className="flex items-center gap-1.5 transition hover:text-foreground"
             >
               <CircleHelp size={14} /> Help &amp; support
@@ -479,22 +477,22 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setDeleteOpen(true)}
-              className="flex items-center cursor-pointer gap-1.5 text-destructive
-                         transition hover:text-destructive/80"
+              className="flex items-center cursor-pointer border border-border px-2 py-1.5 gap-1.5 hover:text-primary-foreground hover:bg-red-500 text-destructive
+                         transition"
             >
-              <Trash2 size={14} /> Delete account
+              <Trash2 size={12} /> Delete account
             </button>
           </div>
           <button
             type="button"
             onClick={() => setLogoutOpen(true)}
-            className="flex items-center gap-1.5 font-semibold cursor-pointer
-                       text-foreground/70 transition hover:text-foreground"
+            className="flex items-center gap-1.5 font-semibold cursor-pointer border border-border px-2 py-1.5 
+                       text-foreground/70 transition hover:text-primary-foreground hover:bg-primary/90"
           >
             {isLoggingOut ? (
               <Spinner className="size-3.5" />
             ) : (
-              <LogOut size={14} />
+              <LogOut size={12} />
             )}
             {isLoggingOut ? "Signing out..." : "Sign out"}
           </button>
