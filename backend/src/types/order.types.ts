@@ -44,6 +44,8 @@ export interface IOrder extends Document {
   couponCode?: string | null;
   discount?: number;
   paymentMethod: PaymentMethod;
+  /** True after stock was atomically reserved for this order. Restore only when this is true. */
+  stockReserved: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
