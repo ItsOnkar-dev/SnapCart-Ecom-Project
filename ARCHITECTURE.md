@@ -823,7 +823,10 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │                          │  Validate shippingAddress   │
    │                             │                          │  Calculate total server-side│
    │                             │                          │  (NEVER trust frontend)     │
-   │                             │                          │  Validate stock             │
+   │                             │                          │  Validate coupon            │
+   │                             │                          │  ★ Reserve stock atomically │
+   │                             │                          │  (findOneAndUpdate ≥ qty;   │
+   │                             │                          │   rollback on any failure)  │
    │                             │                          │  Create Razorpay order      │
    │                             │                          │────────────────────────────►│
    │                             │                          │◄── { order_id, amount }     │
@@ -850,13 +853,14 @@ CART PAGE                     FRONTEND                    BACKEND               
    │                             │    razorpayPaymentId,    │                             │
    │                             │    razorpaySignature }   │                             │
    │                             │─────────────────────────►│                             │
-   │                             │                          │  Wait 10s (anti-race)       │
    │                             │                          │  Verify HMAC-SHA256 sig     │
    │                             │                          │  Check idempotency          │
    │                             │                          │  Find + confirm pending     │
-   │                             │                          │  order                      │
-   │                             │                          │  Decrement stock            │
+   │                             │                          │  order (atomic transition)  │
+   │                             │                          │  Increment coupon usage     │
    │                             │                          │  Clear cart                 │
+   │                             │                          │  (stock already reserved — │
+   │                             │                          │   NOT decremented here)     │
    │                             │                          │                             │
    │                             │◄── { orderId }           │                             │
    │                             │                          │                             │
@@ -904,13 +908,20 @@ The COD checkout path in `placeOrderService` uses guarded sequential writes rath
 3. **Coupon usage update**: Increments usage when a coupon was applied
 4. **Cart clearing**: Resets items + totalPrice
 
-If stock validation fails, the order is not created. Razorpay checkout uses a separate pending-order flow: `/payments/create-order` saves a pending order before payment, and `/payments/verify` or the webhook confirms it and clears the cart.
+If stock validation fails, the order is not created.
+
+The Razorpay checkout path uses a different sequence — stock reservation happens **before** payment:
+
+1. **`/payments/create-order`**: Atomically reserves stock (same `$gte` guard as COD). If any item fails, already-reserved items are rolled back and a 400 is returned. Only after all items are reserved does the Razorpay order get created and the pending DB order saved.
+2. **`/payments/verify`** and **`/webhook`**: Both call the shared `confirmPaidOrder` helper. It transitions the order from pending → confirmed/paid, increments coupon usage, and clears the cart. Neither path touches stock — it was already decremented in step 1.
+3. **`payment.failed` webhook**: Restores the reserved stock (increments back) so the items return to inventory.
 
 ### Idempotency
 
 - `razorpayPaymentId` has a unique sparse index on the Order collection
-- The `/verify` endpoint checks for existing orders with the same payment ID before creating a new one
-- Prevents duplicate orders if the client retries the verify request
+- The `confirmPaidOrder` helper (used by both `/verify` and `/webhook`) checks for existing orders with the same payment ID before transitioning — only one path can win the `findOneAndUpdate` race
+- Stock reservation in `create-order` is a one-time atomic operation; neither `/verify` nor `/webhook` decrement stock
+- Prevents duplicate orders, double coupon increments, and double stock decrements if the client retries or verify and webhook fire simultaneously
 
 ### Order Cancellation
 
@@ -932,11 +943,16 @@ If the user closes the browser tab after payment but before `/verify` completes,
 1. Verifies HMAC-SHA256 signature on the raw request body
 2. Checks idempotency (skips if `/verify` already processed this payment)
 3. Finds the pending order by `razorpayOrderId` (saved in `createRazorpayOrder` with full shipping address)
-4. Confirms the order (updates status + paymentStatus)
-5. Atomically decrements stock for each item
-6. Clears the user's cart
+4. Confirms the order (updates status + paymentStatus) via `confirmPaidOrder` helper
+5. Increments coupon usage and clears the user's cart
+6. Returns `200` on success, `500` on transient DB errors (so Razorpay retries)
+7. Stock is **not** touched — it was already reserved in `createRazorpayOrder`
 
-This works because `createRazorpayOrder` now saves the pending Order to MongoDB (with `shippingAddress`) **before** the user sees the Razorpay popup, so the webhook always has everything it needs.
+For `payment.failed`, the webhook handler:
+1. Marks the pending order as cancelled
+2. **Restores the reserved stock** — returns items to inventory since payment definitively failed
+
+This works because `createRazorpayOrder` saves the pending Order to MongoDB (with `shippingAddress` and pre-reserved stock) **before** the user sees the Razorpay popup, so the webhook always has everything it needs.
 
 ### Customer Order Cancellation Flow
 

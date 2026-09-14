@@ -241,113 +241,6 @@ Log In → Review Seller Applications → Approve / Reject
 ### 🛍️ Buyer Features
 
 | Feature            | Details                                                                          |
-  </tr>
-  <tr>
-    <td>Auth</td>
-    <td>JWT · Google OAuth 2.0 · bcrypt</td>
-    <td>Short-lived access tokens, rotated refresh tokens, httpOnly cookies</td>
-  </tr>
-  <tr>
-    <td>Email</td>
-    <td>Resend</td>
-    <td>Transactional emails with sandbox mode (free tier sends only to verified recipients). Full delivery unlocks with domain verification — no code changes needed</td>
-  </tr>
-  <tr>
-    <td>Images</td>
-    <td>Cloudinary · Multer</td>
-    <td>Memory storage → direct stream, no ephemeral disk dependency</td>
-  </tr>
-  <tr>
-    <td>Payments</td>
-    <td>Razorpay</td>
-    <td>Full order + webhook flow with raw-body signature verification</td>
-  </tr>
-  <tr>
-    <td>Security</td>
-    <td>Helmet · CSRF · express-rate-limit · Zod</td>
-    <td>Defence in depth at every layer</td>
-  </tr>
-  <tr>
-    <td>Deployment</td>
-    <td>Render</td>
-    <td>Zero-config deploys, ephemeral filesystem handled by Cloudinary</td>
-  </tr>
-</table>
-
----
-
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                           Monorepo Root                             │
-│                                                                     │
-│   ┌──────────────────────────┐      ┌───────────────────────────┐   │
-│   │       frontend/          │      │         backend/          │   │
-│   │                          │      │                           │   │
-│   │  React 19 + Vite         │ HTTP │  Express 5 + TypeScript   │   │
-│   │  Tailwind · shadcn/ui    ├─────►│  Zod · Mongoose · JWT     │   │
-│   │  React Query · Zustand   │cookies  Rate limit · CSRF        │   │
-│   │  Port 5173 (dev)         │      │  Port 5000                │   │
-│   └──────────────────────────┘      └──────────┬────────────────┘   │
-│                                                │                    │
-│                              ┌─────────────────▼──────────────┐     │
-│                              │         MongoDB Atlas          │     │
-│                              │   Users · Products · Orders    │     │
-│                              │   Cart · Reviews · Wishlists   │     │
-│                              └────────────────────────────────┘     │
-│                                                                     │
-│   ┌────────────┐  ┌──────────────┐  ┌────────────┐  ┌──────────┐    │
-│   │ Cloudinary │  │    Resend    │  │   Google   │  │ Razorpay │    │
-│   │  (images)  │  │   (email)    │  │   OAuth    │  │(payments)│    │
-│   └────────────┘  └──────────────┘  └────────────┘  └──────────┘    │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Request flow for a state-changing API call:**
-
-```
-Browser → CSRF token check → Rate limiter → verifyToken (JWT from cookie)
-       → requireVerifiedEmail → requireRole → Zod validation → Controller
-       → Service (business logic) → Mongoose → MongoDB
-       → ApiResponse → Browser
-```
-
----
-
-## 🗺 User Journeys
-
-### Buyer
-
-```
-Register → Verify Email → Browse Catalog → Search & Filter
-    → Add to Wishlist / Cart → Razorpay Checkout
-    → Track Order Status → Cancel Order (if needed) → Leave a Review
-```
-
-### Seller
-
-```
-Register → Verify Email → Apply to Become Seller
-    → Admin Approves → List Products (with Cloudinary images)
-    → Manage Stock → Update Order Status
-```
-
-### Admin
-
-```
-Log In → Review Seller Applications → Approve / Reject
-    → Monitor Analytics Dashboard
-    (Revenue · Orders · Top Products · Category Breakdown)
-```
-
----
-
-## ✨ Feature Breakdown
-
-### 🛍️ Buyer Features
-
-| Feature            | Details                                                                          |
 | ------------------ | -------------------------------------------------------------------------------- |
 | Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
 | Product Detail     | Image gallery, description, stock indicator, related product rails               |
@@ -750,18 +643,19 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 **Coverage — all state-changing routes are protected:**
 
-| Route Group  | Endpoints                                                                                                                                                                                                                                |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth         | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `DELETE /auth/account`, `POST /auth/resend-verification` |
-| Cart         | `POST /cart/add`, `PATCH /cart/:productId`, `DELETE /cart/:productId`, `DELETE /cart`                                                                                                                                                    |
-| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                                               |
-| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                                                          |
-| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                                                        |
-| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                                               |
-| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                                                   |
-| Seller       | `POST /seller/apply`                                                                                                                                                                                                                     |
-| Admin        | `PATCH /admin/sellers/:id`, `PATCH /admin/products/:id`, `PATCH /admin/products/:id/status`, `DELETE /admin/products/:id`                                                                                                                |
-| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                                                 |
+| Route Group  | Endpoints                                                                                                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth         | `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `DELETE /auth/account`, `POST /auth/resend-verification`                                                                        |
+| Cart         | `POST /cart/add`, `PATCH /cart/:productId`, `DELETE /cart/:productId`, `DELETE /cart`                                                                                                                     |
+| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                |
+| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                           |
+| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                         |
+| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                |
+| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                    |
+| Seller       | `POST /seller/apply`                                                                                                                                                                                      |
+| Admin        | `PATCH /admin/sellers/:id`, `PATCH /admin/products/:id`, `PATCH /admin/products/:id/status`, `DELETE /admin/products/:id`                                                                                 |
+| **Skipped**  | `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password`, `POST /auth/reset-password` (no session yet — CSRF token not available)                                                          |
+| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                  |
 
 ---
 
