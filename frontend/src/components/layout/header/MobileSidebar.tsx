@@ -75,7 +75,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         aria-modal="true"
         aria-label="Navigation menu"
         className={`
-          fixed top-0 left-0 z-50 h-screen w-75 max-w-[85vw]
+          fixed inset-y-0 left-0 z-50 h-dvh w-75 max-w-[85vw]
           bg-background/80 backdrop-blur-2xl
           border-r border-white/8
           flex flex-col shadow-2xl shadow-black/40
@@ -175,7 +175,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-white/8 p-4 space-y-2">
+        <div className="shrink-0 border-t border-white/8 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
           <div>
             <AppearanceRow variant="sidebar" />
           </div>
@@ -186,15 +186,13 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             <div className="space-y-1">
               <Link
                 to="/wishlist"
-                className={`
-    group flex items-center justify-between px-3 py-2.5
-    rounded-xl text-sm font-medium transition-colors
-    ${
-      location.pathname === "/wishlist"
-        ? "bg-primary/10 text-primary"
-        : "text-foreground hover:bg-white/5"
-    }
-  `}
+                className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                 ${
+                   location.pathname === "/wishlist"
+                     ? "bg-primary/10 text-primary"
+                     : "text-foreground hover:bg-white/5"
+                 }
+                  `}
               >
                 <div className="flex items-center gap-3">
                   <Heart
@@ -208,21 +206,13 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                 <div className="flex items-center gap-2 shrink-0">
                   {wishlistCount > 0 && (
                     <span
-                      className="
-        grid place-items-center
-        min-w-5 h-5 px-1.5
-        rounded-full bg-rose-500/15 text-rose-500
-        text-[10px] font-bold
+                      className=" grid place-items-center min-w-5 h-5 px-1.5 rounded-full bg-rose-500/15 text-rose-500 text-[10px] font-bold
       "
                     >
                       {wishlistCount > 99 ? "99+" : wishlistCount}
                     </span>
                   )}
-                  <ChevronRight
-                    className="w-3.5 h-3.5 text-muted-foreground/50
-                             group-hover:text-muted-foreground/60
-                             transition-colors"
-                  />
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground/60 transition-colors" />
                 </div>
               </Link>
 
@@ -253,7 +243,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
           ) : (
             <Link
               to="/login"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
             >
               <LogIn className="w-4 h-4 shrink-0" />
               Sign In to Continue
