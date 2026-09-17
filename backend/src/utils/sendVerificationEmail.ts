@@ -1,7 +1,7 @@
 // utils/sendVerificationEmail.ts
 import crypto from "crypto";
-import { env } from "../config/validateEnv";
 import { Resend } from "resend";
+import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
 // generates token pair — exported separately so register controller can use it too
@@ -23,7 +23,7 @@ export const sendVerificationEmail = async (user: IUser, rawToken: string) => {
   const verificationLink = `${env.frontendUrl}/verify-email?token=${rawToken}`;
 
   await resend.emails.send({
-    from: env.email.resendFrom as string,
+    from: `SnapCart <${env.email.resendFrom}>` as string,
     to: user.email,
     subject: "Verify your SnapCart account",
     html: `

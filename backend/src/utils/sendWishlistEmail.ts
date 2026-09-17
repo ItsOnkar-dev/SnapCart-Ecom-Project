@@ -9,7 +9,7 @@ export const sendWishlistEmail = async (
   const resend = new Resend(env.email.resendApiKey);
 
   await resend.emails.send({
-    from: env.email.resendFrom as string,
+    from: `SnapCart <${env.email.resendFrom}>` as string,
     to: toEmail,
     subject: `${senderName} shared a SnapCart Wishlist with you!`,
     html: `

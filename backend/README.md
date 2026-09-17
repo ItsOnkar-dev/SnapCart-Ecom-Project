@@ -231,7 +231,7 @@ cp .env.example .env
 ```
 
 | Variable                       | Required | Description                                                                           |
-| ------------------------------ | -------- | ------------------------------------------------------------------------------------- |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------- | --- |
 | `NODE_ENV`                     | ✅       | `development` or `production`                                                         |
 | `PORT`                         | ✅       | Port the server listens on (default: `5000`)                                          |
 | `MONGO_URI`                    | ✅       | MongoDB Atlas connection string                                                       |
@@ -251,8 +251,9 @@ cp .env.example .env
 | `RESEND_EMAIL`                 | Optional | Receives seller application notification emails                                       |
 | `ADMIN_EMAIL`                  | Optional | Used by bootstrap script — email of the primary admin                                 |
 | `ADMIN_PASSWORD`               | Optional | Used by bootstrap script — password of the primary admin                              |
-| `RAZORPAY_KEY_ID`              | Optional | From Razorpay dashboard                                                               |
-| `RAZORPAY_KEY_SECRET`          | Optional | From Razorpay dashboard                                                               |
+| RAZORPAY_KEY_ID                | ✅       | From Razorpay dashboard (Test mode keys `rzp_test_...` work perfectly)                |
+| RAZORPAY_KEY_SECRET            | ✅       | From Razorpay dashboard (Test mode secret)                                            |
+| RAZORPAY_WEBHOOK_SECRET        | ✅       | Razorpay webhook secret (Can be any random string for local testing)                  |     |
 
 > 💡 **For local / portfolio deployments:** Set `EMAIL_VERIFICATION_DEMO_MODE=true`. The server returns the verification URL in the register response so you can verify accounts without a paid Resend sender domain. The full token → hash → expiry → clear flow still runs.
 

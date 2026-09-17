@@ -32,7 +32,7 @@ const getResetPasswordLink = (rawToken: string) =>
 const isDemoVerificationEnabled = () =>
   env.email.demoMode === "true" ||
   !env.email.resendApiKey ||
-  !env.email.resendFrom;
+  !`SnapCart <${env.email.resendFrom}>`;
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {

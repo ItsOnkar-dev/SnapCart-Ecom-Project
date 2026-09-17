@@ -9,7 +9,7 @@ export const sendSellerApplicationEmail = async (applicant: IUser) => {
   const application = applicant.sellerApplication;
 
   await resend.emails.send({
-    from: env.email.resendFrom as string,
+    from: `SnapCart <${env.email.resendFrom}>` as string,
     to: env.email.adminNotificationEmail as string, // admin's email from env — never hardcoded
     subject: "New seller application — SnapCart",
     html: `

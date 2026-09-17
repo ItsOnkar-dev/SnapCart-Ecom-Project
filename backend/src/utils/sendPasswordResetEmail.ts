@@ -12,7 +12,7 @@ export const sendPasswordResetEmail = async (user: IUser, rawToken: string) => {
   const resetLink = `${env.frontendUrl}/reset-password?token=${rawToken}`;
 
   await resend.emails.send({
-    from: env.email.resendFrom as string,
+    from: `SnapCart <${env.email.resendFrom}>` as string,
     to: user.email,
     subject: "Reset your SnapCart password",
     html: `

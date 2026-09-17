@@ -8,7 +8,7 @@ export const sendPasswordChangedEmail = async (user: IUser) => {
   const resend = new Resend(env.email.resendApiKey);
 
   await resend.emails.send({
-    from: env.email.resendFrom as string,
+    from: `SnapCart <${env.email.resendFrom}>` as string,
     to: user.email,
     subject: "Your SnapCart password was changed",
     html: `
