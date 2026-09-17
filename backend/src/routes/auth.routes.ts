@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { deleteAccount } from "../controllers/auth.controller";
+import { env } from "../config/validateEnv";
 import {
   changePassword,
+  deleteAccount,
   forgotPassword,
   getCurrentUser,
   login,
@@ -59,10 +60,10 @@ const refreshLimiter = rateLimit({
 
 router.get("/csrf-token", (req, res) => {
   const token = crypto.randomBytes(32).toString("hex");
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.nodeEnv === "production";
   res
     .cookie("csrfToken", token, {
-      httpOnly: false,  // JS must be able to read it
+      httpOnly: false, // JS must be able to read it
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       path: "/",

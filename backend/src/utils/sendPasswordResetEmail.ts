@@ -1,18 +1,18 @@
-// utils/sendPasswordResetEmail.ts
 import { Resend } from "resend";
+import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
 // sends the actual email — takes the user and the RAW token
 // (same shape as sendVerificationEmail: raw token here, hashed token in DB)
 export const sendPasswordResetEmail = async (user: IUser, rawToken: string) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(env.email.resendApiKey);
 
   // FRONTEND_URL because the link should land on a frontend page
   // that page collects the new password, then calls your backend API with the token
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+  const resetLink = `${env.frontendUrl}/reset-password?token=${rawToken}`;
 
-  await resend.emails.send({ 
-    from: process.env.RESEND_FROM_EMAIL as string,
+  await resend.emails.send({
+    from: env.email.resendFrom as string,
     to: user.email,
     subject: "Reset your SnapCart password",
     html: `

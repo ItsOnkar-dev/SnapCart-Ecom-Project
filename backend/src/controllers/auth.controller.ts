@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { env } from "../config/validateEnv";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
 import { User } from "../models/user.model";
@@ -23,15 +24,15 @@ import {
 } from "../utils/sendVerificationEmail";
 
 const getVerificationLink = (rawToken: string) =>
-  `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+  `${env.frontendUrl}/verify-email?token=${rawToken}`;
 
 const getResetPasswordLink = (rawToken: string) =>
-  `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+  `${env.frontendUrl}/reset-password?token=${rawToken}`;
 
 const isDemoVerificationEnabled = () =>
-  process.env.EMAIL_VERIFICATION_DEMO_MODE === "true" ||
-  !process.env.RESEND_API_KEY ||
-  !process.env.RESEND_FROM_EMAIL;
+  env.email.demoMode === "true" ||
+  !env.email.resendApiKey ||
+  !env.email.resendFrom;
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {
@@ -174,7 +175,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   await user.save({ validateBeforeSave: false });
   // validateBeforeSave:false — only refreshToken changed, no need to re-run all validators
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.nodeEnv === "production";
 
   // Step 8 — Cookie config
   const accessTokenCookieOptions = {
@@ -225,10 +226,9 @@ export const refreshAccessToken = asyncHandler(
     // Step 2 — Verify it
     let decoded: { userId: string };
     try {
-      decoded = jwt.verify(
-        token,
-        process.env.REFRESH_TOKEN_SECRET as string,
-      ) as { userId: string };
+      decoded = jwt.verify(token, env.jwt.refreshSecret as string) as {
+        userId: string;
+      };
     } catch {
       throw new ApiError(401, "Session expired. Please log in again.");
     }
@@ -256,7 +256,7 @@ export const refreshAccessToken = asyncHandler(
 
     auditLog("auth.refresh", user._id.toString(), { email: user.email });
 
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = env.nodeEnv === "production";
 
     res
       .cookie("accessToken", newAccessToken, {
@@ -306,7 +306,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     email: req.user?.email,
   });
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.nodeEnv === "production";
 
   res
     .status(200)
@@ -475,7 +475,7 @@ export const changePassword = asyncHandler(
       email: user.email,
     });
 
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = env.nodeEnv === "production";
     // Clear cookies on current device too — user must log in again
     res
       .status(200)
@@ -569,7 +569,7 @@ export const deleteAccount = asyncHandler(
 
     await User.findByIdAndDelete(userId);
 
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = env.nodeEnv === "production";
     res
       .status(200)
       .clearCookie("accessToken", {

@@ -1,15 +1,16 @@
 import { Resend } from "resend";
+import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
 // fires when a user submits a seller application —
 // notifies admin so they don't miss pending applications
 export const sendSellerApplicationEmail = async (applicant: IUser) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(env.email.resendApiKey);
   const application = applicant.sellerApplication;
 
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL as string,
-    to: process.env.RESEND_EMAIL as string, // admin's email from env — never hardcoded
+    from: env.email.resendFrom as string,
+    to: env.email.adminNotificationEmail as string, // admin's email from env — never hardcoded
     subject: "New seller application — SnapCart",
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: auto;">
@@ -45,7 +46,7 @@ export const sendSellerApplicationEmail = async (applicant: IUser) => {
               : ""
           }
         </table>
-        <a href="${process.env.FRONTEND_URL}/admin/review-seller"
+        <a href="${env.frontendUrl}/admin/review-seller"
            style="display:inline-block; padding:12px 24px; background:#000; color:#fff;
                   text-decoration:none; border-radius:6px; margin-top:24px;">
           Review Application

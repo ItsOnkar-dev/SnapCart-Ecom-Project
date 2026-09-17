@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import mongoose from "mongoose";
+import { env } from "../config/validateEnv";
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.get("/health", (_req: Request, res: Response) => {
     success: true,
     status: "UP",
     service: "SnapCart API",
-    environment: process.env.NODE_ENV,
+    environment: env.nodeEnv,
     uptime: Math.floor(process.uptime()), // seconds since server started
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version ?? "1.0.0",

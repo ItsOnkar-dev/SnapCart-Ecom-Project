@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getGoogleClient } from "../config/googleClient";
+import { env } from "../config/validateEnv";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -34,10 +35,7 @@ export const googleCallback = asyncHandler(
     const { code } = req.query;
 
     if (!code) {
-      throw new ApiError(
-        400,
-        "Google sign-in failed. Please try again.",
-      );
+      throw new ApiError(400, "Google sign-in failed. Please try again.");
     }
 
     // Step 2 — Exchange code for tokens
@@ -91,8 +89,8 @@ export const googleCallback = asyncHandler(
     await user.save({ validateBeforeSave: false });
 
     // Step 8 — Set cookies and redirect to frontend
-    const isProduction = process.env.NODE_ENV === "production";
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const isProduction = env.nodeEnv === "production";
+    const frontendUrl = env.frontendUrl || "http://localhost:5173";
 
     const accessTokenCookieOptions = {
       httpOnly: true,

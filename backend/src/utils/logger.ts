@@ -1,3 +1,5 @@
+import { env } from "../config/validateEnv";
+
 const COLORS = {
   error: "\x1b[31m",
   warn: "\x1b[33m",
@@ -18,7 +20,7 @@ const LEVELS: Record<LogLevel, number> = {
 };
 
 const activeLevel = (): LogLevel =>
-  process.env.NODE_ENV === "production" ? "warn" : "debug";
+  env.nodeEnv === "production" ? "warn" : "debug";
 
 const shouldLog = (level: LogLevel): boolean =>
   LEVELS[level] <= LEVELS[activeLevel()];

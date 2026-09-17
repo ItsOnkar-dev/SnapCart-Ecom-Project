@@ -1,13 +1,14 @@
 import { Resend } from "resend";
+import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
 // fires after resetPassword OR changePassword succeeds —
 // security notice so the real owner knows if someone else did this
 export const sendPasswordChangedEmail = async (user: IUser) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(env.email.resendApiKey);
 
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL as string,
+    from: env.email.resendFrom as string,
     to: user.email,
     subject: "Your SnapCart password was changed",
     html: `
@@ -18,7 +19,7 @@ export const sendPasswordChangedEmail = async (user: IUser) => {
         <p style="margin-top:16px;">
           If you did <strong>not</strong> make this change, reset your password immediately:
         </p>
-        <a href="${process.env.FRONTEND_URL}/forgot-password"
+        <a href="${env.frontendUrl}/forgot-password"
            style="display:inline-block; padding:12px 24px; background:#e00; color:#fff;
                   text-decoration:none; border-radius:6px; margin-top:8px;">
           Secure My Account

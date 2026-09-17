@@ -2,12 +2,13 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../config/db";
+import { env } from "../config/validateEnv";
 import { User } from "../models/user.model";
 import { Logger } from "../utils/logger";
 
 const bootstrapAdmin = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = env.adminBootstrap.email;
+  const adminPassword = env.adminBootstrap.password;
 
   if (!adminEmail || !adminPassword) {
     Logger.error(
@@ -23,7 +24,7 @@ const bootstrapAdmin = async () => {
 
   try {
     Logger.info("🔄 Connecting to MongoDB...");
-    await connectDB(process.env.MONGO_URI!);
+    await connectDB(env.mongoUri!);
 
     // Check if a primary admin (role "admin") already exists
     const existingAdmin = await User.findOne({ role: "admin" });
@@ -46,9 +47,7 @@ const bootstrapAdmin = async () => {
       existingUser.role = "admin";
       existingUser.isEmailVerified = true;
       await existingUser.save({ validateBeforeSave: false });
-      Logger.info(
-        `✅ Promoted ${adminEmail} to primary administrator.`,
-      );
+      Logger.info(`✅ Promoted ${adminEmail} to primary administrator.`);
     } else {
       // Create new admin account
       const hashedPassword = await bcrypt.hash(adminPassword, 12);
@@ -59,9 +58,7 @@ const bootstrapAdmin = async () => {
         role: "admin",
         isEmailVerified: true,
       });
-      Logger.info(
-        `✅ Primary administrator created (${adminEmail}).`,
-      );
+      Logger.info(`✅ Primary administrator created (${adminEmail}).`);
     }
 
     await mongoose.disconnect();

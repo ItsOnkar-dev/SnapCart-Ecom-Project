@@ -1,22 +1,17 @@
-import "dotenv/config";
-import app from "./app";
 import http from "http";
+import app from "./app";
 import { connectDB } from "./config/db";
-import { validateEnv } from "./config/validateEnv";
+import { env } from "./config/validateEnv";
 import { Logger } from "./utils/logger";
-
-validateEnv();
-
-const PORT = Number(process.env.PORT) || 5000;
 
 const startServer = async () => {
   try {
-    await connectDB(process.env.MONGO_URI!);
+    await connectDB(env.mongoUri);
 
     const server = http.createServer(app);
 
-    server.listen(PORT, () => {
-      Logger.info(`🚀 Server running on port ${PORT}`);
+    server.listen(env.port, () => {
+      Logger.info(`🚀 Server running on port ${env.port}`);
     });
 
     const shutdown = async (signal: string) => {

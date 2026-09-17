@@ -1,10 +1,15 @@
 import { Resend } from "resend";
+import { env } from "../config/validateEnv";
 
-export const sendWishlistEmail = async (toEmail: string, wishlistLink: string, senderName: string) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+export const sendWishlistEmail = async (
+  toEmail: string,
+  wishlistLink: string,
+  senderName: string,
+) => {
+  const resend = new Resend(env.email.resendApiKey);
 
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL as string,
+    from: env.email.resendFrom as string,
     to: toEmail,
     subject: `${senderName} shared a SnapCart Wishlist with you!`,
     html: `

@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import { env } from "../config/validateEnv";
 import jwt from "jsonwebtoken";
+import { Permission, ROLE_PERMISSIONS } from "../config/permissions";
 import { User } from "../models/user.model";
 import { IUser } from "../types/user.types";
-import { ROLE_PERMISSIONS, Permission } from "../config/permissions";
 import { ApiError } from "../utils/ApiResponse";
 
 declare global {
@@ -40,7 +41,7 @@ export const verifyToken = async (
     try {
       decoded = jwt.verify(
         token,
-        process.env.ACCESS_TOKEN_SECRET as string,
+        env.jwt.accessSecret as string,
       ) as DecodedToken;
     } catch {
       throw new ApiError(401, "Session expired, please login again");
@@ -137,7 +138,7 @@ export const optionalVerifyToken = async (
     try {
       decoded = jwt.verify(
         token,
-        process.env.ACCESS_TOKEN_SECRET as string,
+        env.jwt.accessSecret as string,
       ) as DecodedToken;
     } catch {
       return next();

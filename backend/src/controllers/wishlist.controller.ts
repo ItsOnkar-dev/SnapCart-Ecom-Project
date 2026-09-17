@@ -7,6 +7,7 @@ import {
   removeFromWishlistService,
   toggleWishlistShareService,
 } from "../services/wishlist.service";
+import { env } from "../config/validateEnv";
 import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { sendWishlistEmail } from "../utils/sendWishlistEmail";
@@ -112,7 +113,7 @@ export const emailWishlist = asyncHandler(
       );
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = env.frontendUrl || "http://localhost:5173";
     const wishlistLink = `${frontendUrl}/wishlist/share/${wishlist.shareId}`;
 
     await sendWishlistEmail(email, wishlistLink, req.user!.name);

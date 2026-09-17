@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import { env } from "./config/validateEnv";
 import { csrfProtection } from "./middleware/csrf.middleware";
 import { mongoSanitize } from "./middleware/sanitize";
 import adminRoutes from "./routes/admin.routes";
@@ -26,7 +27,7 @@ app.set("trust proxy", 1); // Trust the first proxy in front of Express, which i
 
 app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
 
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
 const webhookLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -52,7 +53,7 @@ app.use(mongoSanitize);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  process.env.FRONTEND_URL,
+  env.frontendUrl,
 ].filter(Boolean) as string[];
 
 app.use(

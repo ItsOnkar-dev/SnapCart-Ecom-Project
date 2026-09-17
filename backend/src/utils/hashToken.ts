@@ -1,10 +1,11 @@
 import crypto from "crypto";
+import { env } from "../config/validateEnv";
 
 const getHashSecret = (): string => {
   return (
-    process.env.REFRESH_TOKEN_HASH_SECRET ||
-    process.env.REFRESH_TOKEN_SECRET ||
-    process.env.ACCESS_TOKEN_SECRET ||
+    env.jwt.refreshHashSecret ||
+    env.jwt.refreshSecret ||
+    env.jwt.accessSecret ||
     ""
   );
 };

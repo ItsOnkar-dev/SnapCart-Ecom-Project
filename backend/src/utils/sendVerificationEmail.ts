@@ -1,5 +1,6 @@
 // utils/sendVerificationEmail.ts
 import crypto from "crypto";
+import { env } from "../config/validateEnv";
 import { Resend } from "resend";
 import { IUser } from "../types/user.types";
 
@@ -15,14 +16,14 @@ export const generateVerificationToken = () => {
 
 // sends the actual email — takes the user and the RAW token
 export const sendVerificationEmail = async (user: IUser, rawToken: string) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(env.email.resendApiKey);
   // build the link the user will click
   // FRONTEND_URL because the link should land on a frontend page
   // that page will then call your backend API with the token
-  const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+  const verificationLink = `${env.frontendUrl}/verify-email?token=${rawToken}`;
 
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL as string,
+    from: env.email.resendFrom as string,
     to: user.email,
     subject: "Verify your SnapCart account",
     html: `

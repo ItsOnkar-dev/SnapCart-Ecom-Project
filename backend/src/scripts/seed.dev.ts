@@ -2,14 +2,14 @@ import bcrypt from "bcryptjs";
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../config/db";
+import { env } from "../config/validateEnv";
 import { Cart } from "../models/cart.model";
 import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 import { User } from "../models/user.model";
 import { Logger } from "../utils/logger";
 
-const MONGODB_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/SnapCart_TS";
+const MONGODB_URI = env.mongoUri || "mongodb://127.0.0.1:27017/SnapCart_TS";
 const SEED_PASSWORD = "Demo@1234";
 
 interface ProductInput {
@@ -160,12 +160,12 @@ const products: ProductInput[] = [
 ];
 
 async function seedDatabase() {
-  if (process.env.NODE_ENV === "production") {
+  if (env.nodeEnv === "production") {
     Logger.error("❌ SAFETY ALERT: Cannot run seed script in production!");
     process.exit(1);
   }
 
-  if (process.env.MONGO_URI?.includes("mongodb+srv")) {
+  if (env.mongoUri?.includes("mongodb+srv")) {
     Logger.error(
       "❌ SAFETY ALERT: MONGO_URI points to a cloud database. Refusing to seed.",
     );
