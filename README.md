@@ -15,6 +15,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
 [![Express](https://img.shields.io/badge/Express-5.x-lightgrey)](https://expressjs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4)](https://tailwindcss.com/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com)
+[![CI](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsOnkar-dev/SnapCart-Ecom-Project/actions/workflows/ci.yml)
 
 <br/>
 
@@ -27,7 +28,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
 ## 📋 Table of Contents
 
 - [🛒 SnapCart](#-snapcart)
-  - [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
+  [A production-grade, full-stack multi-vendor e-commerce platform](#a-production-grade-full-stack-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [🧩 About the Project](#-about-the-project)
   - [💡 Most e-commerce portfolio projects stop at "add to cart". SnapCart goes further](#-most-e-commerce-portfolio-projects-stop-at-add-to-cart-snapcart-goes-further)
@@ -57,6 +58,7 @@ _Built to showcase real-world engineering — not just "it works", but how it wo
   - [🗳️ What's Next](#️-whats-next)
   - [🛡️ Live Demo Notice](#️-live-demo-notice)
   - [📚 Documentation](#-documentation)
+  - [🤖 CI and CD Pipeline](#-ci-and-cd-pipeline)
   - [🤝 Contributing](#-contributing)
   - [🙏 Acknowledgements](#-acknowledgements)
 
@@ -70,14 +72,14 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 
 **What it demonstrates:**
 
-| Concern              | What SnapCart does                                                    |
-| -------------------- | --------------------------------------------------------------------- |
-| Auth security        | JWT rotation, refresh-token reuse detection, bcrypt, httpOnly cookies |
+| Concern              | What SnapCart does                                                          |
+| -------------------- | --------------------------------------------------------------------------- |
+| Auth security        | JWT rotation, refresh-token reuse detection, bcrypt, httpOnly cookies       |
 | Data integrity       | Guarded stock updates, order snapshots, cart clearing, and payment recovery |
-| Role architecture    | Three-tier RBAC: customer → seller → admin                            |
-| Developer UX         | Demo email verification so the app works without a paid email domain  |
-| Observability        | Structured audit logging for all sensitive operations                 |
-| Scalability patterns | Heuristic recommendation engine without paid ML infrastructure        |
+| Role architecture    | Three-tier RBAC: customer → seller → admin                                  |
+| Developer UX         | Demo email verification so the app works without a paid email domain        |
+| Observability        | Structured audit logging for all sensitive operations                       |
+| Scalability patterns | Heuristic recommendation engine without paid ML infrastructure              |
 
 ---
 
@@ -240,21 +242,21 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🛍️ Buyer Features
 
-| Feature            | Details                                                                          |
-| ------------------ | -------------------------------------------------------------------------------- |
-| Product Catalog    | Paginated grid with live text search, category & price filters, and sort options |
-| Product Detail     | Image gallery, description, stock indicator, related product rails               |
-| Cart               | Persistent server-side cart; add, update quantity, remove, clear                 |
+| Feature            | Details                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------- |
+| Product Catalog    | Paginated grid with live text search, category & price filters, and sort options                        |
+| Product Detail     | Image gallery, description, stock indicator, related product rails                                      |
+| Cart               | Persistent server-side cart; add, update quantity, remove, clear                                        |
 | Checkout           | Razorpay online or Cash on Delivery with server-side totals, stock guards, coupons, and order snapshots |
-| Coupon Discovery   | View available active coupons on checkout page with auto-fill on click                               |
-| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                                              |
-| Order History      | Full order list with per-order detail view                                                          |
-| Order Cancellation | Cancel `pending` or `confirmed` orders with transaction-based stock restore; refund initiated if paid |
-| Reviews            | Write a review only after receiving a delivered order                            |
-| Wishlist           | Heart-toggle from any product card; move all items to cart in one click          |
-| Wishlist Sharing   | Generate a public share link or email it to anyone                               |
-| Account management | Change password from profile and delete account with one action                  |
-| Recommendations    | "Related", "Frequently Bought Together", and "Personalized For You" rails        |
+| Coupon Discovery   | View available active coupons on checkout page with auto-fill on click                                  |
+| Order Tracking     | Status timeline: `pending → confirmed → shipped → delivered`                                            |
+| Order History      | Full order list with per-order detail view                                                              |
+| Order Cancellation | Cancel `pending` or `confirmed` orders with transaction-based stock restore; refund initiated if paid   |
+| Reviews            | Write a review only after receiving a delivered order                                                   |
+| Wishlist           | Heart-toggle from any product card; move all items to cart in one click                                 |
+| Wishlist Sharing   | Generate a public share link or email it to anyone                                                      |
+| Account management | Change password from profile and delete account with one action                                         |
+| Recommendations    | "Related", "Frequently Bought Together", and "Personalized For You" rails                               |
 
 ### 🏪 Seller Features
 
@@ -283,8 +285,8 @@ Log In → Review Seller Applications → Approve / Reject
 | Refresh-Token Reuse Detection | Replay of a used token clears all sessions and forces re-login                                                              |
 | Email Verification            | HMAC-SHA256 hash stored; raw token delivered; 10-minute expiry                                                              |
 | Google OAuth                  | Account linking by email prevents duplicate users                                                                           |
-| Account Lockout               | Five failed login attempts temporarily lock the account for 15 minutes                                                       |
-| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality; auto-retry on 403 with fresh token                                               |
+| Account Lockout               | Five failed login attempts temporarily lock the account for 15 minutes                                                      |
+| CSRF Protection               | Double-submit cookie; `x-csrf-token` compared with timing-safe equality; auto-retry on 403 with fresh token                 |
 | Rate Limiting                 | 100 req/10 min (all routes); 20 req/10 min (login + register); 5 req/10 min (password reset); 60 req/10 min (token refresh) |
 | RBAC                          | `requireRole` + `requirePermission` middleware — role-to-permission mapping in config                                       |
 | Audit Logging                 | Login, logout, refresh, verification, password, and seller events                                                           |
@@ -643,19 +645,19 @@ For the full reference including request/response shapes, see [`backend/README.m
 
 **Coverage — all state-changing routes are protected:**
 
-| Route Group  | Endpoints                                                                                                                                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth         | `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `DELETE /auth/account`, `POST /auth/resend-verification`                                                                        |
-| Cart         | `POST /cart/add`, `PATCH /cart/:productId`, `DELETE /cart/:productId`, `DELETE /cart`                                                                                                                     |
-| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                                                                                |
-| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                                                                           |
-| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                                                                         |
-| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`                                                                |
-| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                                                                                    |
-| Seller       | `POST /seller/apply`                                                                                                                                                                                      |
-| Admin        | `PATCH /admin/sellers/:id`, `PATCH /admin/products/:id`, `PATCH /admin/products/:id/status`, `DELETE /admin/products/:id`                                                                                 |
-| **Skipped**  | `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password`, `POST /auth/reset-password` (no session yet — CSRF token not available)                                                          |
-| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                                                                                  |
+| Route Group  | Endpoints                                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Auth         | `POST /auth/refresh`, `POST /auth/logout`, `PATCH /auth/change-password`, `DELETE /auth/account`, `POST /auth/resend-verification`               |
+| Cart         | `POST /cart/add`, `PATCH /cart/:productId`, `DELETE /cart/:productId`, `DELETE /cart`                                                            |
+| Orders       | `POST /orders`, `PATCH /orders/:id/status`                                                                                                       |
+| Products     | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id`                                                                                  |
+| Reviews      | `POST /reviews/:productId`, `DELETE /reviews/:id`                                                                                                |
+| Wishlist     | `POST /wishlist/add`, `DELETE /wishlist/remove/:productId`, `POST /wishlist/move-to-cart`, `PATCH /wishlist/share`, `POST /wishlist/email`       |
+| Payments     | `POST /payments/create-order`, `POST /payments/verify`                                                                                           |
+| Seller       | `POST /seller/apply`                                                                                                                             |
+| Admin        | `PATCH /admin/sellers/:id`, `PATCH /admin/products/:id`, `PATCH /admin/products/:id/status`, `DELETE /admin/products/:id`                        |
+| **Skipped**  | `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password`, `POST /auth/reset-password` (no session yet — CSRF token not available) |
+| **Exempted** | `POST /payments/webhook` (server-to-server, HMAC-SHA256)                                                                                         |
 
 ---
 
@@ -690,6 +692,18 @@ Have an idea or want to contribute? [Open a feature request →](https://github.
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | [`backend/README.md`](backend/README.md)   | Complete API reference · Auth flow · Security measures · Architecture decisions · Deployment checklist      |
 | [`frontend/README.md`](frontend/README.md) | Component tree · Full route table · State management · API layer (CSRF + refresh interceptors) · Deployment |
+
+---
+
+## 🤖 CI and CD Pipeline
+
+Every push to `main` and every pull request runs an automated pipeline:
+
+- **Backend** — TypeScript type check + ESLint
+- **Frontend** — TypeScript type check + ESLint + production build
+- **Secret Scanning** — Gitleaks scans every commit for accidentally committed secrets (API keys, JWT secrets, Razorpay credentials, database URIs). Merge is blocked if any are found.
+
+The pipeline ensures no broken or type-unsafe code ever reaches production.
 
 ---
 

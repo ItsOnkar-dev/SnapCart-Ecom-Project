@@ -23,6 +23,7 @@ SnapCart is a **production-grade full-stack multi-vendor e-commerce platform** b
 - [Logging](#logging)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
+- [CI and CD Pipeline](#ci-and-cd-pipeline)
 - [Coding Conventions](#coding-conventions)
 - [Known Technical Debt](#known-technical-debt)
 - [Suggested Improvements](#suggested-improvements)
@@ -797,6 +798,19 @@ Reuse Detection:
   → Forces re-login on all devices
 ```
 
+### Secret Scanning (Gitleaks)
+
+A dedicated `.github/workflows/gitleaks.yml` runs on every push and pull request,
+scanning the full git history for accidentally committed secrets — JWT signing keys,
+MongoDB URIs, Cloudinary credentials, Razorpay keys, and Google OAuth secrets.
+
+A `.gitleaks.toml` allowlist at the repo root prevents false positives from CI
+placeholder values. Razorpay live keys (`rzp_live_*`) are intentionally never
+allowlisted — any live payment key in a commit blocks the pipeline immediately.
+
+If a secret is detected, the CI job fails and the merge is blocked before the
+secret is ever accessible.
+
 ### Password Security
 
 - bcrypt with 12 salt rounds
@@ -949,6 +963,7 @@ If the user closes the browser tab after payment but before `/verify` completes,
 7. Stock is **not** touched — it was already reserved in `createRazorpayOrder`
 
 For `payment.failed`, the webhook handler:
+
 1. Marks the pending order as cancelled
 2. **Restores the reserved stock** — returns items to inventory since payment definitively failed
 
@@ -1309,6 +1324,22 @@ Products: 12 products across 6 categories
 ```
 
 ---
+
+## CI and CD Pipeline
+
+The `.github/workflows/ci.yml` runs on every push to `main` and every pull request:
+
+| Job      | Steps                                                  |
+| -------- | ------------------------------------------------------ |
+| Backend  | `npm ci` → TypeScript type check → ESLint              |
+| Frontend | `npm ci` → TypeScript type check → ESLint → Vite build |
+
+The frontend build step receives placeholder values for `VITE_API_URL` and
+`VITE_RAZORPAY_KEY_ID` — real values are injected only at deploy time by
+Vercel's environment variable configuration.
+
+Secret scanning runs as a separate job (`.github/workflows/gitleaks.yml`) on
+the same triggers plus a daily cron at 4 AM.
 
 ## Coding Conventions
 

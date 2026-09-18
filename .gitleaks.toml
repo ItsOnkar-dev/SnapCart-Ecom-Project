@@ -1,0 +1,15 @@
+[allowlist]
+  description = "SnapCart CI placeholders and known safe test values"
+
+  regexes = [
+    "ci-test-.*",
+    "placeholder",
+    "rzp_test_placeholder",
+    "localhost",
+    "example\\.com",
+    "your-backend\\.onrender\\.com",
+  ]
+
+  paths = [
+    ".github/workflows",
+  ]
