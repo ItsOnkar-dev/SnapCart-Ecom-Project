@@ -266,6 +266,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Product Management    | Create, edit, and soft-delete products with Cloudinary image upload        |
 | Ownership Enforcement | Sellers can only modify their own products — enforced at the service layer |
 | Order Management      | Update order status for items sold through your listings                   |
+| Store Settings        | Manage public store profile, contact information, and business address     |
 
 ### 🔐 Admin Features
 
@@ -537,6 +538,8 @@ Wishlist      GET  /api/wishlist
 Seller        POST /api/seller/apply
               GET  /api/seller/products
               GET  /api/seller/orders
+              GET  /api/seller/profile
+              PATCH /api/seller/profile
 
 Admin         GET  /api/admin/sellers
               PATCH /api/admin/sellers/:id

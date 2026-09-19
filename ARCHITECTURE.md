@@ -61,7 +61,10 @@ SnapCart-Ecom Project/
 │   │   ├── components/
 │   │   │   ├── home/               # Hero, DepartmentGrid, ProductCard, ProductRail, etc.
 │   │   │   ├── layout/             # Header (6 sub-components), Footer, AuthLayout, MobileSidebar
-│   │   │   ├── ui/                 # 12 shadcn/ui primitives (Button, Dialog, Carousel, etc.)
+│   │   │   ├── admin/   # AdminTabs, AdminOrderCard, AdminProductCard
+│   │   │   ├── seller/   # SellerTabs, ProductFormDialog
+│   │   │   ├── cart/   # CartDrawer
+│   │   │   ├── ui/                 # shadcn/ui primitives (Button, Dialog, Carousel, etc.)
 │   │   │   └── AuthGate.tsx        # Boot-time auth initialization + splash screen
 │   │   ├── pages/                  # 18 route-level components across 11 directories
 │   │   ├── router/                 # ProtectedRoute.tsx, RoleRoute.tsx
@@ -588,11 +591,13 @@ All endpoints are prefixed with `/api`.
 
 #### Seller — `/api/seller`
 
-| Method | Path        | Auth              | Description                                        |
-| ------ | ----------- | ----------------- | -------------------------------------------------- |
-| `POST` | `/apply`    | Customer+Verified | Submit seller application                          |
-| `GET`  | `/products` | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
-| `GET`  | `/orders`   | Seller+Verified   | Get orders containing the seller's products        |
+| Method  | Path        | Auth              | Description                                        |
+| ------- | ----------- | ----------------- | -------------------------------------------------- |
+| `POST`  | `/apply`    | Customer+Verified | Submit seller application                          |
+| `GET`   | `/products` | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
+| `GET`   | `/orders`   | Seller+Verified   | Get orders containing the seller's products        |
+| `GET`   | `/profile`  | Seller+Verified   | Retrieve seller store profile details              |
+| `PATCH` | `/profile`  | Seller+Verified   | Update seller store profile details                |
 
 #### Admin — `/api/admin`
 
@@ -651,6 +656,7 @@ All server data is managed via TanStack Query. Query keys follow a hierarchical 
 | Wishlist        | `["wishlist"]` / `["wishlist", "share", shareId]`             | 1 min staleTime  |
 | Reviews         | `["reviews", productId]`                                      | 2 min staleTime  |
 | Seller Products | `["seller", "products"]`                                      | 15 sec staleTime |
+| Seller Profile  | `["seller", "profile"]`                                       | 5 min staleTime  |
 | Admin Sellers   | `["admin", "sellers"]`                                        | 30 sec staleTime |
 | Admin Analytics | `["admin", "analytics"]`                                      | 1 min staleTime  |
 | Recommendations | `["recommendations", mode, productIds, limit]`                | 10 min staleTime |
