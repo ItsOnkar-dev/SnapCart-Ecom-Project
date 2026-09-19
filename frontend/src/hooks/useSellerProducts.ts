@@ -1,16 +1,8 @@
 import { api } from "@/lib/axios";
+import { getApiErrorMessage } from "@/types/api.types"; //
 import type { SellerProfileData } from "@/types/seller.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-// ── Typed error shape from Axios + our API ─────────────────────────────────────
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
-}
 
 // ── API functions ──────────────────────────────────────────────────────────────
 export const getSellerProductsApi = (page?: number) =>
@@ -50,10 +42,8 @@ export function useCreateProduct() {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Product registered inside marketplace database.");
     },
-    onError: (err: ApiError) => {
-      toast.error(
-        err.response?.data?.message || "Failed to create product listing.",
-      );
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Failed to create product listing."));
     },
   });
 }
@@ -68,9 +58,9 @@ export function useUpdateProduct() {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Product listing configurations optimized.");
     },
-    onError: (err: ApiError) => {
+    onError: (err: unknown) => {
       toast.error(
-        err.response?.data?.message || "Failed to update product variations.",
+        getApiErrorMessage(err, "Failed to update product variations."),
       );
     },
   });
@@ -85,9 +75,9 @@ export function useDeleteProduct() {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
       toast.success("Listing removed from store indexes.");
     },
-    onError: (err: ApiError) => {
+    onError: (err: unknown) => {
       toast.error(
-        err.response?.data?.message || "Purge request denied by core system.",
+        getApiErrorMessage(err, "Purge request denied by core system."),
       );
     },
   });
@@ -118,17 +108,21 @@ export function useSellerProfile() {
 
 export function useUpdateSellerProfile() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: Omit<SellerProfileData, "taxId">) => {
       const res = await api.patch("/seller/profile", data);
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data?.data) {
+        queryClient.setQueryData(["seller", "profile"], data.data);
+      }
       queryClient.invalidateQueries({ queryKey: ["seller", "profile"] });
       toast.success("Store profile updated");
     },
-    onError: (err: ApiError) => {
-      toast.error(err.response?.data?.message || "Failed to update profile");
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Failed to update profile"));
     },
   });
 }

@@ -136,7 +136,7 @@ export default function UserMenu() {
                 className="flex items-center gap-3 cursor-pointer text-muted-foreground"
               >
                 <TrendingUp className="w-4 h-4" />
-                Manage Products
+                Seller Dashboard
               </Link>
             </DropdownMenuItem>
           )}
