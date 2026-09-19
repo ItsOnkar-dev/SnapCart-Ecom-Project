@@ -158,7 +158,7 @@ backend/
 │   │   ├── product.controller.ts      Product CRUD, catalog query, image upload
 │   │   ├── recommendation.controller.ts  Recommendation endpoint
 │   │   ├── review.controller.ts       Verified-purchase reviews
-│   │   ├── seller.controller.ts       Seller application flow
+│   │   ├── seller.controller.ts       Seller application, profile, and listing management
 │   │   ├── wishlist.controller.ts     Wishlist, public sharing, email sharing
 │   │   ├── coupon.controller.ts       Coupon application during checkout
 │   │   └── coupon.admin.controller.ts Admin coupon CRUD
@@ -378,11 +378,13 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 ### Seller
 
-| Method | Path               | Auth | Description                                  |
-| ------ | ------------------ | ---- | -------------------------------------------- |
-| POST   | `/seller/apply`    | Auth | Submit application (verified email required) |
-| GET    | `/seller/products` | Auth | List the current seller's products           |
-| GET    | `/seller/orders`   | Auth | List orders containing the seller's products |
+| Method | Path               | Auth            | Description                                  |
+| ------ | ------------------ | --------------- | -------------------------------------------- |
+| POST   | `/seller/apply`    | Auth            | Submit application (verified email required) |
+| GET    | `/seller/products` | Auth            | List the current seller's products           |
+| GET    | `/seller/orders`   | Auth            | List orders containing the seller's products |
+| GET    | `/seller/profile`  | Seller+Verified | Get seller store profile and business info   |
+| PATCH  | `/seller/profile`  | Seller+Verified | Update seller store profile details          |
 
 ### Admin
 

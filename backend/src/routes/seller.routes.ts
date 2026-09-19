@@ -3,6 +3,8 @@ import {
   applyForSeller,
   getSellerOrders,
   getSellerProducts,
+  getSellerProfile,
+  updateSellerProfile,
 } from "../controllers/seller.controller";
 import {
   requireRole,
@@ -35,6 +37,24 @@ router.get(
   requireVerifiedEmail,
   requireRole("seller"),
   getSellerOrders,
+);
+
+// GET /api/seller/profile
+router.get(
+  "/profile",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  getSellerProfile,
+);
+
+// PATCH /api/seller/profile
+router.patch(
+  "/profile",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  updateSellerProfile,
 );
 
 export default router;
