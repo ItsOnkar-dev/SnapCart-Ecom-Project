@@ -78,13 +78,13 @@ function CancelOrderDialog({
           online, a refund will be initiated — it may take a few business days.
         </p>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+        <div className="grid grid-cols-2 gap-3 max-[360px]:grid-cols-1">
           <Button
             id="confirm-cancel-order"
             variant="destructive"
             disabled={isPending}
             onClick={onConfirm}
-            className="flex-1 h-12 rounded-xl font-semibold"
+            className="h-12 w-full rounded-xl font-semibold"
           >
             {isPending ? (
               <>
@@ -99,7 +99,7 @@ function CancelOrderDialog({
             variant="outline"
             disabled={isPending}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 rounded-xl"
+            className="h-12 w-full rounded-xl"
           >
             Keep order
           </Button>
@@ -147,7 +147,9 @@ export default function OrderDetailPage() {
 
   const isCancelled = order.status === "cancelled";
   const canCancel = CANCELLABLE_STATUSES.includes(order.status as OrderStatus);
-  const currentIndex = isCancelled ? -1 : STATUS_STEPS.indexOf(order.status as OrderStatus);
+  const currentIndex = isCancelled
+    ? -1
+    : STATUS_STEPS.indexOf(order.status as OrderStatus);
 
   const handleConfirmCancel = () => {
     cancelOrder(order._id, {

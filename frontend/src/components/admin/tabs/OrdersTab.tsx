@@ -203,7 +203,7 @@ export default function OrdersTab() {
 
       {/* Order Details Receipt Dialog Modal */}
       <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
-        <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader className="border-b border-border/40 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -311,7 +311,7 @@ export default function OrdersTab() {
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Ordered Items ({selectedOrder.items.length})
                 </h4>
-                <div className="max-h-48 overflow-y-auto pr-1 space-y-2">
+                <div className="max-h-48 overflow-y-auto scrollbar-hide pr-1 space-y-2">
                   {selectedOrder.items.map((item, idx) => (
                     <div
                       key={idx}

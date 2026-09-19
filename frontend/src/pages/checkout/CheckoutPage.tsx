@@ -1,12 +1,9 @@
-import { ArrowRight, Lock, ShoppingBag, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Link } from "react-router";
-
 import { applyCouponApi } from "@/api/coupon.api";
-import CheckoutHeader from "@/components/layout/header/CheckoutHeader";
 import Footer from "@/components/layout/Footer";
+import CheckoutHeader from "@/components/layout/header/CheckoutHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import { useCart, useRemoveCartItem } from "@/hooks/useCart";
 import { useActiveCoupons } from "@/hooks/useCoupons";
 import { usePlaceOrder } from "@/hooks/useOrders";
@@ -15,6 +12,9 @@ import { getApiErrorMessage } from "@/types/api.types";
 import type { CartItem } from "@/types/cart.types";
 import type { Coupon } from "@/types/coupon.types";
 import type { ShippingAddress } from "@/types/order.types";
+import { ArrowRight, Lock, ShoppingBag, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -159,6 +159,7 @@ export default function CheckoutPage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-background">
+        <ScrollToTop />
         <CheckoutHeader />
         <div className="mx-auto max-w-7xl animate-pulse space-y-6 px-4 py-10 md:px-6">
           <div className="h-8 w-48 rounded bg-muted/30" />
@@ -184,6 +185,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-screen bg-background px-4 py-20 md:px-6">
+        <ScrollToTop />
         <CheckoutHeader />
         <div className="mx-auto max-w-sm text-center">
           <ShoppingBag className="mx-auto mb-5 size-12 text-muted-foreground" />
@@ -206,6 +208,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <ScrollToTop />
       <CheckoutHeader />
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
         {/* Page header */}

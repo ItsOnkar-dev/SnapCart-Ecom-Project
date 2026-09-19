@@ -187,7 +187,7 @@ export default function ChangePasswordPage() {
             to="/profile"
             className="text-sm font-light text-muted-foreground hover:text-foreground"
           >
-            Back to profile
+            ← Back to profile
           </Link>
         </p>
       </div>

@@ -107,6 +107,14 @@ const router = createBrowserRouter([
             path: "/reset-password",
             element: <ResetPasswordPage />,
           },
+
+          // Protected — only logged-in users can access
+          {
+            element: <ProtectedRoute />,
+            children: [
+              { path: "/change-password", element: <ChangePasswordPage /> },
+            ],
+          },
         ],
       },
 
@@ -141,9 +149,6 @@ const router = createBrowserRouter([
               { path: "/orders/:id", element: <OrderDetailPage /> },
               { path: "/profile", element: <ProfilePage /> },
               { path: "/account", element: <ProfilePage /> },
-              { path: "/change-password", element: <ChangePasswordPage /> },
-              { path: "/seller/apply", element: <SellerApplyPage /> },
-              { path: "/sell", element: <SellerApplyPage /> },
               {
                 path: "/wishlist",
                 element: <WishlistPage />,
@@ -171,6 +176,14 @@ const router = createBrowserRouter([
               },
             ],
           },
+        ],
+      },
+
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "/seller/apply", element: <SellerApplyPage /> },
+          { path: "/sell", element: <SellerApplyPage /> },
         ],
       },
 
