@@ -1,5 +1,3 @@
-
-
 export type SellerStatus = "none" | "pending" | "approved" | "rejected";
 export type SellerDecisionStatus = Extract<
   SellerStatus,
@@ -39,3 +37,12 @@ export interface SellerApplicationInput {
   businessAddress?: string;
   storeDescription?: string;
 }
+
+export type SellerProfileData = {
+  storeName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  taxId?: string;
+  businessAddress?: string;
+  storeDescription?: string;
+};

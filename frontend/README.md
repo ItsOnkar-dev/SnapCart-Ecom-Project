@@ -26,7 +26,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ## 📋 Table of Contents
 
 - [🎨 SnapCart — Frontend](#-snapcart--frontend)
-  - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
+    - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [✨ Highlights](#-highlights)
   - [🛠 Tech Stack](#-tech-stack)
@@ -221,9 +221,16 @@ frontend/
 │   │   └── recommendation.api.ts
 │   │
 │   ├── components/
+│   │   ├── admin/            # Admin sections
+│   │   │   ├── adminTabs
+│   │   │   ├── AdminOrderCard.tsx
+│   │   │   ├── AdminProductCard.tsx
+│   │   ├── cart/            # Cart sections
+│   │   │   ├── CartDrawer.tsx
 │   │   ├── home/            # Homepage sections
 │   │   │   ├── Hero.tsx
 │   │   │   ├── DepartmentGrid.tsx
+│   │   │   ├── Logo.tsx
 │   │   │   ├── ProductCard.tsx
 │   │   │   ├── ProductRail.tsx
 │   │   │   ├── RecommendedProducts.tsx
@@ -233,15 +240,20 @@ frontend/
 │   │   │   ├── header/
 │   │   │   │   ├── Header.tsx
 │   │   │   │   ├── AuthHeader.tsx
+│   │   │   │   ├── CheckoutHeader.tsx
+│   │   │   │   ├── MobileSidebar.tsx
+│   │   │   │   ├── SellerHeader.tsx
 │   │   │   │   ├── Navigation.tsx
 │   │   │   │   ├── SearchAutocomplete.tsx
 │   │   │   │   ├── StatusBar.tsx
 │   │   │   │   └── UserMenu.tsx
 │   │   │   ├── AuthLayout.tsx
 │   │   │   └── Footer.tsx
+│   │   ├── seller/            # Seller sections
+│   │   │   ├── sellerTabs
+│   │   │   ├── ProductFormDialog.tsx
 │   │   ├── ui/              # shadcn/ui primitive components
 │   │   ├── AuthGate.tsx     # # Pings health endpoint, retries on cold start, then calls initAuth()
-│   │   └── Logo.tsx
 │   │
 │   ├── hooks/                  # React Query hooks — one per domain
 │   │   ├── useServerWakeUp.ts  # Health ping with exponential backoff retry for Render cold starts
@@ -253,7 +265,7 @@ frontend/
 │   │   ├── useWishlist.ts      # Wishlist CRUD + share
 │   │   ├── useReviews.ts       # Reviews list + submit
 │   │   ├── useRecommendations.ts
-│   │   ├── useSellerProducts.ts
+│   │   ├── useSellerProducts.ts # Products CRUD, seller orders, and store profile hooks
 │   │   ├── useAdmin.ts
 │   │   ├── useAnalytics.ts
 │   │   └── usePayment.ts
@@ -417,6 +429,8 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 - Apply to become a seller from any verified account
 - Create, edit, and soft-delete products with Cloudinary image upload
 - Manage order statuses for your own listings
+- Store settings & profile management (store details, contact info, business verification)
+- Modular tab-based architecture separating products, orders, and store configuration
 
 ### 📊 Admin Dashboard
 

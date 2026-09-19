@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import type { SellerProfileData } from "@/types/seller.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -12,7 +13,8 @@ interface ApiError {
 }
 
 // ── API functions ──────────────────────────────────────────────────────────────
-export const getSellerProductsApi = (page?: number) => api.get("/seller/products", { params: { page } });
+export const getSellerProductsApi = (page?: number) =>
+  api.get("/seller/products", { params: { page } });
 export const getSellerOrdersApi = (status?: string, page?: number) =>
   api.get("/seller/orders", { params: { status, page } });
 export const createProductApi = (body: FormData) => api.post("/products", body);
@@ -100,5 +102,33 @@ export function useSellerOrders(status?: string, page: number = 1) {
       return res.data.data;
     },
     staleTime: 15 * 1000,
+  });
+}
+
+export function useSellerProfile() {
+  return useQuery({
+    queryKey: ["seller", "profile"],
+    queryFn: async () => {
+      const res = await api.get("/seller/profile");
+      return res.data.data as SellerProfileData;
+    },
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useUpdateSellerProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Omit<SellerProfileData, "taxId">) => {
+      const res = await api.patch("/seller/profile", data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["seller", "profile"] });
+      toast.success("Store profile updated");
+    },
+    onError: (err: ApiError) => {
+      toast.error(err.response?.data?.message || "Failed to update profile");
+    },
   });
 }

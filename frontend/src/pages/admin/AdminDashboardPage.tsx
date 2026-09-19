@@ -6,10 +6,10 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import OrdersTab from "@/components/admin/tabs/OrdersTab";
-import ProductsTab from "@/components/admin/tabs/ProductsTab";
-import SellersTab from "@/components/admin/tabs/SellersTab";
-import CouponsTab from "@/components/admin/tabs/CouponsTab";;
+import OrdersTab from "@/components/admin/adminTabs/OrdersTab";
+import ProductsTab from "@/components/admin/adminTabs/ProductsTab";
+import SellersTab from "@/components/admin/adminTabs/SellersTab";
+import CouponsTab from "@/components/admin/adminTabs/CouponsTab";;
 
 type ActiveTab = "analytics" | "products" | "orders" | "sellers" | "coupons";
 
