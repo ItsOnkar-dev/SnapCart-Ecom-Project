@@ -22,7 +22,6 @@ const getRouteParam = (value: string | string[] | undefined, _name: string) => {
 };
 
 // POST /api/cart/add
-// Add a product to cart — if already exists, increase quantity
 export const addToCart = asyncHandler(async (req: Request, res: Response) => {
   const { productId, quantity = 1 } = req.body;
 
@@ -32,14 +31,12 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // GET /api/cart
-// Get current user's cart
 export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const cart = await Cart.findOne({ user: req.user!._id }).populate(
     "items.product",
     "name images price discountPrice stock isActive",
   );
 
-  // If no cart exists yet, return empty cart
   if (!cart) {
     res.status(200).json(
       new ApiResponse(200, "Cart is empty", {
@@ -54,7 +51,6 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // PATCH /api/cart/:productId
-// Update quantity of a specific item in cart
 export const updateCartItem = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = getRouteParam(req.params.productId, "product id");
@@ -69,7 +65,6 @@ export const updateCartItem = asyncHandler(
 );
 
 // DELETE /api/cart/:productId
-// Remove a single item from cart
 export const removeFromCart = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = getRouteParam(req.params.productId, "product id");

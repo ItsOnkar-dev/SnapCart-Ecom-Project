@@ -34,7 +34,6 @@ export const placeOrderService = async (
 
   const items = cart.items as unknown as PopulatedCartItem[];
 
-  // Shipping-total policy (single source of truth — mirrors payment.controller.ts)
   const SHIPPING_THRESHOLD = 500;
   const SHIPPING_COST = 49;
   const calculatedSubtotal = items.reduce(
@@ -57,10 +56,6 @@ export const placeOrderService = async (
 
   const totalPrice = paymentInfo.total ?? subtotal + shipping - discount;
 
-  // Sequential operations — no MongoDB transaction.
-  // Atlas M0 free tier does not support transactions. Each operation is atomic
-  // individually; if stock decrement fails the order is never created.
-  // For payment flows the Razorpay verify/webhook handles recovery.
   for (const item of items) {
     if (!item.product || !item.product.isActive) {
       throw new ApiError(400, `A product in your cart is no longer available`);

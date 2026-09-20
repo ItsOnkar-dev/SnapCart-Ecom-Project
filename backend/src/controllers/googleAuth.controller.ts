@@ -27,27 +27,22 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // GET /api/auth/google/callback
-// Step 2 — Google redirects back here with a code
 export const googleCallback = asyncHandler(
   async (req: Request, res: Response) => {
     const googleClient = getGoogleClient();
-    // Step 1 — Get the code Google sent in the URL
     const { code } = req.query;
 
     if (!code) {
       throw new ApiError(400, "Google sign-in failed. Please try again.");
     }
 
-    // Step 2 — Exchange code for tokens
     const { tokens } = await googleClient.getToken(code as string);
     googleClient.setCredentials(tokens);
 
-    // Step 3 — Fetch user's profile from Google
     const userInfoResponse = await googleClient.request({
       url: "https://www.googleapis.com/oauth2/v2/userinfo",
     });
 
-    // Step 4 — Extract what we need
     const googleUser = userInfoResponse.data as {
       id: string;
       email: string;
@@ -60,17 +55,14 @@ export const googleCallback = asyncHandler(
       throw new ApiError(400, "Could not retrieve email from Google");
     }
 
-    // Step 5 — Find existing user or create new one
     let user = await User.findOne({ email: googleUser.email });
 
     if (user) {
-      // Already registered — just update their Google info
       user.googleId = googleUser.id;
       user.avatar = googleUser.picture;
       user.isEmailVerified = true;
       await user.save({ validateBeforeSave: false });
     } else {
-      // Brand new user — create account automatically
       user = await User.create({
         name: googleUser.name,
         email: googleUser.email,
@@ -80,11 +72,9 @@ export const googleCallback = asyncHandler(
       });
     }
 
-    // Step 6 — Generate our JWT tokens
     const accessToken = generateAccessToken(user._id.toString(), user.role);
     const refreshToken = generateRefreshToken(user._id.toString());
 
-    // Step 7 — Save refresh token in DB
     user.refreshToken = hashToken(refreshToken);
     await user.save({ validateBeforeSave: false });
 

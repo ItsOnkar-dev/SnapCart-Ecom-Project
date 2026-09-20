@@ -20,11 +20,8 @@ export interface RecommendedProduct {
   reason: string;
 }
 
-// Mongoose .lean() returns complex document-shaped objects — use a loose type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScoredProduct = { product: any; score: number; reason: string };
-
-// ─── Text Helpers ─────────────────────────────────────────────────────────────
 
 const getTokens = (str: string): string[] =>
   str
@@ -42,7 +39,6 @@ const jaccardSimilarity = (a: string[], b: string[]): number => {
   return intersection / (setA.size + setB.size - intersection);
 };
 
-// ─── Reason Generators ────────────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const relatedReason = (candidate: any, current: any, similarityScore: number): string => {
   if (similarityScore > 0.4) return `Similar ${current.category} product`;
@@ -67,7 +63,6 @@ const personalizedReason = (product: any, categoryWeight: number): string => {
   return `Recommended for you`;
 };
 
-// ─── Strategy 1: Related Products ─────────────────────────────────────────────
 export const getRelatedProducts = async (
   productId: string,
   limit: number = 5,
@@ -116,11 +111,9 @@ export const getFrequentlyBoughtTogether = async (
   }).lean();
 
   if (!orders.length) {
-    // No co-occurrence data yet — fall back to content-based related
     return getRelatedProducts(productId, limit);
   }
 
-  // Count weighted co-occurrences (quantity matters — 3 units = stronger signal)
   const counts: Record<string, number> = {};
   for (const order of orders) {
     for (const item of order.items) {
@@ -146,7 +139,6 @@ export const getFrequentlyBoughtTogether = async (
   const countById = new Map(sortedPairs);
   const byId = new Map(products.map((p) => [p._id.toString(), p]));
 
-  // Preserve co-occurrence rank order
   return productIds
     .map((id) => byId.get(id.toString()))
     .filter(Boolean)
@@ -156,11 +148,6 @@ export const getFrequentlyBoughtTogether = async (
     })) as RecommendedProduct[];
 };
 
-// ─── Strategy 3: Cart-Aware Recommendations ────────────────────────────────────
-// New strategy: given a list of product IDs currently in the user's cart,
-// find complementary products across categories (cross-sell, not same-category).
-// This powers the "mode: cart" use case from the senior dev's hook design.
-
 export const getCartRecommendations = async (
   productIds: string[],
   userId: string | null,
@@ -168,7 +155,6 @@ export const getCartRecommendations = async (
 ): Promise<RecommendedProduct[]> => {
   const pIds = productIds.map((id) => new Types.ObjectId(id));
 
-  // Get the categories of what's already in the cart
   const cartProducts = await Product.find({
     _id: { $in: pIds },
     isActive: true,
@@ -178,8 +164,6 @@ export const getCartRecommendations = async (
   const cartCategories = new Set(cartProducts.map((p) => p.category));
   const cartCategoryList: string[] = Array.from(cartCategories);
 
-  // Find orders that contained at least one of these products
-  // to discover what people buy together with cart contents
   const orders = await Order.find({
     "items.product": { $in: pIds },
     status: { $ne: "cancelled" },
@@ -196,7 +180,6 @@ export const getCartRecommendations = async (
   }
 
   if (Object.keys(coCount).length >= limit) {
-    // We have enough co-occurrence data — use it
     const topPairIds = Object.entries(coCount)
       .sort(([, a], [, b]) => b - a)
       .slice(0, limit)
@@ -217,8 +200,6 @@ export const getCartRecommendations = async (
       })) as RecommendedProduct[];
   }
 
-  // Fallback: cross-category discovery — find highly-rated products
-  // NOT in the same category as cart (avoids redundancy, promotes discovery)
   const crossCategoryProducts = await Product.find({
     _id: { $nin: pIds },
     category: { $nin: cartCategoryList as ProductCategory[] },
@@ -239,10 +220,6 @@ export const getCartRecommendations = async (
   return getTopRated(limit, productIds);
 };
 
-// ─── Strategy 4: Personalized (User Interest Graph) ────────────────────────────
-// Builds a category affinity graph from cart (3×), wishlist (2×), orders (1×).
-// Scores candidates by affinity + rating. Cold-start → top rated.
-
 export const getPersonalizedRecommendations = async (
   userId: string,
   productIdsToExclude: string[] = [],
@@ -261,7 +238,6 @@ export const getPersonalizedRecommendations = async (
     const excludedIds = new Set<string>(productIdsToExclude);
     const categoryWeights: Record<string, number> = {};
 
-    // Gather all product IDs we need to fetch categories for
     const cartProductIds = cart
       ? cart.items.map((i: { product: Types.ObjectId }) => i.product)
       : [];
@@ -273,7 +249,6 @@ export const getPersonalizedRecommendations = async (
         o.items.map((i: { product: Types.ObjectId }) => i.product),
     );
 
-    // Mark as excluded
     for (const id of [
       ...cartProductIds,
       ...wishlistProductIds,
@@ -282,7 +257,6 @@ export const getPersonalizedRecommendations = async (
       excludedIds.add(id.toString());
     }
 
-    // Fetch all interaction products in one query
     const allInteractionIds = [
       ...cartProductIds,
       ...wishlistProductIds,
@@ -301,7 +275,6 @@ export const getPersonalizedRecommendations = async (
 
     for (const p of interactionProducts) {
       const id = p._id.toString();
-      // Cart items = strongest signal (3), wishlist (2), orders (1)
       if (cartIdSet.has(id)) {
         categoryWeights[p.category] = (categoryWeights[p.category] ?? 0) + 3;
       } else if (wishlistIdSet.has(id)) {
@@ -313,7 +286,6 @@ export const getPersonalizedRecommendations = async (
 
     const favoriteCategories = Object.keys(categoryWeights);
 
-    // Cold start — no interaction history
     if (!favoriteCategories.length) return getTopRated(limit);
 
     const candidates = await Product.find({
@@ -374,8 +346,6 @@ export const getPersonalizedRecommendations = async (
     return getTopRated(limit);
   }
 };
-
-// ─── Utility: Top Rated Fallback ──────────────────────────────────────────────
 
 const getTopRated = async (
   limit: number,

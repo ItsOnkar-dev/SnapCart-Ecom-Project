@@ -23,31 +23,28 @@ import { Logger } from "./utils/logger";
 
 const app = express();
 
-app.set("trust proxy", 1); // Trust the first proxy in front of Express, which is important for rate limiting and CORS when behind a reverse proxy or load balancer.
+app.set("trust proxy", 1);
 
-app.use(helmet()); // Help secure Express apps by setting HTTP response headers.
+app.use(helmet());
 
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
 const webhookLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100, // Razorpay sends at most a handful per minute
+  max: 100,
   message: "Too many webhook requests",
 });
 
-//  Raw body parser for Razorpay webhook. This middleware ONLY applies to /api/payments/webhook. Razorpay computes its webhook signature on the raw request body. If express.json() runs first, req.body becomes a parsed JS object.
 app.use(
   "/api/payments/webhook",
   webhookLimiter,
   express.raw({ type: "application/json" }),
 );
 
-// Body Parsing
 app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Then sanitize — now req.body is populated and CORS headers are already sent
 app.use(mongoSanitize);
 
 const allowedOrigins = [
@@ -62,23 +59,20 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        // Passing null, false rejects the origin cleanly without throwing a 500 error
         callback(null, false);
       }
     },
-    credentials: true, // allows cookies to be sent cross-origin
+    credentials: true,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   }),
 );
 
-// Health checks must work even if rate limits are hit and they have no CSRF token
 app.use("/api/v1", healthRoutes);
 
-// General limiter — all routes
 const generalLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 100, // max 100 requests per IP per 10 min
+  max: 100,
   message: {
     success: false,
     message: "Too many requests, please try again later",
@@ -87,8 +81,6 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Strict limiter — auth routes only
-// NOTE: Route-level limiters in auth.routes.ts are the authoritative source.
 const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 20,
@@ -105,8 +97,6 @@ app.use(generalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
-// ── CSRF — single enforcement point ────────────────────────────────────────────
-// Webhook is server-to-server from Razorpay — no CSRF token possible.
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   if (req.path === "/payments/webhook") return next();
@@ -120,7 +110,6 @@ app.use("/api", (req, res, next) => {
   return csrfProtection(req, res, next);
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/admin", adminRoutes);
@@ -132,10 +121,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 
-// Global error handler —
-// Express knows this is an error handler because it has 4 parameters (err, req, res, next)
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
-  // If it's our own ApiError, we have statusCode + message ready
   if (err instanceof ApiError) {
     res.status(err.statusCode).json({
       success: false,
@@ -144,8 +130,7 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     return;
   }
 
-  // If it's some unexpected error (DB crash, bug, etc.)
-  Logger.error("Unexpected error:", err instanceof Error ? err.stack : err); // Changed this line
+  Logger.error("Unexpected error:", err instanceof Error ? err.stack : err);
   res.status(500).json({
     success: false,
     message: "Internal server error",

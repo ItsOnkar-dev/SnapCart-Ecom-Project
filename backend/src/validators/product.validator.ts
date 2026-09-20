@@ -30,6 +30,22 @@ export const createProductSchema = z
     stock: z.coerce
       .number({ error: "Stock is required" })
       .min(0, "Stock cannot be negative"),
+    highlights: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .transform((val) => {
+        if (!val) return [];
+        if (typeof val === "string") return [val];
+        return val;
+      })
+      .refine((val) => val.length <= 6, {
+        message: "Maximum 6 highlights allowed",
+      }),
+    shippingInfo: z
+      .string()
+      .trim()
+      .max(300, "Shipping info cannot exceed 300 characters")
+      .optional(),
   })
   .refine((data) => !data.discountPrice || data.discountPrice < data.price, {
     message: "Discount price must be less than the original price",
@@ -68,6 +84,24 @@ export const updateProductSchema = z
     stock: z.coerce
       .number({ error: "Stock is required" })
       .min(0, "Stock cannot be negative"),
+
+    highlights: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .transform((val) => {
+        if (!val) return [];
+        if (typeof val === "string") return [val];
+        return val;
+      })
+      .refine((val) => val.length <= 6, {
+        message: "Maximum 6 highlights allowed",
+      }),
+
+    shippingInfo: z
+      .string()
+      .trim()
+      .max(300, "Shipping info cannot exceed 300 characters")
+      .optional(),
   })
   .refine(
     (data) =>

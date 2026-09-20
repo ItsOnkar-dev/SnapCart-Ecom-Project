@@ -25,7 +25,6 @@ const getRouteParam = (value: string | string[] | undefined, _name: string) => {
 };
 
 // POST /api/reviews/:productId
-// Only customers who actually ordered the product can review it
 export const createReview = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = getRouteParam(req.params.productId, "product id");
@@ -46,12 +45,10 @@ export const createReview = asyncHandler(
 );
 
 // GET /api/reviews/:productId
-// Public — anyone can read reviews
 export const getProductReviews = asyncHandler(
   async (req: Request, res: Response) => {
     const { productId } = req.params;
 
-    // Check product exists first
     const product = await Product.findById(productId);
 
     if (!product || !product.isActive) {

@@ -1,8 +1,6 @@
 import { UploadApiResponse } from "cloudinary";
 import cloudinary from "../config/cloudinary";
 
-// uploads a file Buffer directly to Cloudinary via stream —
-// no temp file created, no cleanup needed, works on any filesystem
 export const uploadToCloudinary = (
   buffer: Buffer,
   folder: string = "snapcart/products",

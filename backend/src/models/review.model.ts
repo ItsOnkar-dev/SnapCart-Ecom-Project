@@ -35,8 +35,6 @@ const reviewSchema = new Schema<IReview>(
   { timestamps: true },
 );
 
-// Compound index — one review per user per product
-// If same user tries to review same product twice, MongoDB will reject it
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
 export const Review = mongoose.model<IReview>("Review", reviewSchema);

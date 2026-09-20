@@ -1,10 +1,8 @@
-// utils/sendVerificationEmail.ts
 import crypto from "crypto";
 import { Resend } from "resend";
 import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
-// generates token pair — exported separately so register controller can use it too
 export const generateVerificationToken = () => {
   const rawToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto
@@ -14,12 +12,8 @@ export const generateVerificationToken = () => {
   return { rawToken, hashedToken };
 };
 
-// sends the actual email — takes the user and the RAW token
 export const sendVerificationEmail = async (user: IUser, rawToken: string) => {
   const resend = new Resend(env.email.resendApiKey);
-  // build the link the user will click
-  // FRONTEND_URL because the link should land on a frontend page
-  // that page will then call your backend API with the token
   const verificationLink = `${env.frontendUrl}/verify-email?token=${rawToken}`;
 
   await resend.emails.send({

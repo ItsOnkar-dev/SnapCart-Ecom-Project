@@ -14,7 +14,6 @@ import {
 import { uploadToCloudinary } from "../utils/uploadToCloudinary";
 
 // GET /api/admin/sellers
-// Admin sees all users who have applied to become sellers
 export const getPendingSellers = asyncHandler(
   async (req: Request, res: Response) => {
     const sellers = await User.find({
@@ -36,7 +35,6 @@ export const getPendingSellers = asyncHandler(
 );
 
 // PATCH /api/admin/sellers/:id
-// Admin approves or rejects a seller application
 export const updateSellerStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params; // seller's user ID from URL
@@ -128,7 +126,6 @@ export const adminDeleteProduct = asyncHandler(
 
 export const getAdminDashboardMetrics = asyncHandler(
   async (req: Request, res: Response) => {
-    // 1. Calculate Revenue and Order count (excluding cancelled orders)
     const orderStats = await Order.aggregate([
       { $match: { status: { $ne: "cancelled" } } },
       {
@@ -142,13 +139,11 @@ export const getAdminDashboardMetrics = asyncHandler(
 
     const stats = orderStats[0] || { totalRevenue: 0, totalOrders: 0 };
 
-    // 2. Calculate Average Order Value
     const averageOrderValue =
       stats.totalOrders > 0
         ? Math.round(stats.totalRevenue / stats.totalOrders)
         : 0;
 
-    // 3. Count Low Stock Products (3 or fewer, as per your UI)
     const lowStockCount = await Product.countDocuments({ stock: { $lte: 3 } });
 
     res.status(200).json(
@@ -173,7 +168,6 @@ export const getAnalytics = asyncHandler(
 );
 
 // GET /api/admin/orders
-// Admin sees ALL orders across all users with pagination
 export const getAllOrders = asyncHandler(
   async (req: Request, res: Response) => {
     const { page, limit, skip } = getPaginationParams(
@@ -200,7 +194,6 @@ export const getAllOrders = asyncHandler(
 );
 
 // GET /api/admin/products
-// Admin catalog controls â€” all products, including inactive soft-deleted records.
 export const getAllProducts = asyncHandler(
   async (req: Request, res: Response) => {
     const { page, limit, skip } = getPaginationParams(

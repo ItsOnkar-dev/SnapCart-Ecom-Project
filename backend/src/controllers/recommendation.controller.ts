@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Product } from "../models/product.model";
+import type { RecommendedProduct } from "../services/recommendation.service";
 import {
   getCartRecommendations,
   getFrequentlyBoughtTogether,
@@ -8,7 +9,6 @@ import {
 } from "../services/recommendation.service";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
-import type { RecommendedProduct } from "../services/recommendation.service";
 
 // GET /api/recommendations
 export const getRecommendations = asyncHandler(
@@ -17,7 +17,6 @@ export const getRecommendations = asyncHandler(
 
     const limit = Math.min(16, Math.max(1, Number(limitParam) || 4));
 
-    // Support both comma-separated string and repeated params: ?productIds=a,b or ?productIds=a&productIds=b
     const productIds: string[] = Array.isArray(productIdsParam)
       ? (productIdsParam as string[])
       : typeof productIdsParam === "string" && productIdsParam
@@ -34,11 +33,8 @@ export const getRecommendations = asyncHandler(
       let products: RecommendedProduct[] = [];
 
       if (recMode === "cart" && productIds.length > 0) {
-        // Cart drawer — cross-sell based on everything in the cart
         products = await getCartRecommendations(productIds, userId, limit);
       } else if (recMode === "product" && productIds.length === 1) {
-        // Product detail page — blend related + frequently-bought
-        // Split limit: more weight to related (broader, better cold-start coverage)
         const relatedLimit = Math.ceil(limit * 0.6);
         const boughtLimit = Math.ceil(limit * 0.5); // Overlap intentional — dedupe below
 
@@ -47,7 +43,6 @@ export const getRecommendations = asyncHandler(
           getFrequentlyBoughtTogether(productIds[0], boughtLimit),
         ]);
 
-        // Merge: bought-together first (stronger signal), then fill with related
         const seen = new Set<string>();
         const merged: RecommendedProduct[] = [];
 
@@ -62,13 +57,10 @@ export const getRecommendations = asyncHandler(
 
         products = merged;
       } else if (productIds.length > 1) {
-        // Multiple product IDs but mode=product — treat as cart-aware
         products = await getCartRecommendations(productIds, userId, limit);
       } else if (userId) {
-        // No seed products — personalized for logged-in user
         products = await getPersonalizedRecommendations(userId, [], limit);
       } else {
-        // Anonymous, no seed — cold start top rated
         products = await Product.find({ isActive: true })
           .sort({ averageRating: -1, totalReviews: -1 })
           .limit(limit)

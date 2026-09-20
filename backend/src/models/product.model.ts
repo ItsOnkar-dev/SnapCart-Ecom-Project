@@ -26,12 +26,11 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       default: null,
       validate: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        validator: function (this: any, value: number | null) {
+        validator: function (value: number | null) {
           if (value === null || value === undefined) return true;
-          return value < this.price;
+          return typeof value === "number" && value >= 0;
         },
-        message: "Discount price must be less than the regular price",
+        message: "Discount price must be a valid positive number",
       },
     },
     category: {
@@ -69,9 +68,23 @@ const productSchema = new Schema<IProduct>(
       min: [0, "Stock cannot be negative"],
       default: 0,
     },
+    highlights: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (v: string[]) => v.length <= 6,
+        message: "Maximum 6 highlights allowed",
+      },
+    },
+    shippingInfo: {
+      type: String,
+      trim: true,
+      maxlength: [300, "Shipping info cannot exceed 300 characters"],
+      default: "",
+    },
     seller: {
       type: Schema.Types.ObjectId,
-      ref: "User", // links to User model — lets us do .populate("seller")
+      ref: "User",
       required: true,
     },
     isActive: {

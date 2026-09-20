@@ -5,8 +5,6 @@ import { env } from "../config/validateEnv";
 const router = Router();
 
 // GET /health
-// Liveness probe — is the process alive?
-// Render/Railway hits this to decide if the container needs restarting.
 router.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
@@ -20,9 +18,6 @@ router.get("/health", (_req: Request, res: Response) => {
 });
 
 // GET /ready
-// Readiness probe — is the server ready to serve traffic?
-// Checks DB connection. Returns 503 if DB is down.
-// Render waits for 200 here before routing traffic to this instance.
 router.get("/ready", (_req: Request, res: Response) => {
   const dbState = mongoose.connection.readyState;
   // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting

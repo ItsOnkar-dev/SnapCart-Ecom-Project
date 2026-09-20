@@ -36,20 +36,16 @@ const isDemoVerificationEnabled = () =>
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  // Step 1 — Pull data from request body
   const { name, email, password } = req.body;
 
-  // Step 2 — Validate: make sure all fields are present
   if (!name || !email || !password) {
     throw new ApiError(400, "Name, email and password are required");
   }
 
-  // Step 3 — Validate password length (model checks this too, but better to catch early)
   if (password.length < 8) {
     throw new ApiError(400, "Password must be at least 8 characters");
   }
 
-  // Step 4 — Check if this email is already registered
   const existingUser = await User.findOne({
     email: email.toLowerCase().trim(),
   });
@@ -57,23 +53,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(409, "An account with this email already exists");
   }
 
-  // Step 5 — Hash the password before saving
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // NEW — generate the token pair BEFORE creating the user
   const { rawToken, hashedToken } = generateVerificationToken();
 
-  // Step 6 — Create the user in DB
   const user = await User.create({
     name: name.trim(),
     email: email.toLowerCase().trim(),
     password: hashedPassword,
-    // save the hashed token + expiry directly on creation
     emailVerificationToken: hashedToken,
-    emailVerificationTokenExpiry: new Date(Date.now() + 10 * 60 * 1000), //10 minutes from right now
+    emailVerificationTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
   });
 
-  // NEW — fire the email AFTER the user is saved
   let demoVerificationUrl: string | undefined;
   try {
     if (isDemoVerificationEnabled()) {
@@ -88,7 +79,6 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     console.info("Fallback demo verification link:", demoVerificationUrl);
   }
 
-  // Step 7 — Send back user data (never send password — even hashed)
   const userResponse = {
     _id: user._id,
     name: user.name,
@@ -114,16 +104,12 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
 // POST /api/auth/login
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  // Step 1 — Pull credentials from body
   const { email, password } = req.body;
 
-  // Step 2 — Validate fields exist
   if (!email || !password) {
     throw new ApiError(400, "Email and password are required");
   }
 
-  // Step 3 — Find user by email
-  // .select("+password") because password has select:false in schema — mongoose hides it by default
   const user = await User.findOne({ email: email.toLowerCase().trim() }).select(
     "+password +failedLoginAttempts +lockedUntil",
   );
@@ -136,7 +122,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(403, "Your account has been deactivated");
   }
 
-  // ── Account lockout check ────────────────────────────────────────────────
   if (user.lockedUntil && user.lockedUntil > new Date()) {
     const mins = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
     throw new ApiError(
@@ -150,8 +135,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (!isPasswordCorrect) {
     user.failedLoginAttempts = (user.failedLoginAttempts ?? 0) + 1;
     if (user.failedLoginAttempts >= 5) {
-      user.lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15-minute lockout
-      user.failedLoginAttempts = 0; // reset counter after lockout
+      user.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+      user.failedLoginAttempts = 0;
       await user.save({ validateBeforeSave: false });
     } else {
       await user.save({ validateBeforeSave: false });
@@ -159,25 +144,20 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(401, "Invalid email or password");
   }
 
-  // Reset on successful login
   if (user.failedLoginAttempts > 0 || user.lockedUntil) {
     user.failedLoginAttempts = 0;
     user.lockedUntil = undefined;
     await user.save({ validateBeforeSave: false });
   }
 
-  // Step 6 — Generate both tokens using your existing generateTokens.ts
   const accessToken = generateAccessToken(user._id.toString(), user.role);
   const refreshToken = generateRefreshToken(user._id.toString());
 
-  // Step 7 — Save refresh token in DB so we can invalidate it on logout
   user.refreshToken = hashToken(refreshToken);
   await user.save({ validateBeforeSave: false });
-  // validateBeforeSave:false — only refreshToken changed, no need to re-run all validators
 
   const isProduction = env.nodeEnv === "production";
 
-  // Step 8 — Cookie config
   const accessTokenCookieOptions = {
     httpOnly: true,
     secure: isProduction,
@@ -196,7 +176,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   auditLog("auth.login", user._id.toString(), { email: user.email });
 
-  // Step 9 — Attach cookies to response and send user data
   res
     .status(200)
     .cookie("accessToken", accessToken, accessTokenCookieOptions)
@@ -216,14 +195,12 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 // POST /api/auth/refresh
 export const refreshAccessToken = asyncHandler(
   async (req: Request, res: Response) => {
-    // Step 1 — Read refresh token from cookie
     const token = req.cookies?.refreshToken;
 
     if (!token) {
       throw new ApiError(401, "Session expired. Please log in again.");
     }
 
-    // Step 2 — Verify it
     let decoded: { userId: string };
     try {
       decoded = jwt.verify(token, env.jwt.refreshSecret as string) as {
@@ -233,12 +210,9 @@ export const refreshAccessToken = asyncHandler(
       throw new ApiError(401, "Session expired. Please log in again.");
     }
 
-    // Step 3 — Find user and check stored refresh token matches
     const user = await User.findById(decoded.userId).select("+refreshToken");
 
     if (!user || !user.refreshToken || user.refreshToken !== hashToken(token)) {
-      // Token reuse detected — someone is using an old refresh token
-      // This means the token may have been stolen — wipe all tokens
       if (user) {
         user.refreshToken = undefined;
         await user.save({ validateBeforeSave: false });
@@ -246,11 +220,9 @@ export const refreshAccessToken = asyncHandler(
       throw new ApiError(401, "Your session has expired. Please log in again.");
     }
 
-    // Step 4 — Issue new tokens (rotation)
     const newAccessToken = generateAccessToken(user._id.toString(), user.role);
     const newRefreshToken = generateRefreshToken(user._id.toString());
 
-    // Step 5 — Save new refresh token, invalidate old one
     user.refreshToken = hashToken(newRefreshToken);
     await user.save({ validateBeforeSave: false });
 
@@ -277,11 +249,8 @@ export const refreshAccessToken = asyncHandler(
 );
 
 // GET /api/auth/me
-// verifyToken middleware runs before this — so req.user is already attached
 export const getCurrentUser = asyncHandler(
   async (req: Request, res: Response) => {
-    // req.user is already the full user object from DB, attached by verifyToken
-    // No need to query DB again
     res.status(200).json(
       new ApiResponse(200, "User fetched successfully", {
         _id: req.user!._id,
@@ -299,7 +268,7 @@ export const getCurrentUser = asyncHandler(
 // POST /api/auth/logout
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   await User.findByIdAndUpdate(req.user!._id, {
-    refreshToken: null, // Step 1 — Remove refresh token from DB, So even if someone has the old token, it's invalid on the server side
+    refreshToken: null,
   });
 
   auditLog("auth.logout", req.user?._id?.toString(), {
@@ -327,42 +296,26 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 
 // GET /api/auth/verify-email?token=abc123...
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
-  // Step 1 — pull the raw token from the query string
   const { token } = req.query;
 
   if (!token || typeof token !== "string") {
     throw new ApiError(400, "Verification link is required");
   }
 
-  // Step 2 — hash the incoming raw token THE SAME WAY we hashed it at registration
-  // we never stored the raw token anywhere — only the hash
-  // so to find a match, we must hash again and compare hash-to-hash
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-  // Step 3 — find a user with this exact hashed token, that hasn't expired yet
-  // doing both checks in ONE query is more efficient than finding then checking separately
   const user = await User.findOne({
     emailVerificationToken: hashedToken,
     emailVerificationTokenExpiry: { $gt: new Date() },
-    //                              ↑
-    //                  $gt = "greater than" — expiry must be in the FUTURE
-    //                  if expiry already passed, this query finds nothing
   }).select("+emailVerificationToken +emailVerificationTokenExpiry");
 
   if (!user) {
-    // could mean: wrong token, already used token, or expired token
-    // deliberately vague — same principle as login errors
     throw new ApiError(400, "Verification link is invalid or has expired");
   }
 
-  // Step 4 — mark verified, wipe the token fields
   user.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   user.emailVerificationTokenExpiry = undefined;
-  //          ↑
-  //  CRITICAL — wipe both fields after success
-  //  this token is single-use. if you don't clear it, someone could
-  //  theoretically reuse the same link (until it naturally expires)
 
   await user.save({ validateBeforeSave: false });
 
@@ -382,7 +335,6 @@ export const resendVerification = asyncHandler(
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
 
-    // deliberately vague here too — don't confirm/deny if an email exists in your system
     if (!user) {
       res
         .status(200)
@@ -393,15 +345,12 @@ export const resendVerification = asyncHandler(
           ),
         );
       return;
-      // ← same response whether user exists or not
-      // this prevents attackers from using this endpoint to discover registered emails
     }
 
     if (user.isEmailVerified) {
       throw new ApiError(400, "This email is already verified");
     }
 
-    // generate a FRESH token pair — old one (if any) is now meaningless
     const { rawToken, hashedToken } = generateVerificationToken();
 
     user.emailVerificationToken = hashedToken;
@@ -437,23 +386,19 @@ export const resendVerification = asyncHandler(
 );
 
 // PATCH /api/auth/change-password
-// For logged-in users who know their current password and want to change it
 export const changePassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { currentPassword, newPassword } = req.body;
-    // Pull the hashed password — select:false means we must request it explicitly
     const user = await User.findById(req.user!._id).select("+password");
     if (!user) {
       throw new ApiError(404, "User not found");
     }
-    // Google OAuth users have no password — they can't use this endpoint
     if (!user.password) {
       throw new ApiError(
         400,
         "Your account uses Google sign-in. Password change is not available.",
       );
     }
-    // Verify current password before allowing any change
     const isCurrentPasswordCorrect = await bcrypt.compare(
       currentPassword,
       user.password,
@@ -461,11 +406,9 @@ export const changePassword = asyncHandler(
     if (!isCurrentPasswordCorrect) {
       throw new ApiError(401, "Current password is incorrect");
     }
-    // Hash and save the new password
     user.password = await bcrypt.hash(newPassword, 12);
 
     user.passwordChangedAt = new Date();
-    // Wipe all refresh tokens — forces re-login on every other device
     user.refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
 
@@ -476,7 +419,6 @@ export const changePassword = asyncHandler(
     });
 
     const isProduction = env.nodeEnv === "production";
-    // Clear cookies on current device too — user must log in again
     res
       .status(200)
       .clearCookie("accessToken", {
@@ -508,8 +450,6 @@ export const forgotPassword = asyncHandler(
 
     const user = await User.findOne({ email: normalizedEmail });
 
-    // security: same response whether or not the user exists
-    // never let this endpoint leak which emails are registered — that's an enumeration attack
     if (!user) {
       res
         .status(200)
@@ -526,7 +466,7 @@ export const forgotPassword = asyncHandler(
     const { rawToken, hashedToken } = generateResetToken();
 
     user.passwordResetToken = hashedToken;
-    user.passwordResetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min — matches email copy
+    user.passwordResetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
     let demoResetUrl: string | undefined;
@@ -592,8 +532,6 @@ export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { token, newPassword } = req.body;
 
-    // hash the incoming raw token the same way generateResetToken hashed it at creation —
-    // we never store raw tokens, only hashes, so we compare hash-to-hash
     const hashedToken = hashToken(token);
 
     const user = await User.findOne({
@@ -610,12 +548,9 @@ export const resetPassword = asyncHandler(
 
     user.password = await bcrypt.hash(newPassword, 12);
     user.passwordChangedAt = new Date();
-    // burn the token — one-time use, exactly like the verification token flow
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpiry = undefined;
 
-    // force logout everywhere — if someone needed a password reset,
-    // don't leave old refresh tokens (possibly attacker-held) still valid
     user.refreshToken = undefined;
 
     await user.save({ validateBeforeSave: false });

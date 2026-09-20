@@ -2,8 +2,6 @@ import { Resend } from "resend";
 import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
-// fires when a user submits a seller application —
-// notifies admin so they don't miss pending applications
 export const sendSellerApplicationEmail = async (applicant: IUser) => {
   const resend = new Resend(env.email.resendApiKey);
   const application = applicant.sellerApplication;

@@ -1,8 +1,3 @@
-// models/wishlist.model.ts
-// One wishlist per user. shareId is null until the user explicitly
-// enables sharing — generated on-demand, not on creation, so silent
-// wishlists never have a guessable public URL sitting unused.
-
 import { Types } from "mongoose";
 
 export interface WishlistItem {

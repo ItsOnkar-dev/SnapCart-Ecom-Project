@@ -33,7 +33,6 @@ import {
 
 const router = Router();
 
-// dedicated limiter for forgot-password — tighter than authLimiter
 const passwordResetLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,
@@ -45,8 +44,6 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Refresh runs on every tab focus / token expiry; needs its own generous limiter
-// so a user with multiple tabs isn't forced to re-login every 10 minutes.
 const refreshLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 60,

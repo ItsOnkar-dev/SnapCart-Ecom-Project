@@ -14,7 +14,6 @@ import { ApiError, ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Logger } from "../utils/logger";
 
-// Razorpay instance — created once, reused across requests
 const razorpay = new Razorpay({
   key_id: env.razorpay.keyId!,
   key_secret: env.razorpay.keySecret!,
@@ -25,10 +24,8 @@ async function confirmPaidOrder(
   razorpayPaymentId: string,
   userId?: string,
 ): Promise<{ _id: unknown; couponCode?: string | null; user: unknown }> {
-  // Idempotency guard
   const existingByPaymentId = await Order.findOne({ razorpayPaymentId });
   if (existingByPaymentId) {
-    // If a userId was provided (from /verify), enforce ownership
     if (userId && existingByPaymentId.user.toString() !== userId) {
       throw new ApiError(403, "This payment does not belong to your account");
     }
@@ -39,7 +36,6 @@ async function confirmPaidOrder(
     return existingByPaymentId;
   }
 
-  // Atomic transition: pending → confirmed
   const filter: Record<string, unknown> = {
     razorpayOrderId,
     paymentStatus: "pending",
@@ -58,7 +54,6 @@ async function confirmPaidOrder(
   );
 
   if (!order) {
-    // Another path (verify or webhook) already confirmed it. Look up the already-confirmed order so we can return a useful object.
     const alreadyPaid = await Order.findOne({ razorpayOrderId });
     if (alreadyPaid) {
       Logger.info(
@@ -71,8 +66,6 @@ async function confirmPaidOrder(
       return alreadyPaid;
     }
 
-    // Genuine missing order — this is a retryable failure for the webhook.
-    // For /verify it means the order wasn't found for this user+razorpayOrderId.
     Logger.error("[PAYMENT] Pending order not found for razorpayOrderId", {
       razorpayOrderId,
       razorpayPaymentId,
@@ -84,12 +77,10 @@ async function confirmPaidOrder(
     );
   }
 
-  // Coupon usage increment (only on actual transition)
   if (order.couponCode) {
     await incrementCouponUsage(order.couponCode);
   }
 
-  // Clear the cart
   await Cart.findOneAndUpdate({ user: order.user }, { $set: { items: [] } });
 
   Logger.info("[PAYMENT] Order confirmed successfully", {
@@ -102,11 +93,6 @@ async function confirmPaidOrder(
 }
 
 // POST /api/payments/create-order
-
-// Stock is reserved here (atomically decremented), NOT in /verify.
-// If Razorpay order creation or DB save fails, already-reserved items are restored before throwing.
-// This means: /verify never needs to touch stock, /webhook never needs to touch stock, and payment.failed must restore stock (see handleWebhook)
-
 export const createRazorpayOrder = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!._id;
@@ -124,14 +110,12 @@ export const createRazorpayOrder = asyncHandler(
       throw new ApiError(400, "Complete shipping address is required");
     }
 
-    // Fetch cart with populated product details
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
     if (!cart || cart.items.length === 0) {
       throw new ApiError(400, "Your cart is empty");
     }
 
-    // Calculate total server-side — NEVER trust the amount from frontend
     const SHIPPING_THRESHOLD = 500;
     const SHIPPING_COST = 49;
 
@@ -141,7 +125,6 @@ export const createRazorpayOrder = asyncHandler(
     for (const item of cart.items) {
       const product = item.product as unknown as IProduct;
 
-      // Validate stock before accepting payment
       if (product.stock < item.quantity) {
         throw new ApiError(
           400,
@@ -156,7 +139,6 @@ export const createRazorpayOrder = asyncHandler(
 
       subtotal += price * item.quantity;
 
-      // Build order items while we're already looping
       orderItems.push({
         product: product._id,
         name: product.name,
@@ -176,12 +158,8 @@ export const createRazorpayOrder = asyncHandler(
 
     const total = subtotal + shipping - discount;
 
-    // Razorpay amounts are in the smallest currency unit (INR: paise)
     const amountInPaise = Math.round(total * 100);
 
-    // Reserve stock before opening the Razorpay popup
-    // Atomically decrement each item with a stock guard so two users racing for the last unit cannot both proceed to payment.
-    // If any item fails (out of stock at this moment), already-reserved items are rolled back and a 400 is thrown — the user sees "only N units left" before the popup even opens.
     const reservedProductIds: Array<{ productId: unknown; quantity: number }> =
       [];
 
@@ -199,7 +177,6 @@ export const createRazorpayOrder = asyncHandler(
       );
 
       if (!reserved) {
-        // This item is now out of stock — restore all previously reserved items
         for (const prev of reservedProductIds) {
           await Product.findByIdAndUpdate(prev.productId, {
             $inc: { stock: prev.quantity },
@@ -219,9 +196,6 @@ export const createRazorpayOrder = asyncHandler(
       });
     }
 
-    // Create Razorpay order — this is NOT our DB order, just a payment intent.
-    // If this fails, restore reserved stock and abort.
-    // The Razorpay SDK types mark orders.create as returning void in some versions; we cast to the known shape we need.
     let razorpayOrderId: string;
     let razorpayAmount: number;
     let razorpayCurrency: string;
@@ -238,7 +212,6 @@ export const createRazorpayOrder = asyncHandler(
       razorpayAmount = rzpOrder.amount;
       razorpayCurrency = rzpOrder.currency;
     } catch (err) {
-      // Restore stock before propagating the error
       for (const prev of reservedProductIds) {
         await Product.findByIdAndUpdate(prev.productId, {
           $inc: { stock: prev.quantity },
@@ -253,9 +226,6 @@ export const createRazorpayOrder = asyncHandler(
       throw new ApiError(502, "Payment gateway unavailable. Please try again.");
     }
 
-    // Save a pending Order to DB immediately.
-    // If the user pays but closes the tab before /verify completes, the webhook can find this order by razorpayOrderId and confirm it — because the shippingAddress is already saved here.
-    // Stock is already reserved above — /verify and /webhook must NOT decrement again.
     let dbOrderId: unknown;
     try {
       const dbOrder = await Order.create({
@@ -274,7 +244,6 @@ export const createRazorpayOrder = asyncHandler(
       });
       dbOrderId = dbOrder._id;
     } catch (err) {
-      // DB save failed — restore stock so items don't stay locked
       for (const prev of reservedProductIds) {
         await Product.findByIdAndUpdate(prev.productId, {
           $inc: { stock: prev.quantity },
@@ -304,10 +273,10 @@ export const createRazorpayOrder = asyncHandler(
 
     res.status(200).json(
       new ApiResponse(200, "Razorpay order created", {
-        orderId: razorpayOrderId, // "order_xxxxxxxxxxxx" — goes to frontend
-        amount: razorpayAmount, // in paise — Razorpay popup uses this
+        orderId: razorpayOrderId,
+        amount: razorpayAmount,
         currency: razorpayCurrency,
-        keyId: env.razorpay.keyId, // frontend needs this to init Razorpay
+        keyId: env.razorpay.keyId,
         subtotal,
         shipping,
         total,
@@ -317,8 +286,6 @@ export const createRazorpayOrder = asyncHandler(
 );
 
 // POST /api/payments/verify
-// Step 2 of payment flow — called after user completes payment in popup.
-// Stock was already reserved in create-order; this endpoint only confirms the order and clears the cart via confirmPaidOrder.
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response) => {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
@@ -327,7 +294,6 @@ export const verifyPayment = asyncHandler(
       throw new ApiError(400, "Payment verification information is incomplete");
     }
 
-    // Signature verification
     const body = razorpayOrderId + "|" + razorpayPaymentId;
     const expectedSignature = crypto
       .createHmac("sha256", env.razorpay.keySecret!)
@@ -338,9 +304,6 @@ export const verifyPayment = asyncHandler(
       throw new ApiError(400, "Payment verification failed. Please try again.");
     }
 
-    // Confirm the pending order (shared helper)
-    // Handles idempotency, ownership check, coupon increment, cart clear.
-    // Does NOT touch stock (already reserved in create-order).
     const order = await confirmPaidOrder(
       razorpayOrderId,
       razorpayPaymentId,
@@ -357,9 +320,6 @@ export const verifyPayment = asyncHandler(
 );
 
 // POST /api/payments/webhook
-// Called directly by Razorpay — NOT by your frontend.
-// This is the safety net for when the user pays but closes the tab before /verify is called.
-// Razorpay retries this endpoint until it gets a 200.
 export const handleWebhook = async (
   req: Request,
   res: Response,
@@ -372,9 +332,6 @@ export const handleWebhook = async (
     return;
   }
 
-  // Verify webhook signature
-  // Razorpay signs the raw body with your webhook secret using SHA256. We recompute it and compare — if mismatch, reject immediately.
-  // req.body here is the raw Buffer because of the rawBodyParser in app.ts.
   const razorpaySignature = req.headers["x-razorpay-signature"] as string;
 
   if (!razorpaySignature) {
@@ -385,7 +342,7 @@ export const handleWebhook = async (
 
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)
-    .update(req.body) // req.body is raw Buffer here — NOT parsed JSON
+    .update(req.body)
     .digest("hex");
 
   if (expectedSignature !== razorpaySignature) {
@@ -394,7 +351,6 @@ export const handleWebhook = async (
     return;
   }
 
-  // Parse the raw body now that signature is verified
   let event: {
     event: string;
     payload?: {
@@ -420,13 +376,12 @@ export const handleWebhook = async (
   const eventType = event?.event;
   Logger.info(`Webhook received: ${eventType}`);
 
-  // Handle payment.captured
   if (eventType === "payment.captured") {
     const payment = event?.payload?.payment?.entity;
 
     if (!payment) {
       Logger.error("Webhook payment.captured missing payload");
-      res.status(200).json({ received: true }); // Still 200 — malformed payload is terminal
+      res.status(200).json({ received: true });
       return;
     }
 
@@ -443,17 +398,11 @@ export const handleWebhook = async (
     }
 
     try {
-      // confirmPaidOrder handles idempotency check internally.
-      // No userId passed — webhook has no user session.
-      // Stock was already reserved in create-order; confirmPaidOrder only
-      // confirms the order and clears the cart.
       await confirmPaidOrder(razorpayOrderId, razorpayPaymentId);
 
       res.status(200).json({ received: true });
     } catch (err) {
       const isApiError = err instanceof ApiError;
-      // 404 from confirmPaidOrder means the pending order genuinely doesn't
-      // exist — don't retry forever, but log it prominently.
       if (isApiError && err.statusCode === 404) {
         Logger.error(
           "Webhook: pending order not found — possibly orphaned Razorpay order",
@@ -463,13 +412,10 @@ export const handleWebhook = async (
             error: err.message,
           },
         );
-        // Return 200 so Razorpay stops retrying an order we have no record of
         res.status(200).json({ received: true });
         return;
       }
 
-      // Any other error (DB timeout, connection issue, etc.) → 500
-      // Razorpay will retry with exponential backoff
       Logger.error("Webhook: transient error processing payment.captured", {
         razorpayPaymentId,
         razorpayOrderId,
@@ -481,21 +427,17 @@ export const handleWebhook = async (
     return;
   }
 
-  // Handle payment.failed
   if (eventType === "payment.failed") {
     const payment = event?.payload?.payment?.entity;
 
     if (payment?.order_id) {
       try {
-        // Mark the pending order as failed so it doesn't sit as "pending" forever
         const failedOrder = await Order.findOneAndUpdate(
           { razorpayOrderId: payment.order_id, status: "pending" },
           { paymentStatus: "failed", status: "cancelled" },
           { new: true },
         );
 
-        // Restore the stock that was reserved in create-order
-        // Now that payment has definitively failed, return the items to inventory
         if (failedOrder) {
           for (const item of failedOrder.items) {
             await Product.findByIdAndUpdate(item.product, {
@@ -533,8 +475,6 @@ export const handleWebhook = async (
     return;
   }
 
-  // Acknowledge all other events
-  // Razorpay sends many event types. Always respond 200 for unhandled ones so Razorpay doesn't keep retrying.
   Logger.info(`Webhook: unhandled event type "${eventType}" — acknowledged`);
   res.status(200).json({ received: true });
 };

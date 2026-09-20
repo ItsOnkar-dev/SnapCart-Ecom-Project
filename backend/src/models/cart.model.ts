@@ -5,7 +5,7 @@ const cartItemSchema = new Schema(
   {
     product: {
       type: Schema.Types.ObjectId,
-      ref: "Product", // links to Product model
+      ref: "Product",
       required: true,
     },
     quantity: {
@@ -20,7 +20,7 @@ const cartItemSchema = new Schema(
       min: [0, "Price cannot be negative"],
     },
   },
-  { _id: false }, // cart items don't need their own _id
+  { _id: false },
 );
 
 const cartSchema = new Schema<ICart>(
@@ -29,7 +29,7 @@ const cartSchema = new Schema<ICart>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // one cart per user, always
+      unique: true,
     },
     items: {
       type: [cartItemSchema],
@@ -44,8 +44,6 @@ const cartSchema = new Schema<ICart>(
   { timestamps: true },
 );
 
-// Helper method — recalculates totalPrice from all items
-// Called every time cart is modified
 cartSchema.methods.calculateTotal = function () {
   this.totalPrice = this.items.reduce(
     (total: number, item: { price: number; quantity: number }) =>

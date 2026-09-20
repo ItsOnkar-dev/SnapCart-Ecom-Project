@@ -20,8 +20,6 @@ import {
 const router = Router();
 
 // POST /api/orders — DIRECT order placement (NO payment gateway involved).
-// All real checkouts flow through /api/payments/create-order → /api/payments/verify instead, which is the
-// only path that actually collects money.
 
 router.post(
   "/",
@@ -35,8 +33,6 @@ router.get("/", verifyToken, getMyOrders);
 router.get("/:id", verifyToken, getOrderById);
 
 // PATCH /api/orders/:id/cancel — customer-initiated cancellation (before shipped)
-// Ownership + time-gate checks are inside the controller.
-// Global CSRF middleware (app.ts) covers this automatically.
 router.patch(
   "/:id/cancel",
   verifyToken,

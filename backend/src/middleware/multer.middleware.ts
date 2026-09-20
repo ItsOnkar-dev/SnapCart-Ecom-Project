@@ -1,7 +1,5 @@
 import multer from "multer";
 
-// memoryStorage — file stays in RAM as Buffer, never touches disk
-// safe for Railway (ephemeral filesystem) and faster than disk storage
 const storage = multer.memoryStorage();
 
 const fileFilter = (

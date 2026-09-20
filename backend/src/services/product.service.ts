@@ -27,6 +27,8 @@ type ProductInput = {
   discountPrice?: number;
   category?: ProductCategory;
   stock: number;
+  highlights?: string[];
+  shippingInfo?: string;
 };
 
 type ProductUpdateInput = Partial<ProductInput> & {
@@ -96,16 +98,26 @@ export const updateProductService = async (
   }
 
   const newPrice = payload.price ?? product.price;
-  const newDiscountPrice = payload.discountPrice ?? product.discountPrice;
 
-  if (newDiscountPrice && newDiscountPrice >= newPrice) {
+  const rawDiscount = payload.discountPrice;
+  const newDiscountPrice =
+    rawDiscount === undefined ||
+    rawDiscount === null ||
+    String(rawDiscount).trim() === ""
+      ? null
+      : Number(rawDiscount);
+
+  if (newDiscountPrice !== null && newDiscountPrice >= newPrice) {
     throw new ApiError(
       400,
       "Discount price must be less than the original price",
     );
   }
 
-  const updatePayload: Record<string, unknown> = { ...payload };
+  const updatePayload: Record<string, unknown> = {
+    ...payload,
+    discountPrice: newDiscountPrice,
+  };
 
   if (file) {
     const uploadedImage = await uploadToCloudinary(file.buffer);
@@ -116,8 +128,9 @@ export const updateProductService = async (
     productId,
     { $set: updatePayload },
     {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
+      context: "query",
     },
   );
 };

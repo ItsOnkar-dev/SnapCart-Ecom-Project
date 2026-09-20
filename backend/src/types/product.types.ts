@@ -15,14 +15,16 @@ export interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
-  discountPrice?: number; 
+  discountPrice?: number;
   category: ProductCategory;
-  images: string[]; 
-  stock: number; 
+  images: string[];
+  stock: number;
   seller: Types.ObjectId;
+  highlights: string[];
+  shippingInfo: string;
   averageRating: number;
   totalReviews: number;
-  isActive: boolean; 
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

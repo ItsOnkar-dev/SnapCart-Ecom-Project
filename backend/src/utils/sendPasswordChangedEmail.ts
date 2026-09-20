@@ -2,8 +2,6 @@ import { Resend } from "resend";
 import { env } from "../config/validateEnv";
 import { IUser } from "../types/user.types";
 
-// fires after resetPassword OR changePassword succeeds —
-// security notice so the real owner knows if someone else did this
 export const sendPasswordChangedEmail = async (user: IUser) => {
   const resend = new Resend(env.email.resendApiKey);
 
