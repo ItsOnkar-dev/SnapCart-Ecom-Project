@@ -205,7 +205,7 @@ export default function ProductDetailPage() {
   return (
     <div
       key={id}
-      className="max-w-7xl mx-auto px-4 md:px-6 py-8 text-foreground"
+      className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-20 text-foreground"
     >
       <nav className="text-xs font-medium text-muted-foreground mb-6 flex items-center gap-1 capitalize">
         <Link to="/" className="hover:text-foreground transition-colors">

@@ -38,12 +38,12 @@ export default function ProductGallery({
           <div
             key={index}
             onClick={() => openLightbox(index)}
-            className="group rounded-2xl overflow-hidden border border-border bg-card/25 aspect-square relative cursor-pointer"
+            className="group rounded-2xl overflow-hidden border border-border bg-card/30 aspect-square relative cursor-pointer flex items-center justify-center p-6"
           >
             <img
               src={src}
               alt={`${productName} — view ${index + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 select-none"
               loading={index === 0 ? "eager" : "lazy"}
             />
 
@@ -65,12 +65,12 @@ export default function ProductGallery({
       <div className="lg:hidden flex flex-col gap-3">
         <div
           onClick={() => openLightbox(mobileIdx)}
-          className="rounded-2xl overflow-hidden border border-border bg-card/25 aspect-square relative cursor-pointer"
+          className="rounded-2xl overflow-hidden border border-border bg-card/25 aspect-square relative cursor-pointer flex items-center justify-center p-6"
         >
           <img
             src={images[mobileIdx]}
             alt={`${productName} — view ${mobileIdx + 1}`}
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full object-contain select-none"
           />
 
           {hasDiscount && (
