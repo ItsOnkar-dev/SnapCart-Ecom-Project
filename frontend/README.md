@@ -26,7 +26,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ## 📋 Table of Contents
 
 - [🎨 SnapCart — Frontend](#-snapcart--frontend)
-    - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
+  - [React SPA for a multi-vendor e-commerce platform](#react-spa-for-a-multi-vendor-e-commerce-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [✨ Highlights](#-highlights)
   - [🛠 Tech Stack](#-tech-stack)
@@ -62,6 +62,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ✅ React Query           Automatic caching, background refetch, and optimistic updates
 ✅ Zustand auth store    Minimal global state — only authentication; all else is server state
 ✅ Zod form schemas      Same validation library as the backend for consistent rules
+✅ Image gallery zoom    Multi-image gallery with interactive lightbox modal and coordinate pan/zoom
 ✅ shadcn/ui             Accessible Radix UI primitives with Tailwind CSS v4 styling
 ✅ Role-based routing    ProtectedRoute + RoleRoute guards enforce buyer / seller / admin access
 ✅ Recharts dashboard    Interactive admin analytics rendered from MongoDB aggregation data
@@ -236,6 +237,9 @@ frontend/
 │   │   │   ├── RecommendedProducts.tsx
 │   │   │   ├── SellerCTA.tsx
 │   │   │   └── TrustBar.tsx
+│   │   ├── product/         # Product view components
+│   │   │   ├── ProductGallery.tsx
+│   │   │   └── ImageLightbox.tsx
 │   │   ├── layout/          # Shell — header, footer, auth layout
 │   │   │   ├── header/
 │   │   │   │   ├── Header.tsx
@@ -408,7 +412,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 
 - Paginated grid with live text search, category filter, price range filter, and sort options
 - Right-side filter drawer on category pages
-- Product detail with description, stock indicator, paginated customer reviews, and AI-powered related product rail
+- Product detail with responsive multi-image gallery, interactive pan & zoom lightbox modal, stock indicators, and paginated customer reviews
 
 ### 🛒 Cart and Checkout
 
@@ -427,7 +431,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 ### 🏪 Seller Dashboard
 
 - Apply to become a seller from any verified account
-- Create, edit, and soft-delete products with Cloudinary image upload
+- Create, edit, and soft-delete products with multi-image Cloudinary upload (up to 2 images)
 - Manage order statuses for your own listings
 - Store settings & profile management (store details, contact info, business verification)
 - Modular tab-based architecture separating products, orders, and store configuration

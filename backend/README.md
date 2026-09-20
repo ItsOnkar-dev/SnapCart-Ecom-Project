@@ -76,7 +76,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 | OAuth      | Google OAuth 2.0                   | `google-auth-library` with account linking              |
 | Validation | Zod 4                              | Schema-first validation at route boundary               |
 | Email      | Resend                             | Transactional email with demo-mode fallback             |
-| Uploads    | Multer + Cloudinary v2             | Memory storage → direct stream, no disk writes          |
+| Uploads    | Multer + Cloudinary v2             | Memory storage → parallel multi-image upload streams    |
 | Payments   | Razorpay                           | Order creation + webhook with raw-body signature check  |
 | Security   | Helmet · express-rate-limit · CSRF | Defence in depth across all routes                      |
 | Logging    | morgan + custom logger             | HTTP logs + structured audit events                     |
@@ -320,8 +320,8 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 | GET    | `/products/recommendations?type=related&productId=:id`           | None         | Related products                        |
 | GET    | `/products/recommendations?type=frequently-bought&productId=:id` | None         | Frequently bought together              |
 | GET    | `/products/:id`                                                  | None         | Single product detail                   |
-| POST   | `/products`                                                      | Seller/Admin | Create product with image upload        |
-| PATCH  | `/products/:id`                                                  | Seller/Admin | Update own product                      |
+| POST   | `/products`                                                      | Seller/Admin | Create product with multi-image upload  |
+| PATCH  | `/products/:id`                                                  | Seller/Admin | Update product attributes and gallery   |
 | DELETE | `/products/:id`                                                  | Seller/Admin | Soft-delete own product                 |
 
 ### Cart
@@ -666,7 +666,7 @@ Reset tokens expire after **15 minutes** and are single-use.
 
 - Public catalog with pagination, text search, category filtering, price filtering, and sorting
 - Seller-only create/update/delete routes
-- Image upload via Multer memory storage → Cloudinary upload streams
+- Multi-image upload via Multer memory storage → concurrent Cloudinary upload streams (`Promise.all`)
 - **Soft delete** through `isActive: false` — preserves historical order data
 - **Ownership checks** prevent sellers from editing other sellers' products
 

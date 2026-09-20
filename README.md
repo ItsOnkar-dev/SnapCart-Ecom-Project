@@ -150,7 +150,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
   <tr>
     <td>Images</td>
     <td>Cloudinary · Multer</td>
-    <td>Memory storage → direct stream, no ephemeral disk dependency</td>
+     <td>Memory storage → concurrent multi-image stream to Cloudinary</td>
   </tr>
   <tr>
     <td>Payments</td>
@@ -245,7 +245,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Feature            | Details                                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------------------------- |
 | Product Catalog    | Paginated grid with live text search, category & price filters, and sort options                        |
-| Product Detail     | Image gallery, description, stock indicator, related product rails                                      |
+| Product Detail     | Multi-image gallery with pan & zoom lightbox, mobile carousel, reviews, and related product rails       |
 | Cart               | Persistent server-side cart; add, update quantity, remove, clear                                        |
 | Checkout           | Razorpay online or Cash on Delivery with server-side totals, stock guards, coupons, and order snapshots |
 | Coupon Discovery   | View available active coupons on checkout page with auto-fill on click                                  |
@@ -263,7 +263,7 @@ Log In → Review Seller Applications → Approve / Reject
 | Feature               | Details                                                                    |
 | --------------------- | -------------------------------------------------------------------------- |
 | Seller Application    | Apply from any verified account; admin is notified by email                |
-| Product Management    | Create, edit, and soft-delete products with Cloudinary image upload        |
+| Product Management    | Create, edit, and soft-delete products with multi-image Cloudinary upload  |
 | Ownership Enforcement | Sellers can only modify their own products — enforced at the service layer |
 | Order Management      | Update order status for items sold through your listings                   |
 | Store Settings        | Manage public store profile, contact information, and business address     |

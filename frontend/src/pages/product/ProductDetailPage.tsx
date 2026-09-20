@@ -1,5 +1,5 @@
 import RecommendedProducts from "@/components/home/RecommendedProducts";
-import { Badge } from "@/components/ui/badge";
+import ProductGallery from "@/components/product/ProductGallery";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -225,32 +225,11 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <div className="flex flex-col gap-4">
-          {product.images && product.images.length > 0 ? (
-            product.images.map((src: string, index: number) => (
-              <div
-                key={index}
-                className="rounded-2xl overflow-hidden border border-border bg-card/25 aspect-square relative"
-              >
-                <img
-                  src={src}
-                  alt={`${product.name} — view ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={index === 0 ? "eager" : "lazy"}
-                />
-                {index === 0 && hasDiscount && (
-                  <Badge className="absolute top-4 left-4 bg-red-500 hover:bg-red-600">
-                    Sale
-                  </Badge>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="rounded-2xl overflow-hidden border border-border bg-card/25 aspect-square flex items-center justify-center text-muted-foreground text-sm">
-              No product image available
-            </div>
-          )}
-        </div>
+        <ProductGallery
+          images={product.images || []}
+          productName={product.name}
+          hasDiscount={hasDiscount}
+        />
 
         <div className="space-y-6 lg:sticky lg:top-24">
           <div>
