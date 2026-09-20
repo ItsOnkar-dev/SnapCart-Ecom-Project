@@ -45,6 +45,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
 
   useEffect(() => {
     onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
   useEffect(() => {

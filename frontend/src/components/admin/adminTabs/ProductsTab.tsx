@@ -47,7 +47,7 @@ export default function ProductsTab() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialProductFormState);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   const { mutate: toggleProduct, isPending: isTogglingProduct } =
     useToggleAdminProduct();
@@ -60,7 +60,7 @@ export default function ProductsTab() {
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
     setFormData(getProductFormState(product));
-    setImageFile(null);
+    setImageFiles([]);
     setEditOpen(true);
   };
 
@@ -70,7 +70,7 @@ export default function ProductsTab() {
     updateProduct(
       {
         id: editingProduct._id,
-        body: buildProductFormData(formData, imageFile),
+        body: buildProductFormData(formData, imageFiles),
       },
       {
         onSuccess: () => {
@@ -251,19 +251,26 @@ export default function ProductsTab() {
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground block mb-1.5">
-                Product Cover Image
+                Product Cover Images
               </label>
               <div className="relative flex items-center justify-center w-full border border-dashed border-border hover:border-muted-foreground/40 bg-background rounded-lg p-5 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setImageFiles(Array.from(e.target.files));
+                    }
+                  }}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
                 <div className="text-center pointer-events-none flex flex-col items-center gap-1">
                   <Upload className="h-4 w-4 text-muted-foreground mb-1" />
                   <span className="text-xs font-medium text-muted-foreground">
-                    {imageFile ? imageFile.name : "Select cover image file"}
+                    {imageFiles.length > 0
+                      ? `${imageFiles.length} image(s) selected`
+                      : "Select product images"}
                   </span>
                 </div>
               </div>
