@@ -34,7 +34,7 @@ router.post(
   verifyToken,
   requireVerifiedEmail,
   requireRole("seller"),
-  upload.single("image"),
+  upload.array("images", 2),
   validate(createProductSchema),
   createProduct,
 );
@@ -43,7 +43,7 @@ router.patch(
   verifyToken,
   requireVerifiedEmail,
   requireRole("seller"),
-  upload.single("image"),
+  upload.array("images", 2),
   validate(updateProductSchema),
   updateProduct,
 );

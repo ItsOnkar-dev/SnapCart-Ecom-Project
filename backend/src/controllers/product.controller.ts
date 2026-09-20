@@ -23,7 +23,9 @@ const getRouteParam = (value: string | string[] | undefined, _name: string) => {
 // POST /api/products
 export const createProduct = asyncHandler(
   async (req: Request, res: Response) => {
-    const product = await createProductService(req.user!, req.body, req.file);
+    const files = req.files as Express.Multer.File[] | undefined;
+
+    const product = await createProductService(req.user!, req.body, files);
 
     res
       .status(201)
@@ -135,12 +137,13 @@ export const getProductById = asyncHandler(
 export const updateProduct = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = getRouteParam(req.params.id, "product id");
+    const files = req.files as Express.Multer.File[] | undefined;
 
     const updatedProduct = await updateProductService(
       req.user!,
       productId,
       req.body,
-      req.file,
+      files,
     );
 
     res

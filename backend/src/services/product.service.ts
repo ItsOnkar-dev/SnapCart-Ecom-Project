@@ -42,7 +42,7 @@ type UploadedFile = {
 export const createProductService = async (
   user: SellerUser,
   payload: ProductInput,
-  file?: UploadedFile,
+  files?: UploadedFile[] | UploadedFile,
 ) => {
   if (user.role !== "seller") {
     throw new ApiError(403, "Only approved sellers can create products");
@@ -52,8 +52,10 @@ export const createProductService = async (
     throw new ApiError(403, "Your seller account is not approved yet");
   }
 
-  if (!file) {
-    throw new ApiError(400, "Product image is required");
+  const fileArray = Array.isArray(files) ? files : files ? [files] : [];
+
+  if (fileArray.length === 0) {
+    throw new ApiError(400, "At least one product image is required");
   }
 
   if (payload.discountPrice && payload.discountPrice >= payload.price) {
@@ -63,11 +65,15 @@ export const createProductService = async (
     );
   }
 
-  const uploadedImage = await uploadToCloudinary(file.buffer);
+  const uploadPromises = fileArray.map((file) =>
+    uploadToCloudinary(file.buffer),
+  );
+  const uploadResults = await Promise.all(uploadPromises);
+  const imageUrls = uploadResults.map((result) => result.secure_url);
 
   return Product.create({
     ...payload,
-    images: [uploadedImage.secure_url],
+    images: imageUrls,
     stock: payload.stock,
     seller: user._id,
   });
@@ -77,7 +83,7 @@ export const updateProductService = async (
   user: SellerUser,
   productId: string,
   payload: ProductUpdateInput,
-  file?: UploadedFile,
+  files?: UploadedFile[] | UploadedFile,
 ) => {
   const product = await Product.findById(productId);
 
@@ -119,9 +125,14 @@ export const updateProductService = async (
     discountPrice: newDiscountPrice,
   };
 
-  if (file) {
-    const uploadedImage = await uploadToCloudinary(file.buffer);
-    updatePayload.images = [uploadedImage.secure_url];
+  const fileArray = Array.isArray(files) ? files : files ? [files] : [];
+
+  if (fileArray.length > 0) {
+    const uploadPromises = fileArray.map((file) =>
+      uploadToCloudinary(file.buffer),
+    );
+    const uploadResults = await Promise.all(uploadPromises);
+    updatePayload.images = uploadResults.map((result) => result.secure_url);
   }
 
   return Product.findByIdAndUpdate(
