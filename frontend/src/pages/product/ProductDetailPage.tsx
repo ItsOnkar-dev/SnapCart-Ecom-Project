@@ -32,8 +32,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("en-IE", {
     style: "currency",
@@ -44,7 +42,6 @@ const formatPrice = (value: number) =>
 function ProductDetailSkeleton() {
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-pulse">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6">
         <div className="h-3 w-10 bg-muted/30 rounded" />
         <div className="h-3 w-2 bg-muted/20 rounded" />
@@ -53,14 +50,9 @@ function ProductDetailSkeleton() {
         <div className="h-3 w-32 bg-muted/30 rounded" />
       </div>
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        {/* Left — image */}
         <div className="rounded-2xl bg-muted/20 aspect-square" />
-
-        {/* Right — info */}
         <div className="space-y-6">
-          {/* Category + name + price */}
           <div className="space-y-3">
             <div className="h-3 w-16 bg-muted/30 rounded" />
             <div className="flex justify-between items-start gap-4">
@@ -72,24 +64,21 @@ function ProductDetailSkeleton() {
 
           <div className="h-px bg-border" />
 
-          {/* Quantity */}
           <div className="flex items-center gap-4">
             <div className="h-4 w-16 bg-muted/30 rounded" />
             <div className="h-10 w-32 bg-muted/20 rounded-lg" />
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-4">
             <div className="flex-1 h-14 bg-muted/20 rounded-xl" />
             <div className="h-14 w-14 bg-muted/20 rounded-xl" />
           </div>
 
-          {/* Accordion rows */}
           <div className="border-t border-border divide-y divide-border pt-4">
             {[
               "Description",
               "Product Details",
-              "Care & Cleaning",
+              "Shipping",
               "Customer Reviews",
             ].map((label) => (
               <div
@@ -104,7 +93,6 @@ function ProductDetailSkeleton() {
         </div>
       </div>
 
-      {/* AI picks skeleton */}
       <div className="mt-16 pt-8 border-t border-border/60">
         <div className="flex items-center gap-2.5 mb-5">
           <div className="h-7 w-7 rounded-full bg-muted/30" />
@@ -143,24 +131,22 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    description: false,
-    details: false,
-    care: false,
+    description: true,
+    details: true,
+    shipping: false,
     reviews: false,
   });
 
-  // ── Scroll to top on every product navigation ──────────────────────────────
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [id]);
 
-  const toggleSection = (section: string) =>
+  const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
-  // ── Loading state — page-shaped skeleton, not a centered spinner ───────────
   if (isLoading) return <ProductDetailSkeleton />;
 
-  // ── Error state ────────────────────────────────────────────────────────────
   if (error || !product) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-6">
@@ -175,12 +161,12 @@ export default function ProductDetailPage() {
     );
   }
 
-  // ── Derived state ──────────────────────────────────────────────────────────
-
   const isInWishlist = wishlist?.items?.some(
     (item: WishlistItem) =>
       item.product === product._id ||
-      (typeof item.product === "object" && item.product !== null && item.product._id === product._id),
+      (typeof item.product === "object" &&
+        item.product !== null &&
+        item.product._id === product._id),
   );
 
   const hasDiscount =
@@ -189,8 +175,6 @@ export default function ProductDetailPage() {
   const finalPrice = hasDiscount ? product.discountPrice : product.price;
   const reviews = reviewsData?.reviews ?? [];
   const reviewPagination = reviewsData?.pagination;
-
-  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleWishlistToggle = () => {
     if (!user) {
@@ -218,10 +202,11 @@ export default function ProductDetailPage() {
     createReview(data, { onSuccess: () => setReviewDialogOpen(false) });
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <div key={id} className="max-w-7xl mx-auto px-4 md:px-6 py-8 text-foreground">
+    <div
+      key={id}
+      className="max-w-7xl mx-auto px-4 md:px-6 py-8 text-foreground"
+    >
       <nav className="text-xs font-medium text-muted-foreground mb-6 flex items-center gap-1 capitalize">
         <Link to="/" className="hover:text-foreground transition-colors">
           Home
@@ -239,9 +224,7 @@ export default function ProductDetailPage() {
         </span>
       </nav>
 
-      {/* ── Main grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        {/* ── LEFT: Stacked vertical image gallery ── */}
         <div className="flex flex-col gap-4">
           {product.images && product.images.length > 0 ? (
             product.images.map((src: string, index: number) => (
@@ -269,7 +252,6 @@ export default function ProductDetailPage() {
           )}
         </div>
 
-        {/* ── RIGHT: Product info — sticky on desktop ── */}
         <div className="space-y-6 lg:sticky lg:top-24">
           <div>
             <span className="text-xs font-medium text-muted-foreground capitalize tracking-wide">
@@ -300,7 +282,6 @@ export default function ProductDetailPage() {
 
           <hr className="border-border" />
 
-          {/* Quantity selector */}
           {product.stock > 0 && (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-muted-foreground">
@@ -330,7 +311,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Add to Bag + Wishlist */}
           <div className="flex gap-3">
             <Button
               size="lg"
@@ -355,9 +335,7 @@ export default function ProductDetailPage() {
             </Button>
           </div>
 
-          {/* ── Accordion panels — all closed by default matching screenshot ── */}
           <div className="border-t border-border divide-y divide-border pt-2">
-            {/* Description */}
             <div className="py-4">
               <button
                 type="button"
@@ -378,7 +356,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Product Details */}
             <div className="py-4">
               <button
                 type="button"
@@ -394,36 +371,39 @@ export default function ProductDetailPage() {
               </button>
               {openSections.details && (
                 <div className="text-sm text-muted-foreground mt-3 space-y-2">
-                  <p>• Premium material configuration</p>
-                  <p>• Authentic design craftsmanship</p>
-                  <p>• Stock Available: {product.stock} units</p>
+                  {product.highlights && product.highlights.length > 0 ? (
+                    product.highlights.map((h: string, i: number) => (
+                      <p key={i}>• {h}</p>
+                    ))
+                  ) : (
+                    <p>• Stock available: {product.stock} units</p>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Care & Cleaning */}
-            <div className="py-4">
-              <button
-                type="button"
-                onClick={() => toggleSection("care")}
-                className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
-              >
-                <span>Care & Cleaning</span>
-                {openSections.care ? (
-                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            {product.shippingInfo && (
+              <div className="py-4">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("shipping")}
+                  className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-foreground/80 transition-colors py-0.5 cursor-pointer"
+                >
+                  <span>Shipping & Returns</span>
+                  {openSections.shipping ? (
+                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+                {openSections.shipping && (
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                    {product.shippingInfo}
+                  </p>
                 )}
-              </button>
-              {openSections.care && (
-                <div className="text-sm text-muted-foreground mt-3 space-y-2">
-                  <p>• Hand wash or wipe clean with damp cloth</p>
-                  <p>• Keep away from fire or extreme direct heat source</p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Customer Reviews */}
             <div className="py-4">
               <button
                 type="button"
@@ -495,7 +475,6 @@ export default function ProductDetailPage() {
                         ))}
                       </div>
 
-                      {/* ── Review pagination ── */}
                       {reviewPagination && reviewPagination.totalPages > 1 && (
                         <div className="flex items-center justify-center gap-3 pt-2">
                           <button
@@ -541,7 +520,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* ── AI Recommendations ── */}
       <div className="mt-16 pt-8 border-t border-border/60">
         <RecommendedProducts
           mode="product"
@@ -551,7 +529,6 @@ export default function ProductDetailPage() {
         />
       </div>
 
-      {/* ── Review Dialog ── */}
       <ReviewDialog
         open={reviewDialogOpen}
         onOpenChange={setReviewDialogOpen}
@@ -561,8 +538,6 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-// ─── ReviewDialog ─────────────────────────────────────────────────────────────
 
 function ReviewDialog({
   open,

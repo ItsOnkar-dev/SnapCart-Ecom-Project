@@ -20,8 +20,9 @@ export interface Product {
   averageRating: number;
   totalReviews: number;
   stock: number;
+  highlights: string[];
+  shippingInfo: string;
   seller: {
-    // populated from User ref when backend sends it
     _id: string;
     name: string;
     email: string;

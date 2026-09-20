@@ -40,6 +40,8 @@ export function useCreateProduct() {
     mutationFn: createProductApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
+      queryClient.invalidateQueries({ queryKey: sellerKeys.products() });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
       toast.success("Product registered inside marketplace database.");
     },
     onError: (err: unknown) => {
@@ -56,7 +58,9 @@ export function useUpdateProduct() {
       updateProductApi(id, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sellerKeys.all });
-      toast.success("Product listing configurations optimized.");
+      queryClient.invalidateQueries({ queryKey: sellerKeys.products() });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      toast.success("Your listing is live with the latest changes");
     },
     onError: (err: unknown) => {
       toast.error(

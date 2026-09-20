@@ -56,7 +56,7 @@ export function SellerProductsTab({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialProductFormState);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   const [filterStatus, setFilterStatus] = useState<
     "all" | "active" | "archived"
@@ -77,7 +77,7 @@ export function SellerProductsTab({
   const openEditModal = (product: Product) => {
     setEditingId(product._id);
     setFormData(getProductFormState(product));
-    setImageFile(null);
+    setImageFiles([]);
     setIsModalOpen(true);
   };
 
@@ -90,7 +90,8 @@ export function SellerProductsTab({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const fd = buildProductFormData(formData, imageFile);
+    const fd = buildProductFormData(formData, imageFiles);
+    console.log("highlights in formData:", formData.highlights);
     if (editingId) {
       updateMutation.mutate(
         { id: editingId, body: fd },
@@ -247,13 +248,20 @@ export function SellerProductsTab({
       {/* Form Dialog */}
       <ProductFormDialog
         isOpen={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            setEditingId(null);
+            setFormData(initialProductFormState);
+            setImageFiles([]);
+          }
+        }}
         isEditing={!!editingId}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         formData={formData}
         setFormData={setFormData}
-        imageFile={imageFile}
-        setImageFile={setImageFile}
+        imageFiles={imageFiles}
+        setImageFiles={setImageFiles}
         onSubmit={handleSubmit}
       />
     </>

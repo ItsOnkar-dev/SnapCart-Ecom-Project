@@ -23,6 +23,8 @@ export interface ProductFormState {
   price: string;
   stock: string;
   discountPrice: string;
+  highlights: string;
+  shippingInfo: string;
 }
 
 export const initialProductFormState: ProductFormState = {
@@ -32,6 +34,8 @@ export const initialProductFormState: ProductFormState = {
   price: "",
   stock: "",
   discountPrice: "",
+  highlights: "",
+  shippingInfo: "",
 };
 
 export function getProductFormState(product: Product): ProductFormState {
@@ -43,13 +47,15 @@ export function getProductFormState(product: Product): ProductFormState {
     price: product.price !== undefined ? String(product.price) : "",
     stock: product.stock !== undefined ? String(product.stock) : "",
     discountPrice:
-      product.discountPrice !== undefined ? String(product.discountPrice) : "",
+      product.discountPrice != null ? String(product.discountPrice) : "",
+    highlights: product.highlights?.join("\n") ?? "",
+    shippingInfo: product.shippingInfo ?? "",
   };
 }
 
 export function buildProductFormData(
   formData: ProductFormState,
-  imageFile?: File | null,
+  imageFiles?: File[] | null,
 ) {
   const fd = new FormData();
 
@@ -58,10 +64,23 @@ export function buildProductFormData(
   fd.append("category", formData.category);
   fd.append("price", formData.price);
   fd.append("stock", formData.stock);
-  fd.append("discountPrice", formData.discountPrice);
 
-  if (imageFile) {
-    fd.append("image", imageFile);
+  if (formData.discountPrice && formData.discountPrice.trim() !== "") {
+    fd.append("discountPrice", formData.discountPrice);
+  }
+
+  const highlightLines = formData.highlights
+    .split("\n")
+    .map((h) => h.trim())
+    .filter(Boolean);
+  highlightLines.forEach((h) => fd.append("highlights", h));
+
+  fd.append("shippingInfo", formData.shippingInfo.trim());
+
+  if (imageFiles && imageFiles.length > 0) {
+    imageFiles.forEach((file) => {
+      fd.append("images", file);
+    });
   }
 
   return fd;

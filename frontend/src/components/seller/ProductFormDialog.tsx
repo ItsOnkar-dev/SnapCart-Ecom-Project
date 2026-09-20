@@ -20,8 +20,8 @@ interface ProductFormDialogProps {
   isSubmitting: boolean;
   formData: ProductFormState;
   setFormData: React.Dispatch<React.SetStateAction<ProductFormState>>;
-  imageFile: File | null;
-  setImageFile: (file: File | null) => void;
+  imageFiles: File[];
+  setImageFiles: (file: File[]) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -32,13 +32,13 @@ export function ProductFormDialog({
   isSubmitting,
   formData,
   setFormData,
-  imageFile,
-  setImageFile,
+  imageFiles,
+  setImageFiles,
   onSubmit,
 }: ProductFormDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border border-border text-foreground max-w-lg w-full rounded-xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <DialogContent className="bg-card border border-border text-foreground max-w-2xl w-full rounded-xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold tracking-tight">
             {isEditing ? "Edit product" : "New product"}
@@ -136,22 +136,65 @@ export function ProductFormDialog({
               />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">
+              Product Highlights
+            </label>
+            <textarea
+              value={formData.highlights}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, highlights: e.target.value }))
+              }
+              rows={4}
+              placeholder={
+                "One highlight per line:\nBestselling author\n300 pages\nPaperback edition"
+              }
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              One line per highlight — shown as bullet points on the product
+              page
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">
+              Shipping & Returns
+            </label>
+            <textarea
+              value={formData.shippingInfo}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  shippingInfo: e.target.value,
+                }))
+              }
+              rows={2}
+              placeholder="e.g. Delivered in 3–5 business days. Returns accepted within 7 days."
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring resize-none"
+            />
+          </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground block mb-1.5">
-              Product Cover Image
+              Product Cover Images (max 2)
             </label>
             <div className="relative flex items-center justify-center w-full border border-dashed border-border hover:border-muted-foreground/40 bg-background rounded-lg p-5 transition-colors">
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                multiple
+                onChange={(e) => {
+                  if (e.target.files) setImageFiles(Array.from(e.target.files));
+                }}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 required={!isEditing}
               />
               <div className="text-center pointer-events-none flex flex-col items-center gap-1">
                 <Upload className="h-4 w-4 text-muted-foreground mb-1" />
                 <span className="text-xs font-medium text-muted-foreground">
-                  {imageFile ? imageFile.name : "Select cover image file"}
+                  {imageFiles.length > 0
+                    ? `${imageFiles.length} image(s) selected: ${imageFiles.map((f) => f.name).join(", ")}`
+                    : "Select product images (hold Ctrl/Shift to choose multiple)"}
                 </span>
               </div>
             </div>
