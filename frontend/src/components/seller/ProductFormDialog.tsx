@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import type { GeneratedListing } from "@/hooks/useListingAssistant";
 import type { ProductFormState } from "@/lib/product-form";
 import { PRODUCT_CATEGORY_OPTIONS } from "@/lib/product-form";
+import type { GeneratedListing } from "@/types/seller.types";
 import { Upload } from "lucide-react";
 import React from "react";
 import { AIListingAssistant } from "./AIListingAssistant";
