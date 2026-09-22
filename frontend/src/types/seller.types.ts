@@ -46,3 +46,20 @@ export type SellerProfileData = {
   businessAddress?: string;
   storeDescription?: string;
 };
+
+export interface GeneratedListing {
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  highlights: string[];
+  shippingInfo: string;
+}
+
+export interface ListingDraftItem {
+  _id: string;
+  input: string;
+  listing: GeneratedListing;
+  model: string;
+  createdAt: string;
+}

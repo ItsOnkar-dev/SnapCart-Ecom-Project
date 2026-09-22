@@ -8,10 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import type { GeneratedListing } from "@/hooks/useListingAssistant";
 import type { ProductFormState } from "@/lib/product-form";
 import { PRODUCT_CATEGORY_OPTIONS } from "@/lib/product-form";
 import { Upload } from "lucide-react";
 import React from "react";
+import { AIListingAssistant } from "./AIListingAssistant";
 
 interface ProductFormDialogProps {
   isOpen: boolean;
@@ -36,6 +38,18 @@ export function ProductFormDialog({
   setImageFiles,
   onSubmit,
 }: ProductFormDialogProps) {
+  const handleAIApply = (listing: GeneratedListing) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: listing.name || prev.name,
+      description: listing.description || prev.description,
+      category: (listing.category as typeof prev.category) || prev.category,
+      price: listing.price ? String(listing.price) : prev.price,
+      highlights: listing.highlights.join("\n"),
+      shippingInfo: listing.shippingInfo || prev.shippingInfo,
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border border-border text-foreground max-w-2xl w-full rounded-xl max-h-[90vh] overflow-y-auto scrollbar-hide">
@@ -48,6 +62,13 @@ export function ProductFormDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4 pt-2">
+          {!isEditing && (
+            <AIListingAssistant
+              onApply={handleAIApply}
+              currentCategory={formData.category}
+            />
+          )}
+
           <div>
             <label className="text-xs font-medium text-muted-foreground block mb-1.5">
               Name

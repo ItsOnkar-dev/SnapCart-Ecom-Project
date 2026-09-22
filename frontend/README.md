@@ -63,6 +63,7 @@ _React 19 · Vite · TypeScript · Tailwind CSS v4 · shadcn/ui · React Query �
 ✅ Zustand auth store    Minimal global state — only authentication; all else is server state
 ✅ Zod form schemas      Same validation library as the backend for consistent rules
 ✅ Image gallery zoom    Multi-image gallery with interactive lightbox modal and coordinate pan/zoom
+✅ AI Listing Assistant  Transforms rough prompts into ready-to-publish listings using Groq (openai/gpt-oss-120b)
 ✅ shadcn/ui             Accessible Radix UI primitives with Tailwind CSS v4 styling
 ✅ Role-based routing    ProtectedRoute + RoleRoute guards enforce buyer / seller / admin access
 ✅ Recharts dashboard    Interactive admin analytics rendered from MongoDB aggregation data
@@ -255,6 +256,7 @@ frontend/
 │   │   │   └── Footer.tsx
 │   │   ├── seller/            # Seller sections
 │   │   │   ├── sellerTabs
+│   │   │   ├── AIListingAssistant.tsx
 │   │   │   ├── ProductFormDialog.tsx
 │   │   ├── ui/              # shadcn/ui primitive components
 │   │   ├── AuthGate.tsx     # # Pings health endpoint, retries on cold start, then calls initAuth()
@@ -265,6 +267,7 @@ frontend/
 │   │   ├── useCart.ts          # Cart queries and mutations
 │   │   ├── useOrders.ts        # Order list, detail, status
 │   │   ├── useProducts.ts      # Catalog query, product detail
+│   │   ├── useListingAssistant.ts # AI generation mutation and drafts query hooks
 │   │   ├── useCoupons.ts       # Admin coupon list + mutations
 │   │   ├── useWishlist.ts      # Wishlist CRUD + share
 │   │   ├── useReviews.ts       # Reviews list + submit
@@ -435,6 +438,7 @@ Each file in `src/api/` exports plain `async` functions. The hooks in `src/hooks
 - Manage order statuses for your own listings
 - Store settings & profile management (store details, contact info, business verification)
 - Modular tab-based architecture separating products, orders, and store configuration
+- - AI listing assistant: generate product title, category, price (INR), description, highlights, and shipping policy from brief ideas; view and re-apply past drafts
 
 ### 📊 Admin Dashboard
 
