@@ -591,13 +591,15 @@ All endpoints are prefixed with `/api`.
 
 #### Seller — `/api/seller`
 
-| Method  | Path        | Auth              | Description                                        |
-| ------- | ----------- | ----------------- | -------------------------------------------------- |
-| `POST`  | `/apply`    | Customer+Verified | Submit seller application                          |
-| `GET`   | `/products` | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
-| `GET`   | `/orders`   | Seller+Verified   | Get orders containing the seller's products        |
-| `GET`   | `/profile`  | Seller+Verified   | Retrieve seller store profile details              |
-| `PATCH` | `/profile`  | Seller+Verified   | Update seller store profile details                |
+| Method  | Path                          | Auth              | Description                                        |
+| ------- | ----------------------------- | ----------------- | -------------------------------------------------- | --- |
+| `POST`  | `/apply`                      | Customer+Verified | Submit seller application                          |
+| `GET`   | `/products`                   | Seller+Verified   | Get own products (paginated, default 20, `?page=`) |
+| `GET`   | `/orders`                     | Seller+Verified   | Get orders containing the seller's products        |
+| `GET`   | `/profile`                    | Seller+Verified   | Retrieve seller store profile details              |
+| `PATCH` | `/profile`                    | Seller+Verified   | Update seller store profile details                |
+| `POST`  | `/listing-assistant/generate` | Seller+Verified   | Generate structured product draft from text prompt |
+| `GET`   | `/listing-assistant/drafts`   | Seller+Verified   | Fetch recent AI listing drafts                     |     |
 
 #### Admin — `/api/admin`
 
@@ -657,6 +659,7 @@ All server data is managed via TanStack Query. Query keys follow a hierarchical 
 | Reviews         | `["reviews", productId]`                                      | 2 min staleTime  |
 | Seller Products | `["seller", "products"]`                                      | 15 sec staleTime |
 | Seller Profile  | `["seller", "profile"]`                                       | 5 min staleTime  |
+| Listing Drafts  | `["seller", "drafts"]`                                        | 1 min staleTime  |
 | Admin Sellers   | `["admin", "sellers"]`                                        | 30 sec staleTime |
 | Admin Analytics | `["admin", "analytics"]`                                      | 1 min staleTime  |
 | Recommendations | `["recommendations", mode, productIds, limit]`                | 10 min staleTime |

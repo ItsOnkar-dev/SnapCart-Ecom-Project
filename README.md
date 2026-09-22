@@ -89,6 +89,7 @@ This isn't a tutorial clone. Every design decision — from httpOnly cookie auth
 - **Checkout integrity** — stock is decremented with atomic guards, orders snapshot cart prices, carts are cleared after order creation, and Razorpay payments save a pending order before confirmation/webhook recovery.
 - **Demo email mode** — real verification architecture (hash stored, raw token emailed, 10-minute expiry) with a fallback that returns the link in the API response. Portfolio-ready without a paid Resend domain.
 - **Coupon management** — admin coupon CRUD with expiry, minimum order, usage limit, and demo-admin view-only restrictions.
+- **AI Listing Assistant** — sellers enter a rough prompt (e.g. _"boat airdopes 141 wireless earbuds"_) and an LLM (`openai/gpt-oss-120b` via Groq) instantly auto-fills the entire form with an optimized title, category, description, INR price, bullet highlights, and shipping policy.
 - **Heuristic recommendation engine** — related, frequently-bought-together, and personalized recommendations built from order co-occurrence and user signals. No paid ML service. Fully explainable.
 - **Seller workflow** — not just a product CRUD. Sellers apply, wait for admin approval, and can only manage their own products. Ownership checks are enforced at the service layer.
 
@@ -260,13 +261,14 @@ Log In → Review Seller Applications → Approve / Reject
 
 ### 🏪 Seller Features
 
-| Feature               | Details                                                                    |
-| --------------------- | -------------------------------------------------------------------------- |
-| Seller Application    | Apply from any verified account; admin is notified by email                |
-| Product Management    | Create, edit, and soft-delete products with multi-image Cloudinary upload  |
-| Ownership Enforcement | Sellers can only modify their own products — enforced at the service layer |
-| Order Management      | Update order status for items sold through your listings                   |
-| Store Settings        | Manage public store profile, contact information, and business address     |
+| Feature               | Details                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Seller Application    | Apply from any verified account; admin is notified by email                                                                    |
+| Product Management    | Create, edit, and soft-delete products with multi-image Cloudinary upload                                                      |
+| Ownership Enforcement | Sellers can only modify their own products — enforced at the service layer                                                     |
+| AI Listing Assistant  | Draft complete product listings and specifications from brief prompts using Groq (`openai/gpt-oss-120b`) with history tracking |
+| Order Management      | Update order status for items sold through your listings                                                                       |
+| Store Settings        | Manage public store profile, contact information, and business address                                                         |
 
 ### 🔐 Admin Features
 
@@ -540,6 +542,8 @@ Seller        POST /api/seller/apply
               GET  /api/seller/orders
               GET  /api/seller/profile
               PATCH /api/seller/profile
+              POST /api/seller/listing-assistant/generate
+              GET  /api/seller/listing-assistant/drafts
 
 Admin         GET  /api/admin/sellers
               PATCH /api/admin/sellers/:id
