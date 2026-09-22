@@ -1,5 +1,9 @@
 import { Router } from "express";
 import {
+  generateListing,
+  getSellerDrafts,
+} from "../controllers/listingAssistant.controller";
+import {
   applyForSeller,
   getSellerOrders,
   getSellerProducts,
@@ -55,6 +59,24 @@ router.patch(
   requireVerifiedEmail,
   requireRole("seller"),
   updateSellerProfile,
+);
+
+// GET /api/seller/listing-assistant/drafts
+router.get(
+  "/listing-assistant/drafts",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  getSellerDrafts,
+);
+
+// POST /api/seller/listing-assistant/generate
+router.post(
+  "/listing-assistant/generate",
+  verifyToken,
+  requireVerifiedEmail,
+  requireRole("seller"),
+  generateListing,
 );
 
 export default router;

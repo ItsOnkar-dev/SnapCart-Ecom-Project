@@ -53,6 +53,7 @@ _Node.js · Express 5 · TypeScript · MongoDB · JWT · Cloudinary · Resend ·
 ✅ Email verification    SHA-256 hash stored, raw token delivered, 10-minute expiry
 ✅ Demo email mode       Returns verification URL in API response — no paid sender domain needed
 ✅ Google OAuth          Account linking by email prevents duplicate users
+✅ AI Listing Assistant  Generates complete product listings from brief notes using Groq (openai/gpt-oss-120b)
 ✅ Checkout integrity    Guarded stock updates + order snapshots + payment recovery
 ✅ Heuristic recs        Related, frequently-bought, personalized — no paid ML service
 ✅ Seller workflow       Apply → admin approve → manage products with ownership checks
@@ -157,6 +158,7 @@ backend/
 │   │   ├── payment.controller.ts      Razorpay order creation and webhook
 │   │   ├── product.controller.ts      Product CRUD, catalog query, image upload
 │   │   ├── recommendation.controller.ts  Recommendation endpoint
+│   │   ├── listingAssistant.controller.ts AI listing generation & drafts history
 │   │   ├── review.controller.ts       Verified-purchase reviews
 │   │   ├── seller.controller.ts       Seller application, profile, and listing management
 │   │   ├── wishlist.controller.ts     Wishlist, public sharing, email sharing
@@ -174,6 +176,7 @@ backend/
 │   │   ├── cart.model.ts
 │   │   ├── coupon.model.ts
 │   │   ├── order.model.ts
+│   │   ├── listingDraft.model.ts
 │   │   ├── product.model.ts
 │   │   ├── review.model.ts
 │   │   ├── user.model.ts
@@ -183,6 +186,7 @@ backend/
 │   │
 │   ├── scripts/
 │   │   └── seed.dev.ts               Development seed script
+│   │   └── bootstrap.admin.ts        Idempotent startup script
 │   │
 │   ├── services/                      Business logic and ownership checks
 │   │   ├── cart.service.ts           Cart totals and stock validation
@@ -190,6 +194,7 @@ backend/
 │   │   ├── order.service.ts          Checkout logic with guarded stock updates
 │   │   ├── product.service.ts        Product ownership and image handling
 │   │   ├── recommendation.service.ts Scoring engine (related / bought / personalized)
+│   │   ├── listingAssistant.service.ts Groq LLM completion service (openai/gpt-oss-120b)
 │   │   ├── review.service.ts         Rating recalculation
 │   │   ├── seller.service.ts         Seller application workflow
 │   │   └── wishlist.service.ts       Wishlist sharing and email helpers
@@ -242,6 +247,9 @@ cp .env.example .env
 | `GOOGLE_CLIENT_ID`             | ✅       | From Google Cloud Console                                                             |
 | `GOOGLE_CLIENT_SECRET`         | ✅       | From Google Cloud Console                                                             |
 | `GOOGLE_CALLBACK_URL`          | ✅       | e.g. `http://localhost:5000/api/auth/google/callback`                                 |
+| `AI_API_KEY`                   | ✅       | Groq API key (`gsk_...`)                                                              |
+| `AI_BASE_URL`                  | Optional | OpenAI-compatible base URL (default: `https://api.groq.com/openai/v1`)                |
+| `AI_MODEL`                     | Optional | LLM identifier (default: `openai/gpt-oss-120b`)                                       |
 | `CLOUDINARY_CLOUD_NAME`        | ✅       | From Cloudinary dashboard                                                             |
 | `CLOUDINARY_API_KEY`           | ✅       | From Cloudinary dashboard                                                             |
 | `CLOUDINARY_API_SECRET`        | ✅       | From Cloudinary dashboard                                                             |
@@ -378,13 +386,15 @@ All routes are prefixed with `/api`. State-changing routes (POST, PATCH, PUT, DE
 
 ### Seller
 
-| Method | Path               | Auth            | Description                                  |
-| ------ | ------------------ | --------------- | -------------------------------------------- |
-| POST   | `/seller/apply`    | Auth            | Submit application (verified email required) |
-| GET    | `/seller/products` | Auth            | List the current seller's products           |
-| GET    | `/seller/orders`   | Auth            | List orders containing the seller's products |
-| GET    | `/seller/profile`  | Seller+Verified | Get seller store profile and business info   |
-| PATCH  | `/seller/profile`  | Seller+Verified | Update seller store profile details          |
+| Method | Path                                 | Auth            | Description                                             |
+| ------ | ------------------------------------ | --------------- | ------------------------------------------------------- |
+| POST   | `/seller/apply`                      | Auth            | Submit application (verified email required)            |
+| GET    | `/seller/products`                   | Auth            | List the current seller's products                      |
+| GET    | `/seller/orders`                     | Auth            | List orders containing the seller's products            |
+| GET    | `/seller/profile`                    | Seller+Verified | Get seller store profile and business info              |
+| PATCH  | `/seller/profile`                    | Seller+Verified | Update seller store profile details                     |
+| POST   | `/seller/listing-assistant/generate` | Seller+Verified | Generate structured product listing from a rough prompt |
+| GET    | `/seller/listing-assistant/drafts`   | Seller+Verified | Fetch the seller's 10 most recent generated drafts      |
 
 ### Admin
 

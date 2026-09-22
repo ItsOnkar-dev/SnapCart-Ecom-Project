@@ -40,6 +40,13 @@ const envSchema = z
       .string()
       .url("GOOGLE_CALLBACK_URL must be a valid URL"),
 
+    AI_API_KEY: z.string().min(1, "AI_API_KEY is required"),
+    AI_BASE_URL: z
+      .string()
+      .url("AI_BASE_URL must be a valid URL")
+      .default("https://api.groq.com/openai/v1"),
+    AI_MODEL: z.string().default("openai/gpt-oss-120b"),
+
     RESEND_API_KEY: z.string().optional(),
     RESEND_FROM_EMAIL: z
       .string()
@@ -119,6 +126,12 @@ export const env = {
     clientId: parsedEnv.data.GOOGLE_CLIENT_ID,
     clientSecret: parsedEnv.data.GOOGLE_CLIENT_SECRET,
     callbackUrl: parsedEnv.data.GOOGLE_CALLBACK_URL,
+  },
+
+  ai: {
+    apiKey: parsedEnv.data.AI_API_KEY,
+    baseUrl: parsedEnv.data.AI_BASE_URL,
+    model: parsedEnv.data.AI_MODEL,
   },
 
   email: {
